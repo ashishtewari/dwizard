@@ -1,0 +1,11 @@
+# Maven
+target/
+dependency-reduced-pom.xml
+pom.xml
+
+# Eclipse
+.settings/
+.classpath
+.project
+
+logs
