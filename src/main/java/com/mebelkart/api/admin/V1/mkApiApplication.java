@@ -1,27 +1,27 @@
-package com.mebelkart.api.admin;
+package com.mebelkart.api.admin.V1;
 
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-public class mk_APIApplication extends Application<mk_APIConfiguration> {
+public class mkApiApplication extends Application<mkApiConfiguration> {
 
     public static void main(final String[] args) throws Exception {
-        new mk_APIApplication().run(args);
+        new mkApiApplication().run(args);
     }
 
     @Override
     public String getName() {
-        return "mk_API";
+        return "mkApi";
     }
 
     @Override
-    public void initialize(final Bootstrap<mk_APIConfiguration> bootstrap) {
+    public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
         // TODO: application initialization
     }
 
     @Override
-    public void run(final mk_APIConfiguration configuration,
+    public void run(final mkApiConfiguration configuration,
                     final Environment environment) {
         // TODO: implement application
     }
