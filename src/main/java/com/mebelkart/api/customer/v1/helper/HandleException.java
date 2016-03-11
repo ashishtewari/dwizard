@@ -3,8 +3,6 @@
  */
 package com.mebelkart.api.customer.v1.helper;
 
-
-
 /**
  * @author Nikky-Akky
  *
@@ -20,6 +18,9 @@ public class HandleException {
 		this.message = message;
 	}
 
+	/**
+	 * It returns the null value exception to the user in json format
+	 */
 	public ChangeToJson getNullValueException() {
 		String content = "";
 		message = "HTTP " + statusCode + " " + message
@@ -29,7 +30,9 @@ public class HandleException {
 
 	}
 
-
+	/**
+	 * It returns the query parameters null exception to the user in json format
+	 */
 	public ChangeToJson getNoQueryParamsException() {
 		// TODO Auto-generated method stub
 		String content = "";
@@ -38,6 +41,9 @@ public class HandleException {
 		return result;
 	}
 
+	/**
+	 * It returns the unauthorized exception to the user in json format
+	 */
 	public ChangeToJson getUnAuthorizedException() {
 		// TODO Auto-generated method stub
 		String content = "";
@@ -47,6 +53,9 @@ public class HandleException {
 		return result;
 	}
 
+	/**
+	 * It returns the api access limit exceeded exception to the user in json format
+	 */
 	public ChangeToJson getAccessLimitExceededException() {
 		// TODO Auto-generated method stub
 		String content = "";

@@ -16,9 +16,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import com.mebelkart.api.customer.v1.core.CustomerApiAuthentication;
-import com.mebelkart.api.customer.v1.core.CustomerWrapper;
-import com.mebelkart.api.customer.v1.dao.CustomerDAO;
+import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.helper.ChangeToJson;
 import com.mebelkart.api.customer.v1.helper.HandleException;
 
@@ -31,10 +34,10 @@ import com.mebelkart.api.customer.v1.helper.HandleException;
 @Produces({ MediaType.APPLICATION_JSON })
 public class CustomerResource {
 	
-	//CustomerDAO customer;
+	CustomerAuthenticationDAO customer;
 	
-	public CustomerResource(){
-		//this.customer = customer;
+	public CustomerResource(CustomerAuthenticationDAO customer){
+		this.customer = customer;
 	}
 	
 	@GET
@@ -45,42 +48,57 @@ public class CustomerResource {
 		return result;
 		
 	}
+	/**
+	 * Returns the customer details as per requested parameters
+	 */
+	@GET
+	@Path("/getDetails")
+	public Object getCustomerDetails(@HeaderParam("apikey")String key,@QueryParam("customerid")String customerId){
+		JSONParser parser = new JSONParser();
+		JSONObject obj = null;
+		try {
+			obj = (JSONObject) parser.parse(key);
+			key = (String) obj.get("key");
+			System.out.println("key = "+key +","+ "customerId = " + customerId);
+			try {
+				CustomerApiAuthentication authentication = new CustomerApiAuthentication(customer,key);
+				if (authentication.isAuthKeyValid()) {
+					if (authentication.isCustomerPermitted(1)) {
+						ChangeToJson json = new ChangeToJson(200, "success", "hello World");
+						return json;
+					} else {
+						HandleException exception = new HandleException(
+								Response.Status.NOT_ACCEPTABLE.getStatusCode(),
+								Response.Status.NOT_ACCEPTABLE
+										.getReasonPhrase());
+						return exception.getAccessLimitExceededException();
+					}
+				} else {
+					HandleException exception = new HandleException(
+							Response.Status.UNAUTHORIZED.getStatusCode(),
+							Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getUnAuthorizedException();
+				}
+			} catch (Exception e) {
+				HandleException exception = new HandleException(
+						Response.Status.BAD_REQUEST.getStatusCode(),
+						Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getNullValueException();
+			}
+		
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			//e1.printStackTrace();g
+			System.out.println("entered in first try block");
+			HandleException exception = new HandleException(
+					Response.Status.BAD_REQUEST.getStatusCode(),
+					Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getNullValueException();
+		}
+		
+		
+	}
 	
-//	@Path("/details")
-//	public Object getCustomerDetails(@HeaderParam("apikey")String key,@QueryParam("")String paramaeters){
-//		CustomerApiAuthentication authentication = new CustomerApiAuthentication(customer,key);
-//		try {
-//			if (authentication.isAuthKeyValid()) {
-//				if (authentication.isCustomerPermitted(0)) {
-////					List<CustomerWrapper> product_details = this.customer
-////							.findAll();
-////					customer.updateCount(key);
-////					return new ChangeToJson(200, "Test Success",
-////							product_details);
-//					return null;
-//				} else {
-//					HandleException exception = new HandleException(
-//							Response.Status.NOT_ACCEPTABLE.getStatusCode(),
-//							Response.Status.NOT_ACCEPTABLE
-//									.getReasonPhrase());
-//					return exception.getAccessLimitExceededException();
-//				}
-//			} else {
-//				HandleException exception = new HandleException(
-//						Response.Status.UNAUTHORIZED.getStatusCode(),
-//						Response.Status.UNAUTHORIZED.getReasonPhrase());
-//				return exception.getUnAuthorizedException();
-//			}
-//		} catch (Exception e) {
-//			HandleException exception = new HandleException(
-//					Response.Status.BAD_REQUEST.getStatusCode(),
-//					Response.Status.BAD_REQUEST.getReasonPhrase());
-//			return exception.getNullValueException();
-//		}
-//	
-//		
-//	}
-//	
 	
 
 	
