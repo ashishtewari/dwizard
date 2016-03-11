@@ -12,20 +12,34 @@ import io.dropwizard.setup.Environment;
 
 public class mkApiApplication extends Application<mkApiConfiguration> {
 
+    /**
+     * args will be server and relavant config file
+     * @param args
+     * @throws Exception
+     */
     public static void main(final String[] args) throws Exception {
         new mkApiApplication().run(args);
     }
 
+    /* (non-Javadoc)
+     * @see io.dropwizard.Application#getName()
+     */
     @Override
     public String getName() {
         return "mkApi";
     }
 
+    /* (non-Javadoc)
+     * @see io.dropwizard.Application#initialize(io.dropwizard.setup.Bootstrap)
+     */
     @Override
     public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
         // TODO: application initialization
     }
 
+    /* (non-Javadoc)
+     * @see io.dropwizard.Application#run(io.dropwizard.Configuration, io.dropwizard.setup.Environment)
+     */
     @Override
     public void run(final mkApiConfiguration configuration,
                     final Environment environment) {

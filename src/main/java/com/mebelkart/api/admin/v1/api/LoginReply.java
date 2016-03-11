@@ -1,9 +1,19 @@
 package com.mebelkart.api.admin.v1.api;
 
+/**
+ * @author Tinku
+ *
+ */
 public class LoginReply {
-	public int login_status;
-    public LoginReply(int login_status)
+	/**
+	 * status
+	 */
+	public int status;
+    /**
+     * @param status
+     */
+    public LoginReply(int status)
     {
-    	this.login_status = login_status;
+    	this.status = status;
     }
 }

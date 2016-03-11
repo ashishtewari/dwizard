@@ -1,10 +1,12 @@
 # Maven
 target/
 dependency-reduced-pom.xml
-pom.xml
+javadoc.xml
 
 # Eclipse
 .settings/
+doc/
+javadoc.xml
 .classpath
 .project
 

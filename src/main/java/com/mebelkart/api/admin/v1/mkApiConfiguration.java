@@ -14,11 +14,17 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private DataSourceFactory database = new DataSourceFactory();
 
+	/**
+	 * @param factory
+	 */
 	@JsonProperty("database")
 	public void setDataSourceFactory(DataSourceFactory factory) {
 		this.database = factory;
 	}
 
+	/**
+	 * @return
+	 */
 	@JsonProperty("database")
 	public DataSourceFactory getDataSourceFactory() {
 		return database;
