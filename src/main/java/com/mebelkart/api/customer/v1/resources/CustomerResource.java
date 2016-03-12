@@ -19,8 +19,8 @@ import javax.ws.rs.core.Response;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
+import com.mebelkart.api.customer.v1.core.CustomerApiAuthentication;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
@@ -32,7 +32,7 @@ import com.mebelkart.api.customer.v1.helper.HandleException;
  *
  */
 
-@Path("/customer")
+@Path("/v1/customer")
 @Produces({ MediaType.APPLICATION_JSON })
 public class CustomerResource {
 	
@@ -45,30 +45,45 @@ public class CustomerResource {
 	}
 	
 	@GET
-	@Path("/test")
-	public Object test(){
-		ChangeToJson result = new ChangeToJson(200, "Success", "hello World");
-		return result;
-		
+	@Path("")
+	public ChangeToJson noQueryParams() {
+		HandleException exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+		return exception.getNoQueryParamsException();
 	}
+	
 	/**
 	 * Returns the customer details as per requested parameters
 	 */
 	@GET
 	@Path("/getDetails")
-	public Object getCustomerDetails(@HeaderParam("apikey")String key,@QueryParam("customerid")int customerId){
+	public Object getCustomerDetails(@HeaderParam("apikey")String apiKey,@QueryParam("customerid")int customerId){
 		JSONParser parser = new JSONParser();
 		JSONObject obj = null;
 		try {
-			obj = (JSONObject) parser.parse(key);
-			key = (String) obj.get("key");
+			obj = (JSONObject) parser.parse(apiKey);
+			apiKey = (String) obj.get("apikey");
+			try {
+				CustomerApiAuthentication authentication = new CustomerApiAuthentication(customerAuth,apiKey);
+				if (authentication.isAuthKeyValid()) {
+					if (authentication.isCustomerPermitted(1)) {
 					List<CustomerDetailsWrapper>productDetails = customerDetails.getCustomerDetails(customerId);
 						return new ChangeToJson(200,"success",productDetails);
+					} else {
+						HandleException exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+						return exception.getAccessLimitExceededException();
+					}
+				} else {
+					HandleException exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getUnAuthorizedException();
+				}
+			} catch (Exception e) {
+				HandleException exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getNullValueException();
+			}
 		
-		} catch (ParseException e1) {
-			HandleException exception = new HandleException(
-					Response.Status.BAD_REQUEST.getStatusCode(),
-					Response.Status.BAD_REQUEST.getReasonPhrase());
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			HandleException exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getNullValueException();
 		}
 		

@@ -29,10 +29,7 @@ public class CustomerApiAuthentication {
 	 * It validates the apikey given by the user. 
 	 */
 	public boolean isAuthKeyValid() {
-		System.out.println("entered in auth key valid");
 		List<CustomerAuthenticatonWrapper> list = this.authentication.isCustomerValid(key.trim());
-		System.out.println("key = " + key);
-		System.out.println("size = "+list.size());
 		if (list.size() > 0 && key != "") {
 			return true;
 		}
@@ -46,7 +43,6 @@ public class CustomerApiAuthentication {
 	 */
 	public boolean isCustomerPermitted(int authValue){
 		List<CustomerAuthenticatonWrapper> list = this.authentication.isCustomerValid(key.trim());
-		System.out.println("auth value = " + list.get(0).getIsHavingGetPermission());
 		if(list.get(0).getIsHavingGetPermission() == authValue){
 			return true;
 		}

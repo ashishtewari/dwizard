@@ -32,10 +32,10 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			final Environment environment) {
 		// TODO: implement application
 		final DBIFactory factory = new DBIFactory();
-		final DBI jdbi = factory.build(environment,
-				configuration.getDataSourceFactory(), "mysql");
-		final CustomerAuthenticationDAO customerAuthdao = jdbi.onDemand(CustomerAuthenticationDAO.class);
-		final CustomerDetailsDAO customerDao = jdbi.onDemand(CustomerDetailsDAO.class);
+		final DBI jdbi1 = factory.build(environment,configuration.getDatabase1(), "mk_api");
+		final DBI jdbi2 = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		final CustomerAuthenticationDAO customerAuthdao = jdbi1.onDemand(CustomerAuthenticationDAO.class);
+		final CustomerDetailsDAO customerDao = jdbi2.onDemand(CustomerDetailsDAO.class);
 		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
 	}
 
