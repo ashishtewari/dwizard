@@ -25,6 +25,7 @@ public class CustomerApiAuthentication {
 	}
 
 	/**
+	 * @return
 	 * It validates the apikey given by the user. 
 	 */
 	public boolean isAuthKeyValid() {
@@ -39,6 +40,7 @@ public class CustomerApiAuthentication {
 	}
 	
 	/**
+	 * @return
 	 * It checks whether the customer has permission to access the requests like GET,POST,PUT and DELETE.
 	 * and it returns boolean result.
 	 */

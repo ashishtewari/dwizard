@@ -1,7 +1,9 @@
 package com.mebelkart.api.customer.v1;
 
 import org.skife.jdbi.v2.DBI;
+
 import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
+import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
 
 import io.dropwizard.Application;
@@ -13,7 +15,6 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	public static void main(final String[] args) throws Exception {
 		new mkApiApplication().run(args);
-		System.out.println("args = " +args);
 	}
 
 	@Override
@@ -33,8 +34,9 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final DBIFactory factory = new DBIFactory();
 		final DBI jdbi = factory.build(environment,
 				configuration.getDataSourceFactory(), "mysql");
-		final CustomerAuthenticationDAO dao = jdbi.onDemand(CustomerAuthenticationDAO.class);
-		environment.jersey().register(new CustomerResource(dao));
+		final CustomerAuthenticationDAO customerAuthdao = jdbi.onDemand(CustomerAuthenticationDAO.class);
+		final CustomerDetailsDAO customerDao = jdbi.onDemand(CustomerDetailsDAO.class);
+		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
 	}
 
 }
