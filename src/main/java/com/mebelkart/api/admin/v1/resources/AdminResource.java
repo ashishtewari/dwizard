@@ -1,7 +1,5 @@
 package com.mebelkart.api.admin.v1.resources;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,14 +12,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-import org.json.simple.parser.JSONParser;
 
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
-import com.mebelkart.api.admin.v1.api.LoginReply;
+import com.mebelkart.api.admin.v1.util.HelperMethods;
+import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
+import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
+import com.mebelkart.api.admin.v1.api.SubStatusReply;
 import com.mebelkart.api.admin.v1.api.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
@@ -37,6 +35,10 @@ public class AdminResource {
 	 * auth
 	 */
 	AdminDAO auth;
+	/**
+	 * helper
+	 */
+	HelperMethods helper = new HelperMethods();
 
 	/**
 	 * @param auth
@@ -46,222 +48,254 @@ public class AdminResource {
 	}
 
 	/**
-	 * @return
-	 */
-	@GET
-	@Path("")
-	public Object noQueryParamsGet() {
-		return new Reply(100, "No Path Specified", new LoginReply(0));
-	}
-
-	@POST
-	@Path("")
-	public Object noQueryParamsPost() {
-		return new Reply(100, "No Path Specified", new LoginReply(0));
-	}
-
-	/**
-	 * @param key
-	 * @return
+	 * This is the Get method accessed by admin to see their privilages
+	 * @param key of type JsonString send via HeaderParams
+	 * @return Object
 	 */
 	@GET
 	@Path("/login")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getLoginDetails(@HeaderParam("parameters") String key) {
-		JSONObject obj = jsonParser(key);
+	public Object getLoginDetails(@HeaderParam("parameters") String userDetails) {
+		JSONObject obj = helper.jsonParser(userDetails);
 		String username = (String) obj.get("a_user_name");
 		String password = MD5Encoding.encrypt((String) obj.get("a_password"));
 		long level = (long) obj.get("a_admin_level");
 		List<Admin> admin_details = this.auth.login(username, password, level);
 		if (admin_details.isEmpty()) {
 			return new Reply(401, "Login Fail Invalid Credentials",
-					new LoginReply(0));
+					new SubStatusReply(0, "Failure"));
 		} else {
-			return new Reply(200, "Test Success", new LoginReply(1));
+			return new Reply(200, "Test Success", new SubStatusReply(1, "Success"));
 		}
 	}
 
 	/**
-	 * @param key
-	 * @return
+	 * This is the Post method accessed by path HOST/v1.0/admin/registerUser
+	 * This method calls registerConsumer to create new consumers and later on success 
+	 * calls assigningConsumerPermission to assign permissions 
+	 * @param key of type String, Consists accessToken of Admin sent via HeaderParams
+	 * @param request of type Json, sent via Body raw
+	 * @return Object
 	 */
+	
+	@SuppressWarnings({ "unchecked" })
 	@POST
-	@Path("/addUser")
+	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addUsers(@HeaderParam("accessToken") String key,
-			@Context HttpServletRequest request) {
+	public Object registerUser(@HeaderParam("accessToken") String key,@Context HttpServletRequest request) {
 		int accessLevel = this.auth.validate(key);
-		JSONObject obj = contextRequest(request);
-		System.out.println((String) obj.get("type"));
+		JSONObject obj = helper.contextRequest(request);
+		String generateduserAccessToken = helper.generateRandomAccessToken();
+		String generatedpassword = helper.generateRandomPassword();
+		obj.put("accessToken",generateduserAccessToken);
+		obj.put("password", generatedpassword);
 		if (((String) obj.get("type")).equals("admin") && accessLevel == 1) {
-
-		} else if (((String) obj.get("type")).equals("consumer")
-				&& (accessLevel == 1 || accessLevel == 2)) {
-			System.out.println("Entered into Consumer");
-			int id = addConsumer(obj);
+			int id = registerAdmin(obj);
 			if (id != 0) {
-				int status = addPermission(obj, id);
-				return checkStatus(status);
+				int status = assigningPermission(obj, id);
+				if(status == 1)
+					return new Reply(206, "Successfully inserted and given permissions to admin",new PartialAdminDataReply(1,generateduserAccessToken,generatedpassword,(String)obj.get("userName")));
+				else
+					return helper.checkStatus(status);
 			} else {
-				return new Reply(100, "Specify Correct Type Of User Details",
-						new LoginReply(0));
+				return new Reply(406, "user Already Exists",new SubStatusReply(0,"Failure"));
 			}
-			// this.auth.addConsumer(username, password, level);
+		} else if (((String) obj.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+			int id = registerConsumer(obj);
+			if (id != 0) {
+				int status = assigningPermission(obj, id);
+				if(status == 1)
+					return new Reply(206, "Successfully inserted and given permissions to Consumer",new PartialConsumerDataReply(1,generateduserAccessToken,(String)obj.get("userName")));
+				else
+					return helper.checkStatus(status);
+			} else {
+				return new Reply(406, "user Already Exists",new SubStatusReply(0,"Failure"));
+			}
 		} else {
-			return new Reply(100, "Specify Correct Type/Key", new LoginReply(0));
+			return new Reply(401, "You are not autherized", new SubStatusReply(0,"Failure"));
 		}
-		return key;
 	}
 
+	/**
+	 * This is the Post method accessed by path HOST/v1.0/admin/assignPermissions
+	 * This method calls assigningConsumerPermission to assign permissions if user already exists
+	 * @param key of type String, Consists accessToken of Admin sent via HeaderParams
+	 * @param request of type Json, sent via Body raw
+	 * @return Object
+	 */
 	@POST
-	@Path("/addPermissions")
+	@Path("/assignPermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addPermissions(@HeaderParam("accessToken") String key,
-			@Context HttpServletRequest request) {
+	public Object assignPermissions(@HeaderParam("accessToken") String key,@Context HttpServletRequest request) {
 		int accessLevel = this.auth.validate(key);
-		JSONObject obj = contextRequest(request);
+		JSONObject obj = helper.contextRequest(request);
 		if (((String) obj.get("type")).equals("admin") && accessLevel == 1) {
-
-		} else if (((String) obj.get("type")).equals("consumer")
-				&& (accessLevel == 1 || accessLevel == 2)) {
-			int id = this.auth.getConsumerId((String) obj.get("accessToken"));
-			System.out.println(id);
-			int status = addPermission(obj, id);
-			return checkStatus(status);
-			// this.auth.login(username, password, level);
+			if(isAdminUserNameAlreadyExists((String) obj.get("adminEmail"))){
+				int id = this.auth.getAdminId((String) obj.get("adminEmail"));
+				int status = assigningPermission(obj, id);
+				return helper.checkStatus(status);
+			}
+			else{
+				return new Reply(404, "UserName not found", new SubStatusReply(0,"Failure"));
+			}
+		} else if (((String) obj.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+			if(isConsumerUserNameAlreadyExists((String) obj.get("userName"))){
+				int id = this.auth.getConsumerId((String) obj.get("userName"));
+				int status = assigningPermission(obj, id);
+				return helper.checkStatus(status);
+			}
+			else{
+				return new Reply(404, "UserName not found", new SubStatusReply(0,"Failure"));
+			}
 		} else {
-			return new Reply(100, "Specify Correct Type", new LoginReply(0));
+			return new Reply(400, "Specify Correct Type of User", new SubStatusReply(0,"Failure"));
 		}
-		return key;
 	}
 
 	/**
-	 * @param key
-	 * @return
+	 * Checks if consumer userName is already present in table. 
+	 * We are using this to avoid duplicates
+	 * @param userName
+	 * @return boolean
 	 */
-	public JSONObject jsonParser(String key) {
-		JSONParser parser = new JSONParser();
-		JSONObject obj = null;
-		try {
-			obj = (JSONObject) parser.parse(key);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return obj;
-	}
-
-	/**
-	 * @param request
-	 * @return
-	 */
-	public JSONObject contextRequest(HttpServletRequest request) {
-		InputStream inputStream = null;
-		String theString = null;
-		try {
-			inputStream = request.getInputStream();
-			theString = IOUtils.toString(inputStream, "UTF-8");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return jsonParser(theString);
-	}
-
-	public Object checkStatus(int status) {
-		if (status == 0) {
-			return new Reply(100, "Specify Correct Type Of User Permissions",
-					new LoginReply(0));
-		} else if (status == 1) {
-			return new Reply(401, "Given Permissions Successfully",
-					new LoginReply(1));
-		} else if (status == 2) {
-			return new Reply(100, "Specify Correct Fields in User Permissions",
-					new LoginReply(0));
-		} else if (status == 3) {
-			return new Reply(100,
-					"Specify Correct Type Of User resourceId and Permission",
-					new LoginReply(0));
-		} else if (status == 4) {
-			return new Reply(100, "Specify Correct Fields in User Permission",
-					new LoginReply(0));
-		} else if (status == 5) {
-			return new Reply(100, "Specify Correct Type Of User Request",
-					new LoginReply(0));
+	private boolean isConsumerUserNameAlreadyExists(String userName) {
+		if (userName.equals(this.auth.isConsumerUserNameAlreadyExists(userName))) {
+			return true;
 		} else
-			return new Reply(100, "Unknown Error in Check Status",
-					new LoginReply(0));
+			return false;
+	}
+	
+	private boolean isAdminUserNameAlreadyExists(String userName){
+		if (userName.equals(this.auth.isAdminUserNameAlreadyExists(userName))) {
+			return true;
+		} else
+			return false;
 	}
 
 	/**
+	 * This method registers new consumers
 	 * @param obj
-	 * @return
+	 * @return int
 	 */
-	public int addConsumer(JSONObject obj) {
-		System.out.println("Entered into addConsumer");
-		if (obj.containsKey("userName") && obj.containsKey("accessToken")
-				&& obj.containsKey("countAssigned")) {
-			System.out.println("Entered into addConsumer If Conditon");
-			int id = this.auth.addConsumer((String) obj.get("userName"),
-					(String) obj.get("accessToken"),
-					(long) obj.get("countAssigned"));
-			System.out
-					.println("Entered into addConsumer If Conditon and Executed Query");
+	private int registerConsumer(JSONObject obj) {
+		System.out.println("In register Consumer");
+		if (obj.containsKey("userName")	&& obj.containsKey("accessToken") && obj.containsKey("countAssigned") && helper.emailIsValid((String) obj.get("userName")) && !isConsumerUserNameAlreadyExists((String) obj.get("userName"))) {
+			System.out.println("In IF");
+			int id = this.auth.addConsumer((String) obj.get("userName"),(String) obj.get("accessToken"),(long) obj.get("countAssigned"));
+			System.out.println("Exeuted Query");
 			return id;
 		} else
 			return 0;
 	}
-
+	
 	/**
+	 * This method registers new Admins
 	 * @param obj
+	 * @return
+	 */
+	public int registerAdmin(JSONObject obj){
+		System.out.println("In register Admin");
+		if (obj.containsKey("userName")	&& obj.containsKey("accessToken") && obj.containsKey("password") && helper.emailIsValid((String) obj.get("userName")) && !isAdminUserNameAlreadyExists((String) obj.get("userName"))) {
+			System.out.println("In IF");
+			int id = this.auth.addAdmin((String) obj.get("userName"),MD5Encoding.encrypt((String) obj.get("password")),(String) obj.get("accessToken"));
+			System.out.println("Exeuted Query");
+			return id;
+		} else
+			return 0;
+	}
+	
+	/**
+	 * This method checks whether there is any resource permission is assigned to consumer or not
+	 * @param resourceId
 	 * @param consumerId
 	 * @return
 	 */
-	@SuppressWarnings("unused")
-	public int addPermission(JSONObject obj, int consumerId) {
+	private boolean isPermissionExists(long resourceId,long consumerId){
+		if(this.auth.isPermissionExists(resourceId, consumerId) != 0){
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	/**
+	 * This method will give permission to Admin and Consumer in both Update and Insert operations
+	 * @param to
+	 * @param type
+	 * @param resourceId
+	 * @param consumerId
+	 * @param permissions
+	 * @return
+	 */
+	private int givePermission(String to,String type,long resourceId,long consumerId,JSONObject permissions){
+		long get = 0,post = 0,put = 0,delete = 0;
+		JSONArray requestArray = (JSONArray) permissions.get("permission");
+		String[] permission = new String[requestArray.size()];
+		for (int k = 0; k < permission.length; k++)
+			permission[k] = (String) requestArray.get(k);
+		if (permission.length == 0) {
+			return 4;
+		} else {
+			for (int j = 0; j < permission.length; j++) {
+				if (permission[j].toUpperCase().equals("GET")) {
+					get = 1;
+				} else if (permission[j].toUpperCase().equals(
+						"POST")) {
+					post = 1;
+				} else if (permission[j].toUpperCase().equals(
+						"PUT")) {
+					put = 1;
+				} else if (permission[j].toUpperCase().equals(
+						"DELETE")) {
+					delete = 1;
+				} else {
+					return 5;
+				}
+			}
+			if(to.equals("consumer")){
+				if(type.equals("insert"))
+					this.auth.insertConsumerPermission(resourceId,consumerId, get, post, put, delete);
+				else if(type.equals("update"))
+					this.auth.updateConsumerPermission(resourceId,consumerId, get, post, put, delete);
+			}else if(to.equals("admin")){
+				if(type.equals("insert"))
+					this.auth.insertAdminPermission(resourceId,consumerId, get, post, put, delete);
+				else if(type.equals("update"))
+					this.auth.updateAdminPermission(resourceId,consumerId, get, post, put, delete);
+			}
+			return 1;
+		}
+	}
+
+	/**
+	 * This method assigns resource permissions to the consumers/admin
+	 * @param obj
+	 * @param consumerId
+	 * @return int
+	 */
+	private int assigningPermission(JSONObject obj, int consumerId) {
 		if (obj.containsKey("permissions")) {
 			JSONArray resources = (JSONArray) obj.get("permissions");
 			if (resources.size() == 0) {
 				return 2;
 			} else {
-				System.out.println("permissions array size "+resources.size());
 				for (int i = 0; i < resources.size(); i++) {
-					System.out.println("In "+(i+1)+" Iteration");
 					JSONObject permissions = (JSONObject) resources.get(i);
-					if (permissions.containsKey("resourceId")
-							&& permissions.containsKey("permission")) {
+					if (permissions.containsKey("resourceId") && permissions.containsKey("permission") && isValidResourceId((long)permissions.get("resourceId"))) {
 						long resourceId = (long) permissions.get("resourceId");
-						JSONArray requestArray = (JSONArray) permissions
-								.get("permission");
-						String[] permission = new String[requestArray.size()];
-						for (int k = 0; k < permission.length; k++)
-							permission[k] = (String) requestArray.get(k);
-						System.out.println("ResourceID is "+resourceId);
-						if (permission.length == 0) {
-							return 4;
-						} else {
-							for (int j = 0; j < permission.length; j++) {
-								if (permission[j].toUpperCase().equals("GET")) {
-									this.auth.addPermission(resourceId,
-											(long) consumerId, 1, 0, 0, 0);
-								} else if (permission[j].toUpperCase().equals(
-										"POST")) {
-									this.auth.addPermission(resourceId,
-											(long) consumerId, 0, 1, 0, 0);
-								} else if (permission[j].toUpperCase().equals(
-										"PUT")) {
-									this.auth.addPermission(resourceId,
-											(long) consumerId, 0, 0, 1, 0);
-								} else if (permission[j].toUpperCase().equals(
-										"DELETE")) {
-									this.auth.addPermission(resourceId,
-											(long) consumerId, 0, 0, 0, 1);
-								} else {
-									return 5;
-								}
-							}
+						int result_status = 0;
+						if(isPermissionExists(resourceId,(long)consumerId)){
+							result_status = givePermission((String)obj.get("type"),"update",resourceId,(long)consumerId,permissions);
+							if(result_status == 4 || result_status == 5)
+								return result_status;
 						}
+						else{
+							result_status = givePermission((String)obj.get("type"),"insert",resourceId,(long)consumerId,permissions);
+							if(result_status == 4 || result_status == 5)
+								return result_status;
+						}						
 					} else {
 						return 3;
 					}
@@ -271,4 +305,12 @@ public class AdminResource {
 		} else
 			return 0;
 	}
+	
+	public boolean isValidResourceId(long resourceId){
+		if(this.auth.isValidResource(resourceId) != 0)
+			return true;
+		else
+			return false;
+	}
+
 }
