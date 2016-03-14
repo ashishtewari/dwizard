@@ -9,23 +9,23 @@ package com.mebelkart.api.customer.v1.core;
  */
 public class CustomerAuthenticatonWrapper {
 
-	private int id,isHavingGetPermission;
+	private int customerId,isHavingGetPermission;
 	//private String firstname, lastname, email;
 
-	public CustomerAuthenticatonWrapper(int id, int isHavingPermission) {
+	public CustomerAuthenticatonWrapper(int customerId, int isHavingPermission) {
 		// TODO Auto-generated constructor stub
-		this.id = id;
-		this.isHavingGetPermission = isHavingPermission;
+		this.setCustomerId(customerId);
+		this.setIsHavingGetPermission(isHavingPermission);
 	}
 	
 
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
+//	public int getId() {
+//		return customerId;
+//	}
+//
+//	public void setId(int id) {
+//		this.customerId = id;
+//	}
 
 //	public String getFirstname() {
 //		return firstname;
@@ -57,6 +57,16 @@ public class CustomerAuthenticatonWrapper {
 
 	public void setIsHavingGetPermission(int isHavingGetPermission) {
 		this.isHavingGetPermission = isHavingGetPermission;
+	}
+
+
+	public int getCustomerId() {
+		return customerId;
+	}
+
+
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
 	}
 
 }

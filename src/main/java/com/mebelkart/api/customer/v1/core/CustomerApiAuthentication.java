@@ -16,12 +16,12 @@ public class CustomerApiAuthentication {
 	/*
 	 * authenticating the user
 	 */
-	CustomerAuthenticationDAO authentication;
-	private String key;
+	CustomerAuthenticationDAO authenticationDAO;
+	private String authenticatonKey;
 
-	public CustomerApiAuthentication(CustomerAuthenticationDAO authentication, String key) {
-		this.authentication = authentication;
-		this.key = key;
+	public CustomerApiAuthentication(CustomerAuthenticationDAO authenticationDAO, String authenticatonKey) {
+		this.authenticationDAO = authenticationDAO;
+		this.authenticatonKey = authenticatonKey;
 	}
 
 	/**
@@ -29,8 +29,8 @@ public class CustomerApiAuthentication {
 	 * It validates the apikey given by the user. 
 	 */
 	public boolean isAuthKeyValid() {
-		List<CustomerAuthenticatonWrapper> list = this.authentication.isCustomerValid(key.trim());
-		if (list.size() > 0 && key != "") {
+		List<CustomerAuthenticatonWrapper> customerAuthList = this.authenticationDAO.isCustomerValid(authenticatonKey.trim());
+		if (customerAuthList.size() > 0) {
 			return true;
 		}
 		return false;
@@ -41,9 +41,9 @@ public class CustomerApiAuthentication {
 	 * It checks whether the customer has permission to access the requests like GET,POST,PUT and DELETE.
 	 * and it returns boolean result.
 	 */
-	public boolean isCustomerPermitted(int authValue){
-		List<CustomerAuthenticatonWrapper> list = this.authentication.isCustomerValid(key.trim());
-		if(list.get(0).getIsHavingGetPermission() == authValue){
+	public boolean isCustomerPermitted(int isCustomerHaveAccessToFunction){ //isCustomerHaveAccessToFunction
+		List<CustomerAuthenticatonWrapper> customerAccessTokenlist = this.authenticationDAO.isCustomerValid(authenticatonKey.trim());
+		if(customerAccessTokenlist.get(0).getIsHavingGetPermission() == isCustomerHaveAccessToFunction){
 			return true;
 		}
 		return false;

@@ -2,6 +2,8 @@ package com.mebelkart.api.customer.v1;
 
 import org.skife.jdbi.v2.DBI;
 
+import com.github.rkmk.container.FoldingListContainerFactory;
+import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
@@ -32,10 +34,12 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			final Environment environment) {
 		// TODO: implement application
 		final DBIFactory factory = new DBIFactory();
-		final DBI jdbi1 = factory.build(environment,configuration.getDatabase1(), "mk_api");
-		final DBI jdbi2 = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
-		final CustomerAuthenticationDAO customerAuthdao = jdbi1.onDemand(CustomerAuthenticationDAO.class);
-		final CustomerDetailsDAO customerDao = jdbi2.onDemand(CustomerDetailsDAO.class);
+		final DBI mkApiDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
+		final DBI mebelkartProdDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		final CustomerAuthenticationDAO customerAuthdao = mkApiDatabaseConfiguration.onDemand(CustomerAuthenticationDAO.class);
+		final CustomerDetailsDAO customerDao = mebelkartProdDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
+		mebelkartProdDatabaseConfiguration.registerMapper(new CustomMapperFactory());
+		mebelkartProdDatabaseConfiguration.registerContainerFactory(new FoldingListContainerFactory());
 		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
 	}
 

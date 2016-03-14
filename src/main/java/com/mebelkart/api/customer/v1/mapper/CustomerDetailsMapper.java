@@ -4,7 +4,9 @@
 package com.mebelkart.api.customer.v1.mapper;
 
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
@@ -21,9 +23,16 @@ public class CustomerDetailsMapper implements ResultSetMapper<CustomerDetailsWra
  * @see org.skife.jdbi.v2.tweak.ResultSetMapper#map(int, java.sql.ResultSet, org.skife.jdbi.v2.StatementContext)
  */
 @Override
-public CustomerDetailsWrapper map(int arg0, ResultSet resultSet,
-		StatementContext arg2) throws SQLException {
+public CustomerDetailsWrapper map(int index, ResultSet resultSet,
+		StatementContext statement) throws SQLException {
 	// TODO Auto-generated method stub
-	return new CustomerDetailsWrapper(resultSet.getInt("id_customer"),resultSet.getString("firstname"),resultSet.getString("lastname"),resultSet.getString("email"),resultSet.getString("address1"),resultSet.getString("address2"),resultSet.getString("phone_mobile"),resultSet.getString("city"),resultSet.getString("postcode"),resultSet.getString("id_order"),resultSet.getString("total_paid"));
+//	HashMap<String,String> mapDb = new HashMap<String,String>();
+//	ResultSetMetaData resultMeta = resultSet.getMetaData();
+//	int count=0;
+//	while(resultSet.next()){
+//	mapDb.put(resultMeta.getColumnName(count), resultSet.getString(resultMeta.getColumnName(count)));
+//	count++;
+//	}
+	return new CustomerDetailsWrapper();
 	}
 }

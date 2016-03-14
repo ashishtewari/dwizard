@@ -3,8 +3,16 @@
  */
 package com.mebelkart.api.customer.v1.core;
 
+//import java.math.BigDecimal;
+
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.github.rkmk.annotations.ColumnName;
+import com.github.rkmk.annotations.OneToMany;
+//import com.github.rkmk.annotations.PrimaryKey;
+import com.github.rkmk.annotations.PrimaryKey;
 
 /**
  * @author Nikky-Akky
@@ -12,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  */
 @JsonInclude(Include.NON_NULL)
 public class CustomerDetailsWrapper {
-	private int customerId;
+	//private int customerId;
 	private String firstName;
 	private String lastName;
 	private String email;
@@ -21,49 +29,50 @@ public class CustomerDetailsWrapper {
 	private String mobile;
 	private String city;
 	private String postCode;
-	private String orderId;
-	private String totalPaid;
+	 @OneToMany("orders")
+	private List<CustomerOrdersWrapper> orders;
 
-	public CustomerDetailsWrapper(int int1, String firstname, String lastname,
-			String email, String address1, String address2, String mobile,
-			String city, String postcode, String orderId, String totalpaid) {
-		// TODO Auto-generated constructor stub
-		this.setCustomerId(int1);
-		this.setFirstName(firstname);
-		this.setLastName(lastname);
-		this.setEmail(email);
-		this.setAddress1(address1);
-		this.setAddress2(address2);
-		this.setMobile(mobile);
-		this.setCity(city);
-		this.setPostCode(postcode);
-		this.setOrderId(orderId);
-		this.setTotalPaid(totalpaid);
+//	public CustomerDetailsWrapper(int customerId, String firstname, String lastname,
+//			String email, String address1, String address2, String mobile,
+//			String city, String postcode, String orderId, String totalpaid) {
+//		// TODO Auto-generated constructor stub
+//		this.setCustomerId(customerId);
+//		this.setFirstName(firstname);
+//		this.setLastName(lastname);
+//		this.setEmail(email);
+//		this.setAddress1(address1);
+//		this.setAddress2(address2);
+//		this.setMobile(mobile);
+//		this.setCity(city);
+//		this.setPostCode(postcode);
+//		this.setOrderId(orderId);
+//		this.setTotalPaid(totalpaid);
+//	}
+
+	public List<CustomerOrdersWrapper> getOrders() {
+		return orders;
 	}
 
-	public String getOrderId() {
-		return orderId;
+	public void setOrders(List<CustomerOrdersWrapper> orders) {
+		this.orders = orders;
 	}
 
-	public void setOrderId(String orderId) {
-		this.orderId = orderId;
-	}
+	/**
+	 * @param bigDecimal
+	 */
+//	public CustomerDetailsWrapper(BigDecimal bigDecimal) {
+//		// TODO Auto-generated constructor stub
+//		
+//	}
 
-	public String getTotalPaid() {
-		return totalPaid;
-	}
 
-	public void setTotalPaid(String totalPaid) {
-		this.totalPaid = totalPaid;
-	}
-
-	public int getCustomerId() {
-		return customerId;
-	}
-
-	public void setCustomerId(int customerId) {
-		this.customerId = customerId;
-	}
+//	public int getCustomerId() {
+//		return customerId;
+//	}
+//
+//	public void setCustomerId(int customerId) {
+//		this.customerId = customerId;
+//	}
 
 	public String getFirstName() {
 		return firstName;

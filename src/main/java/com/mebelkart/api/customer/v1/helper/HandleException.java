@@ -25,8 +25,8 @@ public class HandleException {
 		String content = "";
 		message = "HTTP " + statusCode + " " + message
 				+ ", Specify Content-Type Correctly";
-		ChangeToJson result = new ChangeToJson(statusCode, message, content);
-		return result;
+		ChangeToJson nullValueExceptionResult = new ChangeToJson(statusCode, message, content);
+		return nullValueExceptionResult;
 
 	}
 
@@ -37,8 +37,8 @@ public class HandleException {
 		// TODO Auto-generated method stub
 		String content = "";
 		message = "HTTP " + statusCode + " Page " + message;
-		ChangeToJson result = new ChangeToJson(statusCode, message, content);
-		return result;
+		ChangeToJson noQueryParamsExceptionResult = new ChangeToJson(statusCode, message, content);
+		return noQueryParamsExceptionResult;
 	}
 
 	/**
@@ -49,8 +49,8 @@ public class HandleException {
 		String content = "";
 		message = "HTTP " + statusCode + " " + message
 				+ ", Invalid API key specified.";
-		ChangeToJson result = new ChangeToJson(statusCode, message, content);
-		return result;
+		ChangeToJson unAuthorizedExceptionResult = new ChangeToJson(statusCode, message, content);
+		return unAuthorizedExceptionResult;
 	}
 
 	/**
@@ -61,8 +61,8 @@ public class HandleException {
 		String content = "";
 		message = "HTTP " + statusCode + " " + message
 				+ ", You access limit has exceeded.";
-		ChangeToJson result = new ChangeToJson(statusCode, message, content);
-		return result;
+		ChangeToJson accessLimitExceededExceptionResult = new ChangeToJson(statusCode, message, content);
+		return accessLimitExceededExceptionResult;
 	}
 
 }
