@@ -9,6 +9,8 @@ database:
     url: jdbc:mysql://localhost:3306/mk_api
 server:
   applicationConnectors:
+    - type: http
+      port: 8080
     - type: https
       port: 8443
       keyStorePath: src/main/resources/mkapi.keystore
@@ -16,6 +18,8 @@ server:
       validateCerts: false
       validatePeers: false    
   adminConnectors:
+    - type: http
+      port: 8081
     - type: https
       port: 8444
       keyStorePath: src/main/resources/mkapi.keystore
