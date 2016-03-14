@@ -22,7 +22,7 @@ public interface AdminDAO {
 	 * @param level
 	 * @return
 	 */
-	@SqlQuery("select a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password and a_admin_level = :level")
+	@SqlQuery("select id,a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password and a_admin_level = :level")
 	@Mapper(AdminMapper.class)
 	List<Admin> login(@Bind("user_name") String user_name,
 			@Bind("password") String password, @Bind("level") long level);
@@ -122,8 +122,8 @@ public interface AdminDAO {
 	@SqlQuery("select id from mk_api_consumer where a_user_name = :userName")
 	int getConsumerId(@Bind("userName") String userName);
 	
-	@SqlQuery("select id from mk_api_user_admin where a_admin_email = :adminEmail")
-	int getAdminId(@Bind("adminEmail") String adminEmail);
+	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
+	int getAdminId(@Bind("userName") String userName);
 
 	/**
 	 * @param userName
@@ -145,8 +145,12 @@ public interface AdminDAO {
 	 * @return
 	 */
 	@SqlQuery("select a_permission_id from mk_api_resources_consumer_permission where a_resource_id = :resourceId and a_consumer_id = :consumerId")
-	int isPermissionExists(@Bind("resourceId") long resourceId,
+	int isConsumerPermissionExists(@Bind("resourceId") long resourceId,
 			@Bind("consumerId") long consumerId);
+	
+	@SqlQuery("select a_permission_id from mk_api_resources_admin_permission where a_resource_id = :resourceId and a_admin_id = :adminId")
+	int isAdminPermissionExists(@Bind("resourceId") long resourceId,
+			@Bind("adminId") long adminId);
 	
 	/**
 	 * @param resourceId

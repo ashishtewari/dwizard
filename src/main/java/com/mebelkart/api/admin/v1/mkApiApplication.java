@@ -4,6 +4,7 @@ import org.skife.jdbi.v2.DBI;
 
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.mebelkart.api.admin.v1.resources.HandleNullRequestResource;
 
 import io.dropwizard.Application;
 import io.dropwizard.jdbi.DBIFactory;
@@ -46,8 +47,9 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
         // TODO: implement application
     	final DBIFactory factory = new DBIFactory();
 	    final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
-	    final AdminDAO dao = jdbi.onDemand(AdminDAO.class);
-		environment.jersey().register(new AdminResource(dao));
+	    final AdminDAO adminDao = jdbi.onDemand(AdminDAO.class);
+		environment.jersey().register(new AdminResource(adminDao));
+		environment.jersey().register(new HandleNullRequestResource());
     }
 
 }
