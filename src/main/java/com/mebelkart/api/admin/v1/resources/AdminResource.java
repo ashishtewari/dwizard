@@ -144,7 +144,7 @@ public class AdminResource {
 	 * @return Object
 	 */
 	@PUT
-	@Path("/assignPermissions")
+	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object assignPermissions(@HeaderParam("accessToken") String key,@Context HttpServletRequest request) {
