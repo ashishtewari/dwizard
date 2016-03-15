@@ -4,7 +4,7 @@ database1:
     # the username
     user: root
     # the password
-    password: 
+    password: root
     # the JDBC URL; the database is called DWGettingStarted
     url: jdbc:mysql://localhost:3306/mk_api
 database2:
