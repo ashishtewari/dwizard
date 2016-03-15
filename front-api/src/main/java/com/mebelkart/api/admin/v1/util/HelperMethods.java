@@ -79,6 +79,7 @@ public class HelperMethods {
 	/**
 	 * It returns HTTPStatus based on status
 	 * @param status
+	 * @param msg
 	 * @return
 	 */
 	public Object checkStatus(int status, String msg) {
