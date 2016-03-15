@@ -81,23 +81,23 @@ public class HelperMethods {
 	 * @param status
 	 * @return
 	 */
-	public Object checkStatus(int status) {
+	public Object checkStatus(int status, String msg) {
 		if (status == 0) {
-			return new Reply(400, "No Permissions key specified/May be misspelled",null);
+			return new Reply(400, msg+"No Permissions key specified/May be misspelled",null);
 		} else if (status == 1) {
-			return new Reply(201, "Successfully Inserted and given Permissions",null);
+			return new Reply(201, msg+"Successfully Inserted and given Permissions",null);
 		} else if (status == 2) {
-			return new Reply(400, "Permissions array is Empty",null);
+			return new Reply(400, msg+"Permissions array is Empty",null);
 		} else if (status == 3) {
-			return new Reply(400,"Json field in Permissions array doesn't contain resourceId/permission or misspelled",null);
+			return new Reply(400, msg+"Json field in Permissions array doesn't contain resourceId/permission or misspelled",null);
 		} else if (status == 4) {
-			return new Reply(400, "Expected Permission array, Found Non-Array",null);
+			return new Reply(400, msg+"Expected Permission array, Found Non-Array",null);
 		} else if (status == 5) {
-			return new Reply(400, "The values inside permission are not correctly spelled",null);
+			return new Reply(400, msg+"The values inside permission are not correctly spelled",null);
 		} else if (status == 6) {
-			return new Reply(201, "Successfully Updated and given Permissions",null);
+			return new Reply(201, msg+"Successfully Updated and given Permissions",null);
 		} else
-			return new Reply(400, "Unknown Error in Check Status",null);
+			return new Reply(400, msg+"Unknown Error in Check Status",null);
 	}
 
 	/**
