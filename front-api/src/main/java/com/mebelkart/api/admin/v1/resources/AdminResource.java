@@ -109,7 +109,7 @@ public class AdminResource {
 						if(status == 1)
 							return new Reply(206, "Successfully inserted and given permissions to admin",new PartialAdminDataReply(1,generateduserAccessToken,generatedpassword,(String)jsonObj.get("userName")));
 						else
-							return helper.checkStatus(status);
+							return helper.checkStatus(status,"Successfully inserted but ");
 					} else {
 						return new Reply(406, "user Already Exists",null);
 					}
@@ -120,7 +120,7 @@ public class AdminResource {
 						if(status == 1)
 							return new Reply(206, "Successfully inserted and given permissions to Consumer",new PartialConsumerDataReply(1,generateduserAccessToken,(String)jsonObj.get("userName")));
 						else
-							return helper.checkStatus(status);
+							return helper.checkStatus(status,"Successfully inserted but ");
 					} else {
 						return new Reply(406, "user Already Exists",null);
 					}
@@ -156,7 +156,7 @@ public class AdminResource {
 					if(isAdminUserNameAlreadyExists((String) jsonObj.get("userName"))){
 						int id = this.auth.getAdminId((String) jsonObj.get("userName"));
 						int status = assigningPermission(jsonObj, id);
-						return helper.checkStatus(status);
+						return helper.checkStatus(status,"");
 					}
 					else{
 						return new Reply(404, "UserName not found", null);
@@ -165,7 +165,7 @@ public class AdminResource {
 					if(isConsumerUserNameAlreadyExists((String) jsonObj.get("userName"))){
 						int id = this.auth.getConsumerId((String) jsonObj.get("userName"));
 						int status = assigningPermission(jsonObj, id);
-						return helper.checkStatus(status);
+						return helper.checkStatus(status,"");
 					}
 					else{
 						return new Reply(404, "UserName not found", null);
