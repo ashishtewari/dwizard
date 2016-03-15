@@ -98,7 +98,7 @@ public class AdminResource {
 			int accessLevel = this.auth.validate(key);
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject jsonObj = helper.contextRequest(request);
-				String generateduserAccessToken = helper.generateRandomAccessToken();
+				String generateduserAccessToken = helper.generateUniqueAccessToken();
 				String generatedpassword = helper.generateRandomPassword();
 				jsonObj.put("accessToken",generateduserAccessToken);
 				jsonObj.put("password", generatedpassword);
@@ -344,11 +344,14 @@ public class AdminResource {
 			return 0;
 	}
 	
+	/**
+	 * @param resourceId
+	 * @return
+	 */
 	public boolean isValidResourceId(long resourceId){
 		if(this.auth.isValidResource(resourceId) != 0)
 			return true;
 		else
 			return false;
 	}
-
 }

@@ -17,7 +17,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.mebelkart.api.admin.v1.api.SubStatusReply;
 import com.mebelkart.api.admin.v1.api.Reply;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
@@ -36,12 +35,13 @@ public class HelperMethods {
 	 * Default Constructer
 	 */
 	public HelperMethods() {
-
+		this.auth = null;
 	}
 
 	/**
+	 * This method parse Json string to JsonObject
 	 * @param key
-	 * @return
+	 * @return JSONObject
 	 */
 	public JSONObject jsonParser(String key) {
 		JSONParser parser = new JSONParser();
@@ -55,12 +55,22 @@ public class HelperMethods {
 		return obj;
 	}
 	
+	/**
+	 * This method checks whether the JsonString provided is in valid Json format or not
+	 * @param userDetails
+	 * @return
+	 */
 	public boolean isUserDetailsValidJson(String userDetails){
 		if(jsonParser(userDetails) == null)
 			return false;
 		else return true;
 	}
 	
+	/**
+	 * Checks whether all the keys provided in JsonString are valid or not
+	 * @param userDetails
+	 * @return
+	 */
 	public boolean isUserDetailsContainsValidKeys(String userDetails){
 		JSONObject obj = jsonParser(userDetails);
 		if(obj.containsKey("userName") && obj.containsKey("password") && obj.containsKey("adminLevel"))
@@ -70,6 +80,7 @@ public class HelperMethods {
 	}
 
 	/**
+	 * It returns HTTPStatus based on status
 	 * @param status
 	 * @return
 	 */
@@ -93,35 +104,42 @@ public class HelperMethods {
 	}
 
 	/**
+	 * It converts servlet request of type Json to JsonString
 	 * @param request
 	 * @return
 	 */
 	public JSONObject contextRequest(HttpServletRequest request) {
 		InputStream inputStream = null;
-		String theString = null;
+		String jsonString = null;
 		try {
 			inputStream = request.getInputStream();
-			theString = IOUtils.toString(inputStream, "UTF-8");
+			jsonString = IOUtils.toString(inputStream, "UTF-8");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			//e.printStackTrace();
 		}
-		return jsonParser(theString);
+		return jsonParser(jsonString);
 	}
 	
 	/**
+	 * Generates unique accessToken
 	 * @return
 	 */
-	public String generateRandomAccessToken() {
+	public String generateUniqueAccessToken() {
 		// TODO Auto-generated method stub
 		return new BigInteger(130, new SecureRandom()).toString(32);
 	}
 	
+	/**
+	 * Generates random password
+	 * @return
+	 */
 	public String generateRandomPassword(){
 		return RandomStringUtils.randomAlphanumeric(5);
 	}
 
 	/**
+	 * Checks whether String is of type email
 	 * @param email
 	 * @return
 	 */

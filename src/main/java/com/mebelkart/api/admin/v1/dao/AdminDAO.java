@@ -122,6 +122,10 @@ public interface AdminDAO {
 	@SqlQuery("select id from mk_api_consumer where a_user_name = :userName")
 	int getConsumerId(@Bind("userName") String userName);
 	
+	/**
+	 * @param userName
+	 * @return
+	 */
 	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
 	int getAdminId(@Bind("userName") String userName);
 
@@ -148,6 +152,11 @@ public interface AdminDAO {
 	int isConsumerPermissionExists(@Bind("resourceId") long resourceId,
 			@Bind("consumerId") long consumerId);
 	
+	/**
+	 * @param resourceId
+	 * @param adminId
+	 * @return
+	 */
 	@SqlQuery("select a_permission_id from mk_api_resources_admin_permission where a_resource_id = :resourceId and a_admin_id = :adminId")
 	int isAdminPermissionExists(@Bind("resourceId") long resourceId,
 			@Bind("adminId") long adminId);
