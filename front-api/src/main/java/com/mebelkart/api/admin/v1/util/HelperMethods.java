@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.mebelkart.api.admin.v1.util;
 
 import java.io.IOException;

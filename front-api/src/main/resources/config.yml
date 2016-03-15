@@ -4,21 +4,25 @@ database:
     # the username
     user: root
     # the password
-    password: root
+    password: 
     # the JDBC URL; the database is called DWGettingStarted
     url: jdbc:mysql://localhost:3306/mk_api
 server:
   applicationConnectors:
     - type: http
       port: 8080
-#      keyStorePath: src/main/resources/mkapi.keystore
-#      keyStorePassword: vinit@18
-#      validateCerts: false
-#      validatePeers: false
+    - type: https
+      port: 8443
+      keyStorePath: front-api/src/main/resources/mkapi.keystore
+      keyStorePassword: vinit@18
+      validateCerts: false
+      validatePeers: false    
   adminConnectors:
     - type: http
       port: 8081
-#      keyStorePath: src/main/resources/mkapi.keystore
-#      keyStorePassword: vinit@18
-#      validateCerts: false
-#      validatePeers: false
+    - type: https
+      port: 8444
+      keyStorePath: front-api/src/main/resources/mkapi.keystore
+      keyStorePassword: vinit@18
+      validateCerts: false
+      validatePeers: false

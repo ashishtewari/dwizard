@@ -1,9 +1,20 @@
 package com.mebelkart.api.admin.v1.crypting;
 
+/**
+ * @author Tinku
+ *
+ */
 public class MD5Decoding {
+	/**
+	 * hexadecimal
+	 */
 	private static final char[] hexadecimal = { '0', '1', '2', '3', '4', '5',
 			'6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
+	/**
+	 * @param binaryData
+	 * @return
+	 */
 	public String decrypt(byte[] binaryData) {
 
 		if (binaryData.length != 16)

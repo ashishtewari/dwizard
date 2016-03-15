@@ -4,7 +4,14 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 
+/**
+ * @author Tinku
+ *
+ */
 public class MD5Encoding {
+    /**
+     * digester
+     */
     private static MessageDigest digester;
 
     static {
@@ -16,6 +23,10 @@ public class MD5Encoding {
         }
     }
 
+    /**
+     * @param str
+     * @return
+     */
     public static String encrypt(String str) {
         if (str == null || str.length() == 0) {
             throw new IllegalArgumentException("String to encript cannot be null or zero length");
