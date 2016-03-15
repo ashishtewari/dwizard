@@ -24,8 +24,9 @@ public class MD5Encoding {
     }
 
     /**
-     * @param str
-     * @return
+     * This method converts normal string to MD5 encrypted String
+     * @param str normal String
+     * @return String encrypted
      */
     public static String encrypt(String str) {
         if (str == null || str.length() == 0) {

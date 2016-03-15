@@ -12,8 +12,9 @@ public class MD5Decoding {
 			'6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
 	/**
-	 * @param binaryData
-	 * @return
+	 * This method decryptes binaryData to String 
+	 * @param binaryData encrypted byte data
+	 * @return decrypted String
 	 */
 	public String decrypt(byte[] binaryData) {
 

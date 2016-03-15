@@ -51,7 +51,7 @@ public class AdminResource {
 	/**
 	 * This is the Get method accessed by admin to see their privilages
 	 * @param userDetails of type JsonString send via HeaderParams
-	 * @return Object
+	 * @return Object of type JSON
 	 */
 	@GET
 	@Path("/login")
@@ -59,12 +59,12 @@ public class AdminResource {
 	public Object getLoginDetails(@HeaderParam("loginDetails") String userDetails) {
 		try{
 			if(helper.isUserDetailsValidJson(userDetails) && helper.isUserDetailsContainsValidKeys(userDetails)){
-				JSONObject jsonObj = helper.jsonParser(userDetails);
-				String username = (String) jsonObj.get("userName");
-				String password = MD5Encoding.encrypt((String) jsonObj.get("password"));
-				long adminLevel = (long) jsonObj.get("adminLevel");
+				JSONObject userDetailsObj = helper.jsonParser(userDetails);
+				String username = (String) userDetailsObj.get("userName");
+				String password = MD5Encoding.encrypt((String) userDetailsObj.get("password"));
+				long adminLevel = (long) userDetailsObj.get("adminLevel");
 				List<Admin> admin_details = this.auth.login(username, password, adminLevel);
-				if (admin_details.isEmpty()) {
+				if (!admin_details.get(0).getA_user_name().equals(username)) {
 					return new Reply(401, "Login Fail Invalid Credentials",
 							new SubStatusReply(0, "Failure"));
 				} else {
@@ -83,42 +83,41 @@ public class AdminResource {
 	 * This is the Post method accessed by path HOST/v1.0/admin/registerUser
 	 * This method calls registerConsumer to create new consumers and later on success 
 	 * calls assigningConsumerPermission to assign permissions 
-	 * @param key of type String, Consists accessToken of Admin sent via HeaderParams
+	 * @param apikey of type String, Consists accessToken of Admin sent via HeaderParams
 	 * @param request of type Json, sent via Body raw
-	 * @return Object
-	 */
-	
+	 * @return Object of type of JSON
+	 */	
 	@SuppressWarnings({ "unchecked" })
 	@POST
 	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object registerUser(@HeaderParam("accessToken") String key,@Context HttpServletRequest request) {
+	public Object registerUser(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
-			int accessLevel = this.auth.validate(key);
+			int accessLevel = this.auth.validate(apikey);
 			if(accessLevel == 1 || accessLevel == 2){
-				JSONObject jsonObj = helper.contextRequest(request);
+				JSONObject rawData = helper.contextRequestParser(request);
 				String generateduserAccessToken = helper.generateUniqueAccessToken();
 				String generatedpassword = helper.generateRandomPassword();
-				jsonObj.put("accessToken",generateduserAccessToken);
-				jsonObj.put("password", generatedpassword);
-				if (((String) jsonObj.get("type")).equals("admin") && accessLevel == 1) {
-					int id = registerAdmin(jsonObj);
+				rawData.put("accessToken",generateduserAccessToken);
+				rawData.put("password", generatedpassword);
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1) {
+					int id = registerAdmin(rawData);
 					if (id != 0) {
-						int status = assigningPermission(jsonObj, id);
+						int status = assigningPermission(rawData, id);
 						if(status == 1)
-							return new Reply(206, "Successfully inserted and given permissions to admin",new PartialAdminDataReply(1,generateduserAccessToken,generatedpassword,(String)jsonObj.get("userName")));
+							return new Reply(206, "Successfully inserted and given permissions to admin",new PartialAdminDataReply(1,generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						else
 							return helper.checkStatus(status,"Successfully inserted but ");
 					} else {
 						return new Reply(406, "user Already Exists",null);
 					}
-				} else if (((String) jsonObj.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
-					int id = registerConsumer(jsonObj);
-					if (id != 0) {
-						int status = assigningPermission(jsonObj, id);
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+					int rowId = registerConsumer(rawData);
+					if (rowId != 0) {
+						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
-							return new Reply(206, "Successfully inserted and given permissions to Consumer",new PartialConsumerDataReply(1,generateduserAccessToken,(String)jsonObj.get("userName")));
+							return new Reply(206, "Successfully inserted and given permissions to Consumer",new PartialConsumerDataReply(1,generateduserAccessToken,(String)rawData.get("userName")));
 						else
 							return helper.checkStatus(status,"Successfully inserted but ");
 					} else {
@@ -139,32 +138,32 @@ public class AdminResource {
 	/**
 	 * This is the Post method accessed by path HOST/v1.0/admin/assignPermissions
 	 * This method calls assigningConsumerPermission to assign permissions if user already exists
-	 * @param key of type String, Consists accessToken of Admin sent via HeaderParams
+	 * @param apikey of type String, Consists accessToken of Admin sent via HeaderParams
 	 * @param request of type Json, sent via Body raw
-	 * @return Object
+	 * @return Object of type JSON
 	 */
 	@PUT
 	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object assignPermissions(@HeaderParam("accessToken") String key,@Context HttpServletRequest request) {
+	public Object assignPermissions(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
-			int accessLevel = this.auth.validate(key);
+			int accessLevel = this.auth.validate(apikey);
 			if(accessLevel == 1 || accessLevel == 2){
-				JSONObject jsonObj = helper.contextRequest(request);
-				if (((String) jsonObj.get("type")).equals("admin") && accessLevel == 1) {
-					if(isAdminUserNameAlreadyExists((String) jsonObj.get("userName"))){
-						int id = this.auth.getAdminId((String) jsonObj.get("userName"));
-						int status = assigningPermission(jsonObj, id);
+				JSONObject rawData = helper.contextRequestParser(request);
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1) {
+					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+						int rowId = this.auth.getAdminId((String) rawData.get("userName"));
+						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status,"");
 					}
 					else{
 						return new Reply(404, "UserName not found", null);
 					}
-				} else if (((String) jsonObj.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
-					if(isConsumerUserNameAlreadyExists((String) jsonObj.get("userName"))){
-						int id = this.auth.getConsumerId((String) jsonObj.get("userName"));
-						int status = assigningPermission(jsonObj, id);
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+						int rowId = this.auth.getConsumerId((String) rawData.get("userName"));
+						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status,"");
 					}
 					else{
@@ -178,25 +177,30 @@ public class AdminResource {
 			}
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
-		}
-			
+		}			
 	}
 
 	/**
-	 * Checks if consumer userName is already present in table. 
+	 * Checks if Consumer userName is already present in table. 
 	 * We are using this to avoid duplicates
-	 * @param userName
+	 * @param userNameConsumer of Consumer
 	 * @return boolean
 	 */
-	private boolean isConsumerUserNameAlreadyExists(String userName) {
-		if (userName.equals(this.auth.isConsumerUserNameAlreadyExists(userName))) {
+	private boolean isConsumerUserNameAlreadyExists(String userNameConsumer) {
+		if (userNameConsumer.equals(this.auth.isConsumerUserNameAlreadyExists(userNameConsumer))) {
 			return true;
 		} else
 			return false;
 	}
 	
-	private boolean isAdminUserNameAlreadyExists(String userName){
-		if (userName.equals(this.auth.isAdminUserNameAlreadyExists(userName))) {
+	/**
+	 * Checks if Admin userName is already present in table.
+	 * We are using this to avoid duplicates 
+	 * @param userNameAdmin
+	 * @return true/false
+	 */
+	private boolean isAdminUserNameAlreadyExists(String userNameAdmin){
+		if (userNameAdmin.equals(this.auth.isAdminUserNameAlreadyExists(userNameAdmin))) {
 			return true;
 		} else
 			return false;
@@ -204,15 +208,12 @@ public class AdminResource {
 
 	/**
 	 * This method registers new consumers
-	 * @param obj
-	 * @return int
+	 * @param jsonData of consumer details
+	 * @return int newly inserted row ID
 	 */
-	private int registerConsumer(JSONObject jsonObj) {
-		System.out.println("In register Consumer");
-		if (jsonObj.containsKey("userName")	&& jsonObj.containsKey("accessToken") && jsonObj.containsKey("countAssigned") && helper.emailIsValid((String) jsonObj.get("userName")) && !isConsumerUserNameAlreadyExists((String) jsonObj.get("userName"))) {
-			System.out.println("In IF");
-			int id = this.auth.addConsumer((String) jsonObj.get("userName"),(String) jsonObj.get("accessToken"),(long) jsonObj.get("countAssigned"));
-			System.out.println("Exeuted Query");
+	private int registerConsumer(JSONObject jsonData) {
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isConsumerUserNameAlreadyExists((String) jsonData.get("userName"))) {
+			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"));
 			return id;
 		} else
 			return 0;
@@ -220,12 +221,12 @@ public class AdminResource {
 	
 	/**
 	 * This method registers new Admins
-	 * @param jsonObj
-	 * @return
+	 * @param jsonData of admin details
+	 * @return int newly inserted row ID
 	 */
-	public int registerAdmin(JSONObject jsonObj){
-		if (jsonObj.containsKey("userName")	&& jsonObj.containsKey("accessToken") && jsonObj.containsKey("password") && helper.emailIsValid((String) jsonObj.get("userName")) && !isAdminUserNameAlreadyExists((String) jsonObj.get("userName"))) {
-			int id = this.auth.addAdmin((String) jsonObj.get("userName"),MD5Encoding.encrypt((String) jsonObj.get("password")),(String) jsonObj.get("accessToken"));
+	public int registerAdmin(JSONObject jsonData){
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isAdminUserNameAlreadyExists((String) jsonData.get("userName"))) {
+			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"));
 			return id;
 		} else
 			return 0;
@@ -233,10 +234,10 @@ public class AdminResource {
 	
 	/**
 	 * This method checks whether there is any resource permission is assigned to user or not
-	 * @param userType
-	 * @param resourceId
-	 * @param userId
-	 * @return
+	 * @param userType consumer/admin
+	 * @param resourceId contains package ID
+	 * @param userId contains row ID's of consumer/admin
+	 * @return boolean
 	 */
 	private boolean isPermissionExists(String userType,long resourceId,long userId){
 		if(userType.equals("consumer")){
@@ -257,24 +258,24 @@ public class AdminResource {
 	
 	/**
 	 * This method will give permission to Admin and Consumer in both Update and Insert operations
-	 * @param to
-	 * @param type
-	 * @param resourceId
-	 * @param userId
-	 * @param permissions
-	 * @return
+	 * @param to consists of consumer/admin
+	 * @param type consists of insert/update
+	 * @param resourceId contains package ID
+	 * @param userId contains row ID's of consumer/admin
+	 * @param permissions has an array of permissions set in it (GET/POST/PUT/DELETE)
+	 * @return int 1 for insert/6 for Update
 	 */
 	private int givePermission(String to,String type,long resourceId,long userId,JSONObject permissions){
 		long get = 0,post = 0,put = 0,delete = 0;
-		JSONArray requestArray = null;
+		JSONArray permissionJsonArray = null;
 		try{
-			requestArray = (JSONArray) permissions.get("permission");
+			permissionJsonArray = (JSONArray) permissions.get("permission");
 		}catch(ClassCastException e){
 			return 4;
 		}		
-		String[] permission = new String[requestArray.size()];
+		String[] permission = new String[permissionJsonArray.size()];
 		for (int k = 0; k < permission.length; k++)
-			permission[k] = (String) requestArray.get(k);
+			permission[k] = (String) permissionJsonArray.get(k);
 		for (int j = 0; j < permission.length; j++) {
 			if (permission[j].toUpperCase().equals("GET")) {
 				get = 1;
@@ -310,14 +311,14 @@ public class AdminResource {
 
 	/**
 	 * This method assigns resource permissions to the consumers/admin
-	 * @param jsonObj
-	 * @param userId
+	 * @param jsonData of permissions details 
+	 * @param userId contains row ID's of consumer/admin
 	 * @return int
 	 */
-	private int assigningPermission(JSONObject jsonObj, int userId) {
+	private int assigningPermission(JSONObject jsonData, int userId) {
 		int result_status = 0;
-		if (jsonObj.containsKey("permissions")) {
-			JSONArray resources = (JSONArray) jsonObj.get("permissions");
+		if (jsonData.containsKey("permissions")) {
+			JSONArray resources = (JSONArray) jsonData.get("permissions");
 			if (resources.size() == 0) {
 				return 2;
 			} else {
@@ -325,13 +326,13 @@ public class AdminResource {
 					JSONObject permissions = (JSONObject) resources.get(i);
 					if (permissions.containsKey("resourceId") && permissions.containsKey("permission") && isValidResourceId((long)permissions.get("resourceId"))) {
 						long resourceId = (long) permissions.get("resourceId");
-						if(isPermissionExists((String)jsonObj.get("type"),resourceId,(long)userId)){
-							result_status = givePermission((String)jsonObj.get("type"),"update",resourceId,(long)userId,permissions);
+						if(isPermissionExists((String)jsonData.get("type"),resourceId,(long)userId)){
+							result_status = givePermission((String)jsonData.get("type"),"update",resourceId,(long)userId,permissions);
 							if(result_status == 4 || result_status == 5)
 								return result_status;
 						}
 						else{
-							result_status = givePermission((String)jsonObj.get("type"),"insert",resourceId,(long)userId,permissions);
+							result_status = givePermission((String)jsonData.get("type"),"insert",resourceId,(long)userId,permissions);
 							if(result_status == 4 || result_status == 5)
 								return result_status;
 						}						
@@ -346,8 +347,9 @@ public class AdminResource {
 	}
 	
 	/**
-	 * @param resourceId
-	 * @return
+	 * Checks whether the resource id is valid api package or not
+	 * @param resourceId contains resourceId of api
+	 * @return true/false
 	 */
 	public boolean isValidResourceId(long resourceId){
 		if(this.auth.isValidResource(resourceId) != 0)

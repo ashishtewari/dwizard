@@ -37,25 +37,25 @@ public class HelperMethods {
 
 	/**
 	 * This method parse Json string to JsonObject
-	 * @param key
+	 * @param data of JsonString
 	 * @return JSONObject
 	 */
-	public JSONObject jsonParser(String key) {
+	public JSONObject jsonParser(String data) {
 		JSONParser parser = new JSONParser();
-		JSONObject obj = null;
+		JSONObject dataObj = null;
 		try {
-			obj = (JSONObject) parser.parse(key);
+			dataObj = (JSONObject) parser.parse(data);
 		} catch (ParseException e) {
 			//e.printStackTrace();
 			return null;
 		}
-		return obj;
+		return dataObj;
 	}
 	
 	/**
 	 * This method checks whether the JsonString provided is in valid Json format or not
-	 * @param userDetails
-	 * @return
+	 * @param userDetails of JsonString
+	 * @return true/false
 	 */
 	public boolean isUserDetailsValidJson(String userDetails){
 		if(jsonParser(userDetails) == null)
@@ -65,12 +65,12 @@ public class HelperMethods {
 	
 	/**
 	 * Checks whether all the keys provided in JsonString are valid or not
-	 * @param userDetails
-	 * @return
+	 * @param userDetails of JsonString
+	 * @return true/false
 	 */
 	public boolean isUserDetailsContainsValidKeys(String userDetails){
-		JSONObject obj = jsonParser(userDetails);
-		if(obj.containsKey("userName") && obj.containsKey("password") && obj.containsKey("adminLevel"))
+		JSONObject userDetailsObj = jsonParser(userDetails);
+		if(userDetailsObj.containsKey("userName") && userDetailsObj.containsKey("password") && userDetailsObj.containsKey("adminLevel"))
 				return true;
 		else
 			return false;
@@ -78,9 +78,9 @@ public class HelperMethods {
 
 	/**
 	 * It returns HTTPStatus based on status
-	 * @param status
-	 * @param msg
-	 * @return
+	 * @param status of type int
+	 * @param msg may be passed/Not passed
+	 * @return Object
 	 */
 	public Object checkStatus(int status, String msg) {
 		if (status == 0) {
@@ -103,10 +103,10 @@ public class HelperMethods {
 
 	/**
 	 * It converts servlet request of type Json to JsonString
-	 * @param request
-	 * @return
+	 * @param request consists of body data of type raw json data
+	 * @return JSONObject
 	 */
-	public JSONObject contextRequest(HttpServletRequest request) {
+	public JSONObject contextRequestParser(HttpServletRequest request) {
 		InputStream inputStream = null;
 		String jsonString = null;
 		try {
@@ -120,8 +120,8 @@ public class HelperMethods {
 	}
 	
 	/**
-	 * Generates unique accessToken
-	 * @return
+	 * This method generates unique access tokens
+	 * @return token of type string
 	 */
 	public String generateUniqueAccessToken() {
 		// TODO Auto-generated method stub
@@ -130,7 +130,7 @@ public class HelperMethods {
 	
 	/**
 	 * Generates random password
-	 * @return
+	 * @return password of type string
 	 */
 	public String generateRandomPassword(){
 		return RandomStringUtils.randomAlphanumeric(5);
@@ -139,7 +139,7 @@ public class HelperMethods {
 	/**
 	 * Checks whether String is of type email
 	 * @param email
-	 * @return
+	 * @return true/false
 	 */
 	public boolean emailIsValid(String email) {
 		EmailValidator emailValidator = EmailValidator.getInstance();
