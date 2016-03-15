@@ -232,9 +232,10 @@ public class AdminResource {
 	}
 	
 	/**
-	 * This method checks whether there is any resource permission is assigned to consumer or not
+	 * This method checks whether there is any resource permission is assigned to user or not
+	 * @param userType
 	 * @param resourceId
-	 * @param consumerId
+	 * @param userId
 	 * @return
 	 */
 	private boolean isPermissionExists(String userType,long resourceId,long userId){
@@ -259,7 +260,7 @@ public class AdminResource {
 	 * @param to
 	 * @param type
 	 * @param resourceId
-	 * @param consumerId
+	 * @param userId
 	 * @param permissions
 	 * @return
 	 */
@@ -309,8 +310,8 @@ public class AdminResource {
 
 	/**
 	 * This method assigns resource permissions to the consumers/admin
-	 * @param obj
-	 * @param consumerId
+	 * @param jsonObj
+	 * @param userId
 	 * @return int
 	 */
 	private int assigningPermission(JSONObject jsonObj, int userId) {

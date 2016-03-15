@@ -10,6 +10,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<dropwizard.version>0.9.1</dropwizard.version>
+		<mysql.version>5.1.36</mysql.version>
+		<rkmk.version>1.0</rkmk.version>
+		<json-simple.version>1.1.1</json-simple.version>
+		<commons-io.version>2.4</commons-io.version>
+		<commons-validator.version>1.4.0</commons-validator.version>
+		<felix.version>1.2.0</felix.version>
+		<json.version>20090211</json.version>
 
 	</properties>
 
@@ -27,7 +34,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.36</version>
+			<version>${mysql.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.dropwizard</groupId>
@@ -42,32 +49,32 @@
 		<dependency>
 			<groupId>com.github.rkmk</groupId>
 			<artifactId>jdbi-folder</artifactId>
-			<version>1.0</version>
+			<version>${rkmk.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
-			<version>1.1.1</version>
+			<version>${json-simple.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.4</version>
+			<version>${commons-io.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
-			<version>1.4.0</version>
+			<version>${commons-validator.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.osgi.foundation</artifactId>
-			<version>1.2.0</version>
+			<version>${felix.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20090211</version>
+			<version>${json.version}</version>
 		</dependency>
 	</dependencies>
 
