@@ -25,7 +25,7 @@ public class CustomerAuthenticationMapper implements ResultSetMapper<CustomerAut
 	 * Mapping the resultset to the object and returning it.
 	 */
 	@Override
-	public CustomerAuthenticatonWrapper map(int arg0, ResultSet resultSet, StatementContext arg2)
+	public CustomerAuthenticatonWrapper map(int index, ResultSet resultSet, StatementContext statement)
 			throws SQLException {
 		// TODO Auto-generated method stub
 		return new CustomerAuthenticatonWrapper(resultSet.getInt("id"),resultSet.getInt("a_have_get_permission"));

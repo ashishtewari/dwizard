@@ -26,7 +26,7 @@ public interface CustomerDetailsDAO {
 	@SqlQuery("SELECT ps_customer.firstname FROM ps_customer WHERE ps_customer.id_customer=:customerId")
 	FoldingList<CustomerDetailsWrapper>getCustomerPersonalDetails(@Bind("customerId")long customerID);
 	
-	@SqlQuery("SELECT ps_customer.lastname FROM ps_customer WHERE ps_customer.id_customer=:customerId")
-	FoldingList<CustomerDetailsWrapper>getCustomerPersonalDetail(@Bind("customerId")long customerID);
+//	@SqlQuery("SELECT ps_customer.lastname FROM ps_customer WHERE ps_customer.id_customer=:customerId")
+//	FoldingList<CustomerDetailsWrapper>getCustomerPersonalDetail(@Bind("customerId")long customerID);
 }
 

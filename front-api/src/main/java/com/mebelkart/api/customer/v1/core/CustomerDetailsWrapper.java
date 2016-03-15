@@ -9,10 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.github.rkmk.annotations.ColumnName;
 import com.github.rkmk.annotations.OneToMany;
-//import com.github.rkmk.annotations.PrimaryKey;
-import com.github.rkmk.annotations.PrimaryKey;
 
 /**
  * @author Nikky-Akky
@@ -57,9 +54,6 @@ public class CustomerDetailsWrapper {
 		this.orders = orders;
 	}
 
-	/**
-	 * @param bigDecimal
-	 */
 //	public CustomerDetailsWrapper(BigDecimal bigDecimal) {
 //		// TODO Auto-generated constructor stub
 //		

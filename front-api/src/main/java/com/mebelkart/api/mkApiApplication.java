@@ -1,11 +1,12 @@
 package com.mebelkart.api;
 
-import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.github.rkmk.container.FoldingListContainerFactory;
+import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
+import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
-import org.skife.jdbi.v2.DBI;
 
-import com.mebelkart.api.admin.v1.dao.AdminDAO;
+import org.skife.jdbi.v2.DBI;
 
 import io.dropwizard.Application;
 import io.dropwizard.jdbi.DBIFactory;
@@ -16,6 +17,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
     public static void main(final String[] args) throws Exception {
         new mkApiApplication().run(args);
+        System.out.println("entered in main");
     }
 
     @Override
@@ -31,12 +33,16 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
     @Override
     public void run(final mkApiConfiguration configuration,final Environment environment) {
         // TODO: implement application
+    	System.out.println("entered in run");
     	final DBIFactory factory = new DBIFactory();
-	    final DBI jdbi = factory.build(environment, configuration.getDataSourceFactory(), "mysql");
-	    final AdminDAO adminDao = jdbi.onDemand(AdminDAO.class);
-        final CustomerAuthenticationDAO customerDao = jdbi.onDemand(CustomerAuthenticationDAO.class);
-        environment.jersey().register(new CustomerResource(customerDao));
-		environment.jersey().register(new AdminResource(adminDao));
+		final DBI mkApiDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
+		final DBI mebelkartProdDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		final CustomerAuthenticationDAO customerAuthdao = mkApiDatabaseConfiguration.onDemand(CustomerAuthenticationDAO.class);
+		final CustomerDetailsDAO customerDao = mebelkartProdDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
+		mebelkartProdDatabaseConfiguration.registerMapper(new CustomMapperFactory());
+		mebelkartProdDatabaseConfiguration.registerContainerFactory(new FoldingListContainerFactory());
+		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
+		System.out.println("entered in last");
     }
 
 }

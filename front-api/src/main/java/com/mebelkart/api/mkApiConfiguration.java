@@ -12,15 +12,23 @@ public class mkApiConfiguration extends Configuration {
     // TODO: implement service configuration
 	@Valid
 	@NotNull
-	private DataSourceFactory database = new DataSourceFactory();
+	private DataSourceFactory database1 = new DataSourceFactory();
+	private DataSourceFactory database2 = new DataSourceFactory();
 
-	@JsonProperty("database")
-	public void setDataSourceFactory(DataSourceFactory factory) {
-		this.database = factory;
+	@JsonProperty("database1")
+	public DataSourceFactory getDatabase1() {
+		return database1;
 	}
-
-	@JsonProperty("database")
-	public DataSourceFactory getDataSourceFactory() {
-		return database;
+	@JsonProperty("database1")
+	public void setDatabase1(DataSourceFactory database1) {
+		this.database1 = database1;
+	}
+	@JsonProperty("database2")
+	public DataSourceFactory getDatabase2() {
+		return database2;
+	}
+	@JsonProperty("database2")
+	public void setDatabase2(DataSourceFactory database2) {
+		this.database2 = database2;
 	}
 }
