@@ -3,7 +3,6 @@ target/
 dependency-reduced-pom.xml
 pom.xml.releaseBackup
 pom.xml.versionsBackup
-javadoc.xml
 release.properties
 
 # IntelliJ IDEA
@@ -13,6 +12,8 @@ release.properties
 *.iws
 
 # Eclipse
+doc/
+javadoc.xml
 .settings/
 doc/
 javadoc.xml
