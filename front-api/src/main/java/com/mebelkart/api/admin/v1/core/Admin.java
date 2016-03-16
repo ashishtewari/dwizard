@@ -6,10 +6,6 @@ package com.mebelkart.api.admin.v1.core;
  */
 public class Admin {
 	/**
-     * id
-     */
-    private int id;
-    /**
      * a_user_name.
      */    
     private String a_user_name;
@@ -36,27 +32,12 @@ public class Admin {
      * @param a_password
      * @param a_admin_level
      */
-    public Admin(int id,String a_user_name, String a_password, int a_admin_level) {
-    	this.setId(id);
+    public Admin(String a_user_name, String a_password, int a_admin_level) {
     	this.setA_user_name(a_user_name);
     	this.setA_password(a_password);
     	this.setA_admin_level(a_admin_level);        
     }
     /**
-     * 
-     * @return
-     */
-	public int getId() {
-		return id;
-	}
-	/**
-	 * 
-	 * @param id
-	 */
-	public void setId(int id) {
-		this.id = id;
-	}
-	/**
 	 * 
 	 * @return
 	 */

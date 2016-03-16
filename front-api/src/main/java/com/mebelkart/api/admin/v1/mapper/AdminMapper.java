@@ -18,8 +18,7 @@ public class AdminMapper implements ResultSetMapper<Admin> {
 	 */
 	public Admin map(int i, ResultSet resultSet,
 			StatementContext statementContext) throws SQLException {
-		return new Admin(resultSet.getInt("id"),
-				resultSet.getString("a_user_name"),
+		return new Admin(resultSet.getString("a_user_name"),
 				resultSet.getString("a_password"),
 				resultSet.getInt("a_admin_level"));
 	}

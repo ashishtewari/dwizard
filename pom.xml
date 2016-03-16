@@ -17,13 +17,15 @@
 		<commons-validator.version>1.4.0</commons-validator.version>
 		<felix.version>1.2.0</felix.version>
 		<json.version>20090211</json.version>
+		<log4j.version>1.2.17</log4j.version>
+		<parent.version>1.0.0-SNAPSHOT</parent.version>
 
 	</properties>
 
 	<groupId>com.mebelkart</groupId>
 	<artifactId>parent-of-api</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>${parent.version}</version>
 
 	<dependencies>
 		<dependency>
@@ -76,11 +78,15 @@
 			<artifactId>json</artifactId>
 			<version>${json.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
@@ -138,8 +144,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
 	<modules>
 		<module>front-api</module>
 		<module>logistic-api</module>

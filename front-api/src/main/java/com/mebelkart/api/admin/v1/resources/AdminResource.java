@@ -23,6 +23,7 @@ import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
 import com.mebelkart.api.admin.v1.api.SubStatusReply;
 import com.mebelkart.api.admin.v1.api.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 
 /**
@@ -72,12 +73,12 @@ public class AdminResource {
 				}
 			}
 			else{
-				return new Reply(400, "Bad Request, Give Valid Json/keys",null);
+				return new Reply(400, "Bad Request, give Valid Json/keys",null);
 			}
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, Give Valid Json/values",null);
+			return new Reply(400, "Bad Request, give Valid Json/values",null);
 		}catch(IndexOutOfBoundsException e){
 			return new Reply(400, "Bad Request, There are no users matching your requirments",null);
 		}
@@ -99,13 +100,14 @@ public class AdminResource {
 	public Object registerUser(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
 			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
 				String generateduserAccessToken = helper.generateUniqueAccessToken();
 				String generatedpassword = helper.generateRandomPassword();
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
-				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1) {
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					int id = registerAdmin(rawData);
 					if (id != 0) {
 						int status = assigningPermission(rawData, id);
@@ -116,7 +118,7 @@ public class AdminResource {
 					} else {
 						return new Reply(406, "user Already Exists",null);
 					}
-				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					int rowId = registerConsumer(rawData);
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
@@ -128,7 +130,7 @@ public class AdminResource {
 						return new Reply(406, "user Already Exists",null);
 					}
 				} else {
-					return new Reply(400, "Bad Request, Give Valid key of \"type\" or check your adminLevel",null);
+					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState ",null);
 				}
 			} else {
 				return new Reply(401, "You are not autherized",null);
@@ -136,7 +138,7 @@ public class AdminResource {
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, Give Valid Json/values",null);
+			return new Reply(400, "Bad Request, give Valid Json/values",null);
 		}				
 	}
 
@@ -154,9 +156,10 @@ public class AdminResource {
 	public Object assignPermissions(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
 			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
-				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1) {
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
 						int rowId = this.auth.getAdminId((String) rawData.get("userName"));
 						int status = assigningPermission(rawData, rowId);
@@ -165,7 +168,7 @@ public class AdminResource {
 					else{
 						return new Reply(404, "UserName not found", null);
 					}
-				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
 						int rowId = this.auth.getConsumerId((String) rawData.get("userName"));
 						int status = assigningPermission(rawData, rowId);
@@ -175,7 +178,7 @@ public class AdminResource {
 						return new Reply(404, "UserName not found", null);
 					}
 				} else {
-					return new Reply(400, "Bad Request, Give Valid key of type or check your adminLevel",null);
+					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
 				}
 			}else {
 				return new Reply(401, "You are not autherized",null);
@@ -183,10 +186,120 @@ public class AdminResource {
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, Give Valid Json/values",null);
+			return new Reply(400, "Bad Request, give Valid Json/values",null);
 		}			
 	}
-
+	
+	/**
+	 * This method used to change user active status
+	 * @param apikey
+	 * @param request
+	 * @return
+	 */
+	@PUT
+	@Path("/changeUserActiveStatus")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object changeUserStatus(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+		try{
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if(accessLevel == 1 || accessLevel == 2){
+				JSONObject rawData = helper.contextRequestParser(request);
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
+					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+						this.auth.changeAdminActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"));
+						return new Reply(206, "Successfully updated active status of admin",null);
+					}
+					else{
+						return new Reply(404, "UserName not found", null);
+					}
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
+					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+						this.auth.changeConsumerActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"));
+						return new Reply(206, "Successfully updated active status of consumer",null);
+					}
+					else{
+						return new Reply(404, "UserName not found", null);
+					}
+				} else {
+					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
+				}
+			}else {
+				return new Reply(401, "You are not autherized",null);
+			}
+		}catch(NullPointerException e){
+			return new Reply(401, "You are not autherized,give valid details",null);
+		}catch(ClassCastException e){
+			return new Reply(400, "Bad Request,give Valid Json/values",null);
+		}	
+	}
+	
+	@GET
+	@Path("/getUsersStatus")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object getUsersStatus(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails) {
+		try{
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if((accessLevel == 1 || accessLevel == 2) && helper.isUserDetailsValidJson(userDetails)){
+				JSONObject rawData = helper.jsonParser(userDetails);
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
+					System.out.println("In admin");
+					if(rawData.containsKey("status")){
+						System.out.println("in if");
+						List<UserStatus> userStatusDetails = this.auth.getAdminsStatus((long) rawData.get("status"));
+						return new Reply(200, "The request is OK.",userStatusDetails);
+					}
+					else{
+						System.out.println("in else");
+						List<UserStatus> allUsersStatusDetails = getAllAdminUsersStatus();
+						return new Reply(200, "The request is OK. Retrieved all admin status details", allUsersStatusDetails);
+					}
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
+					if(rawData.containsKey("status")){
+						List<UserStatus> userStatusDetails = this.auth.getConsumersStatus((long) rawData.get("status"));
+						return new Reply(200, "The request is OK.",userStatusDetails);
+					}
+					else{
+						List<UserStatus> allUsersStatusDetails = getAllConsumerUsersStatus();
+						return new Reply(200, "The request is OK. Retrieved all consumer status details", allUsersStatusDetails);
+					}
+				} else {
+					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
+				}
+			}else {
+				return new Reply(401, "It is not valid Json format",null);
+			}
+		}catch(NullPointerException e){
+			return new Reply(401, "You are not autherized,give valid details",null);
+		}catch(ClassCastException e){
+			return new Reply(400, "Bad Request,give Valid Json/values",null);
+		}	
+	}
+	
+	/**
+	 * This method returns active status of every admin user
+	 * @return
+	 */
+	private List<UserStatus> getAllAdminUsersStatus(){
+		List<UserStatus> nonActiveUserStatusDetails = this.auth.getAdminsStatus(0);
+		List<UserStatus> activeUserStatusDetails = this.auth.getAdminsStatus(1);
+		activeUserStatusDetails.addAll(nonActiveUserStatusDetails);
+		return activeUserStatusDetails;
+	}
+	
+	/**
+	 * This method returns active status of every consumer user
+	 * @return
+	 */
+	private List<UserStatus> getAllConsumerUsersStatus(){
+		List<UserStatus> nonActiveUserStatusDetails = this.auth.getConsumersStatus(0);
+		List<UserStatus> activeUserStatusDetails = this.auth.getConsumersStatus(1);
+		activeUserStatusDetails.addAll(nonActiveUserStatusDetails);
+		return activeUserStatusDetails;
+	}
+	
 	/**
 	 * Checks if Consumer userName is already present in table. 
 	 * We are using this to avoid duplicates
@@ -210,6 +323,13 @@ public class AdminResource {
 		if (userNameAdmin.equals(this.auth.isAdminUserNameAlreadyExists(userNameAdmin))) {
 			return true;
 		} else
+			return false;
+	}
+	
+	private boolean isAdminActive(String apikey){
+		if(this.auth.isAdminInActiveState(apikey) == 1)
+			return true;
+		else
 			return false;
 	}
 
@@ -278,6 +398,7 @@ public class AdminResource {
 		try{
 			permissionJsonArray = (JSONArray) permissions.get("permission");
 		}catch(ClassCastException e){
+			//Refer to checkstatus method in HelperMethods class
 			return 4;
 		}		
 		String[] permission = new String[permissionJsonArray.size()];
@@ -296,6 +417,7 @@ public class AdminResource {
 					"DELETE")) {
 				delete = 1;
 			} else {
+				//Refer to checkstatus method in HelperMethods class
 				return 5;
 			}
 		}
@@ -305,12 +427,14 @@ public class AdminResource {
 				this.auth.insertConsumerPermission(resourceId,userId, get, post, put, delete);
 			else
 				this.auth.insertAdminPermission(resourceId,userId, get, post, put, delete);
+			//Refer to checkstatus method in HelperMethods class
 			typeOfQuery = 1;
 		}else if(type.equals("update")){					
 			if(to.equals("consumer"))
 				this.auth.updateConsumerPermission(resourceId,userId, get, post, put, delete);
 			else
 				this.auth.updateAdminPermission(resourceId,userId, get, post, put, delete);
+			//Refer to checkstatus method in HelperMethods class
 			typeOfQuery = 6;
 		}
 		return typeOfQuery;		
@@ -327,6 +451,7 @@ public class AdminResource {
 		if (jsonData.containsKey("permissions")) {
 			JSONArray resources = (JSONArray) jsonData.get("permissions");
 			if (resources.size() == 0) {
+				//Refer to checkstatus method in HelperMethods class
 				return 2;
 			} else {
 				for (int i = 0; i < resources.size(); i++) {
@@ -335,15 +460,18 @@ public class AdminResource {
 						long resourceId = (long) permissions.get("resourceId");
 						if(isPermissionExists((String)jsonData.get("type"),resourceId,(long)userId)){
 							result_status = givePermission((String)jsonData.get("type"),"update",resourceId,(long)userId,permissions);
+							//Refer to checkstatus method in HelperMethods class
 							if(result_status == 4 || result_status == 5)
 								return result_status;
 						}
 						else{
 							result_status = givePermission((String)jsonData.get("type"),"insert",resourceId,(long)userId,permissions);
+							//Refer to checkstatus method in HelperMethods class
 							if(result_status == 4 || result_status == 5)
 								return result_status;
 						}						
 					} else {
+						//Refer to checkstatus method in HelperMethods class
 						return 3;
 					}
 				}

@@ -9,7 +9,9 @@ import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.mapper.AdminMapper;
+import com.mebelkart.api.admin.v1.mapper.UserStatusMapper;
 
 /**
  * @author Tinku
@@ -23,10 +25,28 @@ public interface AdminDAO {
 	 * @param level of admin
 	 * @return row data of type list
 	 */
-	@SqlQuery("select id,a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password and a_admin_level = :level")
+	@SqlQuery("select a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password and a_admin_level = :level")
 	@Mapper(AdminMapper.class)
 	List<Admin> login(@Bind("user_name") String user_name,
 			@Bind("password") String password, @Bind("level") long level);
+	
+	/**
+	 * This query returns userNames and isActive status of each and every Admin based on type of status
+	 * @param status
+	 * @return
+	 */
+	@SqlQuery("select a_user_name,a_is_active from mk_api_user_admin where a_is_active = :status")
+	@Mapper(UserStatusMapper.class)
+	List<UserStatus> getAdminsStatus(@Bind("status") long status);
+	
+	/**
+	 * This query returns userNames and isActive status of each and every Consumer based on type of status
+	 * @param status
+	 * @return
+	 */
+	@SqlQuery("select a_user_name,a_is_active from mk_api_consumer where a_is_active = :status")
+	@Mapper(UserStatusMapper.class)
+	List<UserStatus> getConsumersStatus(@Bind("status") long status);
 
 	/**
 	 * This query validates the given header token is valid or not
@@ -35,6 +55,14 @@ public interface AdminDAO {
 	 */
 	@SqlQuery("select a_admin_level from mk_api_user_admin where a_access_token = :accessToken")
 	int validate(@Bind("accessToken") String accessToken);
+	
+	/**
+	 * This query checks if admin is in active state or not
+	 * @param accessToken of admin/superadmin
+	 * @return 0 for Inactive, 1 for Active
+	 */
+	@SqlQuery("select a_is_active from mk_api_user_admin where a_access_token = :accessToken")
+	int isAdminInActiveState(@Bind("accessToken") String accessToken);
 
 	/**
 	 * This query adds consumer details to table
@@ -161,6 +189,22 @@ public interface AdminDAO {
 	 */
 	@SqlQuery("select a_user_name from mk_api_user_admin where a_user_name = :userName")
 	String isAdminUserNameAlreadyExists(@Bind("userName") String userName);
+	
+	/**
+	 * This query updates active status of Admin
+	 * @param userName email of Admin
+	 * @param status 1 for isActive/0 for isNotActive
+	 */
+	@SqlUpdate("update mk_api_user_admin set a_is_active = :status where a_user_name = :userName")
+	void changeAdminActiveStatus(@Bind("userName") String userName,@Bind("status") long status);
+	
+	/**
+	 * This query updates active status of Consumer
+	 * @param userName email of Consumer
+	 * @param status 1 for isActive/0 for isNotActive
+	 */
+	@SqlUpdate("update mk_api_consumer set a_is_active = :status where a_user_name = :userName")
+	void changeConsumerActiveStatus(@Bind("userName") String userName,@Bind("status") long status);
 
 	/**
 	 * Checks whether the consumer is given permissions for specific resource id or not
