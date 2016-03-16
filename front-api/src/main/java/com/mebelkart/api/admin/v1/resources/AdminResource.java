@@ -76,7 +76,11 @@ public class AdminResource {
 			}
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
-		}		
+		}catch(ClassCastException e){
+			return new Reply(400, "Bad Request, Give Valid Json/values",null);
+		}catch(IndexOutOfBoundsException e){
+			return new Reply(400, "Bad Request, There are no users matching your requirments",null);
+		}
 	}
 
 	/**
@@ -131,8 +135,9 @@ public class AdminResource {
 			}
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
-		}
-				
+		}catch(ClassCastException e){
+			return new Reply(400, "Bad Request, Give Valid Json/values",null);
+		}				
 	}
 
 	/**
@@ -177,6 +182,8 @@ public class AdminResource {
 			}
 		}catch(NullPointerException e){
 			return new Reply(401, "You are not autherized",null);
+		}catch(ClassCastException e){
+			return new Reply(400, "Bad Request, Give Valid Json/values",null);
 		}			
 	}
 
