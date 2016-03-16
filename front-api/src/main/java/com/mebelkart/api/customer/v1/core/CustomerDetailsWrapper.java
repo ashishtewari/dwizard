@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.github.rkmk.annotations.ColumnName;
 import com.github.rkmk.annotations.OneToMany;
 
 /**
@@ -25,6 +26,8 @@ public class CustomerDetailsWrapper {
 	private String address2;
 	private String mobile;
 	private String city;
+	@ColumnName("name")
+	private String state;
 	private String postCode;
 	 @OneToMany("orders")
 	private List<CustomerOrdersWrapper> orders;
@@ -130,6 +133,14 @@ public class CustomerDetailsWrapper {
 
 	public void setPostCode(String postCode) {
 		this.postCode = postCode;
+	}
+
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		this.state = state;
 	}
 
 }

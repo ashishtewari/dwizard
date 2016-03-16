@@ -9,47 +9,16 @@ package com.mebelkart.api.customer.v1.core;
  */
 public class CustomerAuthenticatonWrapper {
 
-	private int customerId,isHavingGetPermission;
+	private int customerId,isActive,isHavingGetPermission;
 	//private String firstname, lastname, email;
 
-	public CustomerAuthenticatonWrapper(int customerId, int isHavingPermission) {
+	public CustomerAuthenticatonWrapper(int customerId, int isActive, int isHavingPermission) {
 		// TODO Auto-generated constructor stub
 		this.setCustomerId(customerId);
+		this.setIsActive(isActive);
 		this.setIsHavingGetPermission(isHavingPermission);
 	}
 	
-
-//	public int getId() {
-//		return customerId;
-//	}
-//
-//	public void setId(int id) {
-//		this.customerId = id;
-//	}
-
-//	public String getFirstname() {
-//		return firstname;
-//	}
-//
-//	public void setFirstname(String firstname) {
-//		this.firstname = firstname;
-//	}
-//
-//	public String getLastname() {
-//		return lastname;
-//	}
-//
-//	public void setLastname(String lastname) {
-//		this.lastname = lastname;
-//	}
-//
-//	public String getEmail() {
-//		return email;
-//	}
-//
-//	public void setEmail(String email) {
-//		this.email = email;
-//	}
 
 	public int getIsHavingGetPermission() {
 		return isHavingGetPermission;
@@ -67,6 +36,16 @@ public class CustomerAuthenticatonWrapper {
 
 	public void setCustomerId(int customerId) {
 		this.customerId = customerId;
+	}
+
+
+	public int getIsActive() {
+		return isActive;
+	}
+
+
+	public void setIsActive(int isActive) {
+		this.isActive = isActive;
 	}
 
 }
