@@ -16,20 +16,24 @@ import com.github.rkmk.annotations.PrimaryKey;
 public class CustomerOrdersWrapper {
 	@PrimaryKey()
 	@ColumnName("id_order")
-	private String orderId;
-	public String getOrderId() {
+	private int orderId;
+	@ColumnName("total_paid")
+	private String totalPaid;
+
+	public int getOrderId() {
 		return orderId;
 	}
-	public void setOrderId(String orderId) {
+
+	public void setOrderId(int orderId) {
 		this.orderId = orderId;
 	}
+
 	public String getTotalPaid() {
 		return totalPaid;
 	}
+
 	public void setTotalPaid(String totalPaid) {
 		this.totalPaid = totalPaid;
 	}
-	private String totalPaid;
-
 
 }
