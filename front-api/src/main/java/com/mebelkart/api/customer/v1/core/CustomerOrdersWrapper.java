@@ -3,6 +3,8 @@
  */
 package com.mebelkart.api.customer.v1.core;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.github.rkmk.annotations.ColumnName;
 import com.github.rkmk.annotations.PrimaryKey;
 
@@ -10,25 +12,24 @@ import com.github.rkmk.annotations.PrimaryKey;
  * @author Nikky-Akky
  *
  */
+@JsonInclude(Include.NON_NULL)
 public class CustomerOrdersWrapper {
 	@PrimaryKey()
 	@ColumnName("id_order")
-	private int orderId;
-	private int totalPaid;
-
-	public int getOrderId() {
+	private String orderId;
+	public String getOrderId() {
 		return orderId;
 	}
-
-	public void setOrderId(int orderId) {
+	public void setOrderId(String orderId) {
 		this.orderId = orderId;
 	}
-
-	public int getTotalPaid() {
+	public String getTotalPaid() {
 		return totalPaid;
 	}
-
-	public void setTotalPaid(int totalPaid) {
+	public void setTotalPaid(String totalPaid) {
 		this.totalPaid = totalPaid;
 	}
+	private String totalPaid;
+
+
 }
