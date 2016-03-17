@@ -191,6 +191,7 @@ public class AdminResource {
 	}
 	
 	/**
+	 * This is the Put method accessed by path HOST/v1.0/admin/changeUserActiveStatus
 	 * This method used to change user active status
 	 * @param apikey
 	 * @param request
@@ -235,6 +236,13 @@ public class AdminResource {
 		}	
 	}
 	
+	/**
+	 * This is the Get method accessed by path HOST/v1.0/admin/getUsersStatus
+	 * It gives userName and isActive status of every user
+	 * @param apikey is passed from header
+	 * @param userDetails is passed from header, contains jsonString
+	 * @return
+	 */
 	@GET
 	@Path("/getUsersStatus")
 	@Produces({ MediaType.APPLICATION_JSON })
