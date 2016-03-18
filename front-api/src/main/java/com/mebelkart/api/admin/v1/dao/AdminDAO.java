@@ -6,7 +6,9 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.UserStatus;
@@ -17,6 +19,7 @@ import com.mebelkart.api.admin.v1.mapper.UserStatusMapper;
  * @author Tinku
  *
  */
+@UseStringTemplate3StatementLocator
 public interface AdminDAO {
 	/**
 	 * This query uses user details for login
@@ -35,18 +38,18 @@ public interface AdminDAO {
 	 * @param status
 	 * @return
 	 */
-	@SqlQuery("select a_user_name,a_is_active from mk_api_user_admin where a_is_active = :status")
+	@SqlQuery("select a_user_name,a_is_active from <tableName> where a_is_active = :status order by a_user_name ASC")
 	@Mapper(UserStatusMapper.class)
-	List<UserStatus> getAdminsStatus(@Bind("status") long status);
+	List<UserStatus> getUsersDetailsWithStatus(@Bind("status") long status,@Define("tableName") String tableName);
 	
 	/**
 	 * This query returns userNames and isActive status of each and every Consumer based on type of status
 	 * @param status
 	 * @return
 	 */
-	@SqlQuery("select a_user_name,a_is_active from mk_api_consumer where a_is_active = :status")
+	@SqlQuery("select a_user_name,a_is_active from <tableName> order by a_user_name ASC")
 	@Mapper(UserStatusMapper.class)
-	List<UserStatus> getConsumersStatus(@Bind("status") long status);
+	List<UserStatus> getUsersDetailsWithoutStatus(@Define("tableName") String tableName);
 
 	/**
 	 * This query validates the given header token is valid or not
@@ -84,14 +87,14 @@ public interface AdminDAO {
 	 * @param accessToken is auto generated
 	 * @return inserted row id
 	 */
-	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_password,a_access_token) values (:userName, :password, :accessToken)")
+	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_access_token,a_password) values (:userName, :accessToken, :password)")
 	@GetGeneratedKeys
 	int addAdmin(@Bind("userName") String userName,
-			@Bind("password") String password,
-			@Bind("accessToken") String accessToken);
-
+			@Bind("accessToken") String accessToken,
+			@Bind("password") String password);
+	
 	/**
-	 * This query adds permissions to consumer who is pre-registered
+	 * This query adds permissions to user who is pre-registered
 	 * @param resourceId consists of api package id
 	 * @param consumerId consists of user id
 	 * @param haveGetPermission consists 1/0
@@ -99,33 +102,18 @@ public interface AdminDAO {
 	 * @param havePutPermission consists 1/0
 	 * @param haveDeletePermission consists 1/0
 	 */
-	@SqlUpdate("insert into mk_api_resources_consumer_permission (a_resource_id,a_consumer_id,a_have_get_permission,a_have_post_permission,a_have_put_permission,a_have_delete_permission) values (:resourceId, :consumerId, :haveGetPermission, :havePostPermission, :havePutPermission, :haveDeletePermission)")
-	void insertConsumerPermission(@Bind("resourceId") long resourceId,
-			@Bind("consumerId") long consumerId,
+	@SqlUpdate("insert into <table> (a_resource_id,<userColoumnName>,a_have_get_permission,a_have_post_permission,a_have_put_permission,a_have_delete_permission) values (:resourceId, :userId, :haveGetPermission, :havePostPermission, :havePutPermission, :haveDeletePermission)")
+	void insertUserPermission(@Bind("resourceId") long resourceId,
+			@Bind("userId") long userId,
 			@Bind("haveGetPermission") long haveGetPermission,
 			@Bind("havePostPermission") long havePostPermission,
 			@Bind("havePutPermission") long havePutPermission,
-			@Bind("haveDeletePermission") long haveDeletePermission);
+			@Bind("haveDeletePermission") long haveDeletePermission,
+			@Define("table") String table,
+			@Define("userColoumnName") String colName);
 	
 	/**
-	 * This query adds permissions to admin who is pre-registered
-	 * @param resourceId consists of api package id
-	 * @param adminId consists of user id
-	 * @param haveGetPermission consists 1/0
-	 * @param havePostPermission consists 1/0
-	 * @param havePutPermission consists 1/0
-	 * @param haveDeletePermission consists 1/0
-	 */
-	@SqlUpdate("insert into mk_api_resources_admin_permission (a_resource_id,a_admin_id,a_have_get_permission,a_have_post_permission,a_have_put_permission,a_have_delete_permission) values (:resourceId, :adminId, :haveGetPermission, :havePostPermission, :havePutPermission, :haveDeletePermission)")
-	void insertAdminPermission(@Bind("resourceId") long resourceId,
-			@Bind("adminId") long adminId,
-			@Bind("haveGetPermission") long haveGetPermission,
-			@Bind("havePostPermission") long havePostPermission,
-			@Bind("havePutPermission") long havePutPermission,
-			@Bind("haveDeletePermission") long haveDeletePermission);
-
-	/**
-	 * This query updates permissions to consumer who is pre-registered
+	 * This query updates permissions to user who is pre-registered
 	 * @param resourceId consists of api package id
 	 * @param consumerId consists of user id
 	 * @param haveGetPermission consists 1/0
@@ -133,98 +121,49 @@ public interface AdminDAO {
 	 * @param havePutPermission consists 1/0
 	 * @param haveDeletePermission consists 1/0
 	 */
-	@SqlUpdate("update mk_api_resources_consumer_permission set a_have_get_permission = :haveGetPermission,a_have_post_permission = :havePostPermission,a_have_put_permission = :havePutPermission,a_have_delete_permission = :haveDeletePermission where a_resource_id = :resourceId and a_consumer_id = :consumerId")
-	void updateConsumerPermission(@Bind("resourceId") long resourceId,
-			@Bind("consumerId") long consumerId,
+	@SqlUpdate("update <tableName> set a_have_get_permission = :haveGetPermission,a_have_post_permission = :havePostPermission,a_have_put_permission = :havePutPermission,a_have_delete_permission = :haveDeletePermission where a_resource_id = :resourceId and <userColoumnName> = :userId")
+	void updateUserPermission(@Bind("resourceId") long resourceId,
+			@Bind("userId") long consumerId,
 			@Bind("haveGetPermission") long haveGetPermission,
 			@Bind("havePostPermission") long havePostPermission,
 			@Bind("havePutPermission") long havePutPermission,
-			@Bind("haveDeletePermission") long haveDeletePermission);
+			@Bind("haveDeletePermission") long haveDeletePermission,
+			@Define("tableName") String tableName,
+			@Define("userColoumnName") String colName);
 	
 	/**
-	 * This query adds permissions to admin who is pre-registered
-	 * @param resourceId consists of api package id
-	 * @param adminId consists of user id
-	 * @param haveGetPermission consists 1/0
-	 * @param havePostPermission consists 1/0
-	 * @param havePutPermission consists 1/0
-	 * @param haveDeletePermission consists 1/0
-	 */
-	@SqlUpdate("update mk_api_resources_admin_permission set a_have_get_permission = :haveGetPermission,a_have_post_permission = :havePostPermission,a_have_put_permission = :havePutPermission,a_have_delete_permission = :haveDeletePermission where a_resource_id = :resourceId and a_admin_id = :adminId")
-	void updateAdminPermission(@Bind("resourceId") long resourceId,
-			@Bind("adminId") long adminId,
-			@Bind("haveGetPermission") long haveGetPermission,
-			@Bind("havePostPermission") long havePostPermission,
-			@Bind("havePutPermission") long havePutPermission,
-			@Bind("haveDeletePermission") long haveDeletePermission);
-
-	/**
-	 * This query returns consumers row id
+	 * This query returns user row id
 	 * @param userName of type email
 	 * @return id
 	 */
-	@SqlQuery("select id from mk_api_consumer where a_user_name = :userName")
-	int getConsumerId(@Bind("userName") String userName);
-	
-	/**
-	 * This query returns admins row id
-	 * @param userName of type email
-	 * @return id
-	 */
-	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
-	int getAdminId(@Bind("userName") String userName);
+	@SqlQuery("select id from <tableName> where a_user_name = :userName")
+	int getUserId(@Bind("userName") String userName,@Define("tableName") String tableName);
 
 	/**
-	 * This query checks whether consumer is already registered or not
+	 * This query checks whether user is already registered or not
 	 * @param userName of type email
 	 * @return String userName of type email
 	 */
-	@SqlQuery("select a_user_name from mk_api_consumer where a_user_name = :userName")
-	String isConsumerUserNameAlreadyExists(@Bind("userName") String userName);
-
-	/**
-	 * This query checks whether admin is already registered or not
-	 * @param userName of type email
-	 * @return String userName of type email
-	 */
-	@SqlQuery("select a_user_name from mk_api_user_admin where a_user_name = :userName")
-	String isAdminUserNameAlreadyExists(@Bind("userName") String userName);
+	@SqlQuery("select a_user_name from <tableName> where a_user_name = :userName")
+	String isUserNameAlreadyExists(@Bind("userName") String userName,@Define("tableName") String tableName);
 	
 	/**
-	 * This query updates active status of Admin
+	 * This query updates active status of User
 	 * @param userName email of Admin
 	 * @param status 1 for isActive/0 for isNotActive
 	 */
-	@SqlUpdate("update mk_api_user_admin set a_is_active = :status where a_user_name = :userName")
-	void changeAdminActiveStatus(@Bind("userName") String userName,@Bind("status") long status);
+	@SqlUpdate("update <tableName> set a_is_active = :status where a_user_name = :userName")
+	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,@Define("tableName") String tableName);
 	
 	/**
-	 * This query updates active status of Consumer
-	 * @param userName email of Consumer
-	 * @param status 1 for isActive/0 for isNotActive
-	 */
-	@SqlUpdate("update mk_api_consumer set a_is_active = :status where a_user_name = :userName")
-	void changeConsumerActiveStatus(@Bind("userName") String userName,@Bind("status") long status);
-
-	/**
-	 * Checks whether the consumer is given permissions for specific resource id or not
+	 * Checks whether the user is given permissions for specific resource id or not
 	 * @param resourceId consists of api package id
 	 * @param consumerId consists of user id
 	 * @return non zero on success
 	 */
-	@SqlQuery("select a_permission_id from mk_api_resources_consumer_permission where a_resource_id = :resourceId and a_consumer_id = :consumerId")
-	int isConsumerPermissionExists(@Bind("resourceId") long resourceId,
-			@Bind("consumerId") long consumerId);
-	
-	/**
-	 * Checks whether the admin is given permissions for specific resource id or not
-	 * @param resourceId consists of api package id
-	 * @param adminId consists of user id
-	 * @return non zero on success
-	 */
-	@SqlQuery("select a_permission_id from mk_api_resources_admin_permission where a_resource_id = :resourceId and a_admin_id = :adminId")
-	int isAdminPermissionExists(@Bind("resourceId") long resourceId,
-			@Bind("adminId") long adminId);
+	@SqlQuery("select a_permission_id from <tableName> where a_resource_id = :resourceId and <userColoumnName> = :consumerId")
+	int isUserPermissionExists(@Bind("resourceId") long resourceId,
+			@Bind("consumerId") long consumerId,@Define("tableName")String tableName,@Define("userColoumnName") String colName);
 	
 	/**
 	 * Checks whether resource id is valid api package id or not

@@ -15,7 +15,10 @@ import javax.ws.rs.core.MediaType;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.util.HelperMethods;
 import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
@@ -37,11 +40,17 @@ public class AdminResource {
 	 * auth
 	 */
 	AdminDAO auth;
+	
 	/**
 	 * helper
 	 */
-	HelperMethods helper = new HelperMethods();
-
+	HelperMethods helper = new HelperMethods();	
+	
+	/**
+	 * Get actual class name to be printed on
+	 */
+	static Logger log = LoggerFactory.getLogger(mkApiApplication.class);
+	
 	/**
 	 * @param auth
 	 */
@@ -76,6 +85,8 @@ public class AdminResource {
 				return new Reply(400, "Bad Request, give Valid Json/keys",null);
 			}
 		}catch(NullPointerException e){
+			log.debug("Hello this is a debug message");
+		    log.info("Hello this is an info message");
 			return new Reply(401, "You are not autherized",null);
 		}catch(ClassCastException e){
 			return new Reply(400, "Bad Request, give Valid Json/values",null);
@@ -161,7 +172,7 @@ public class AdminResource {
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
-						int rowId = this.auth.getAdminId((String) rawData.get("userName"));
+						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_user_admin");
 						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status,"");
 					}
@@ -170,7 +181,7 @@ public class AdminResource {
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
-						int rowId = this.auth.getConsumerId((String) rawData.get("userName"));
+						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_consumer");
 						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status,"");
 					}
@@ -209,7 +220,7 @@ public class AdminResource {
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
-						this.auth.changeAdminActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"));
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin");
 						return new Reply(206, "Successfully updated active status of admin",null);
 					}
 					else{
@@ -217,7 +228,7 @@ public class AdminResource {
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
-						this.auth.changeConsumerActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"));
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer");
 						return new Reply(206, "Successfully updated active status of consumer",null);
 					}
 					else{
@@ -256,21 +267,21 @@ public class AdminResource {
 					System.out.println("In admin");
 					if(rawData.containsKey("status")){
 						System.out.println("in if");
-						List<UserStatus> userStatusDetails = this.auth.getAdminsStatus((long) rawData.get("status"));
+						List<UserStatus> userStatusDetails = this.auth.getUsersDetailsWithStatus((long) rawData.get("status"),"mk_api_user_admin");
 						return new Reply(200, "The request is OK.",userStatusDetails);
 					}
 					else{
 						System.out.println("in else");
-						List<UserStatus> allUsersStatusDetails = getAllAdminUsersStatus();
+						List<UserStatus> allUsersStatusDetails = this.auth.getUsersDetailsWithoutStatus("mk_api_user_admin");
 						return new Reply(200, "The request is OK. Retrieved all admin status details", allUsersStatusDetails);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(rawData.containsKey("status")){
-						List<UserStatus> userStatusDetails = this.auth.getConsumersStatus((long) rawData.get("status"));
+						List<UserStatus> userStatusDetails = this.auth.getUsersDetailsWithStatus((long) rawData.get("status"),"mk_api_consumer");
 						return new Reply(200, "The request is OK.",userStatusDetails);
 					}
 					else{
-						List<UserStatus> allUsersStatusDetails = getAllConsumerUsersStatus();
+						List<UserStatus> allUsersStatusDetails = this.auth.getUsersDetailsWithoutStatus("mk_api_consumer");
 						return new Reply(200, "The request is OK. Retrieved all consumer status details", allUsersStatusDetails);
 					}
 				} else {
@@ -285,29 +296,7 @@ public class AdminResource {
 			return new Reply(400, "Bad Request,give Valid Json/values",null);
 		}	
 	}
-	
-	/**
-	 * This method returns active status of every admin user
-	 * @return
-	 */
-	private List<UserStatus> getAllAdminUsersStatus(){
-		List<UserStatus> nonActiveUserStatusDetails = this.auth.getAdminsStatus(0);
-		List<UserStatus> activeUserStatusDetails = this.auth.getAdminsStatus(1);
-		activeUserStatusDetails.addAll(nonActiveUserStatusDetails);
-		return activeUserStatusDetails;
-	}
-	
-	/**
-	 * This method returns active status of every consumer user
-	 * @return
-	 */
-	private List<UserStatus> getAllConsumerUsersStatus(){
-		List<UserStatus> nonActiveUserStatusDetails = this.auth.getConsumersStatus(0);
-		List<UserStatus> activeUserStatusDetails = this.auth.getConsumersStatus(1);
-		activeUserStatusDetails.addAll(nonActiveUserStatusDetails);
-		return activeUserStatusDetails;
-	}
-	
+
 	/**
 	 * Checks if Consumer userName is already present in table. 
 	 * We are using this to avoid duplicates
@@ -315,7 +304,7 @@ public class AdminResource {
 	 * @return boolean
 	 */
 	private boolean isConsumerUserNameAlreadyExists(String userNameConsumer) {
-		if (userNameConsumer.equals(this.auth.isConsumerUserNameAlreadyExists(userNameConsumer))) {
+		if (userNameConsumer.equals(this.auth.isUserNameAlreadyExists(userNameConsumer,"mk_api_consumer"))) {
 			return true;
 		} else
 			return false;
@@ -328,7 +317,7 @@ public class AdminResource {
 	 * @return true/false
 	 */
 	private boolean isAdminUserNameAlreadyExists(String userNameAdmin){
-		if (userNameAdmin.equals(this.auth.isAdminUserNameAlreadyExists(userNameAdmin))) {
+		if (userNameAdmin.equals(this.auth.isUserNameAlreadyExists(userNameAdmin,"mk_api_user_admin"))) {
 			return true;
 		} else
 			return false;
@@ -376,13 +365,13 @@ public class AdminResource {
 	 */
 	private boolean isPermissionExists(String userType,long resourceId,long userId){
 		if(userType.equals("consumer")){
-			if(this.auth.isConsumerPermissionExists(resourceId, userId) != 0)
+			if(this.auth.isUserPermissionExists(resourceId, userId,"mk_api_resources_consumer_permission","a_consumer_id") != 0)
 				return true;
 			else
 				return false;
 		}
 		else if(userType.equals("admin")){
-			if(this.auth.isAdminPermissionExists(resourceId, userId) != 0)
+			if(this.auth.isUserPermissionExists(resourceId, userId,"mk_api_resources_admin_permission","a_admin_id") != 0)
 				return true;
 			else
 				return false;
@@ -432,16 +421,16 @@ public class AdminResource {
 		int typeOfQuery = 0;
 		if(type.equals("insert")){
 			if(to.equals("consumer"))
-				this.auth.insertConsumerPermission(resourceId,userId, get, post, put, delete);
+				this.auth.insertUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_consumer_permission","a_consumer_id");
 			else
-				this.auth.insertAdminPermission(resourceId,userId, get, post, put, delete);
+				this.auth.insertUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_admin_permission","a_admin_id");
 			//Refer to checkstatus method in HelperMethods class
 			typeOfQuery = 1;
 		}else if(type.equals("update")){					
 			if(to.equals("consumer"))
-				this.auth.updateConsumerPermission(resourceId,userId, get, post, put, delete);
+				this.auth.updateUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_consumer_permission","a_consumer_id");
 			else
-				this.auth.updateAdminPermission(resourceId,userId, get, post, put, delete);
+				this.auth.updateUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_admin_permission","a_admin_id");
 			//Refer to checkstatus method in HelperMethods class
 			typeOfQuery = 6;
 		}
