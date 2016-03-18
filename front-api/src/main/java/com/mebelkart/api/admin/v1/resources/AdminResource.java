@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
-import com.mebelkart.api.admin.v1.util.HelperMethods;
+import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
 import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
 import com.mebelkart.api.admin.v1.api.SubStatusReply;

@@ -1,4 +1,4 @@
-package com.mebelkart.api.admin.v1.util;
+package com.mebelkart.api.admin.v1.helper;
 
 import java.io.IOException;
 import java.io.InputStream;
