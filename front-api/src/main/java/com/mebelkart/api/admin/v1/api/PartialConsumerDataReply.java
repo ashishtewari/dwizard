@@ -8,10 +8,7 @@ package com.mebelkart.api.admin.v1.api;
  *
  */
 public class PartialConsumerDataReply {
-	/**
-	 * status
-	 */
-	public int status;
+	
 	/**
 	 * accessToken
 	 */
@@ -23,8 +20,7 @@ public class PartialConsumerDataReply {
 	/**
 	 * The Default Constructer
 	 */
-	public PartialConsumerDataReply(int status,String accessToken,String email){
-		this.status = status;
+	public PartialConsumerDataReply(String accessToken,String email){
 		this.accessToken = accessToken;
 		this.email = email;
 	}

@@ -28,10 +28,10 @@ public interface AdminDAO {
 	 * @param level of admin
 	 * @return row data of type list
 	 */
-	@SqlQuery("select a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password and a_admin_level = :level")
+	@SqlQuery("select a_user_name,a_password,a_admin_level from mk_api_user_admin where a_user_name = :user_name and a_password = :password")
 	@Mapper(AdminMapper.class)
 	List<Admin> login(@Bind("user_name") String user_name,
-			@Bind("password") String password, @Bind("level") long level);
+			@Bind("password") String password);
 	
 	/**
 	 * This query returns userNames and isActive status of each and every Admin based on type of status
