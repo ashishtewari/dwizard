@@ -25,7 +25,6 @@ import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
 import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
 import com.mebelkart.api.util.Reply;
-import com.mebelkart.api.admin.v1.api.SubStatusReply;
 import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
@@ -187,7 +186,7 @@ public class AdminResource {
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_user_admin");
 						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status);
@@ -197,7 +196,7 @@ public class AdminResource {
 						return exception.getException("give valid user name", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
-					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_consumer");
 						int status = assigningPermission(rawData, rowId);
 						return helper.checkStatus(status);
@@ -241,7 +240,7 @@ public class AdminResource {
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin");
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
@@ -250,7 +249,7 @@ public class AdminResource {
 						return exception.getException("give valid user name", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
-					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer");
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
@@ -318,38 +317,41 @@ public class AdminResource {
 				return exception.getException("your admin credentials are not acceptable", null);
 			}
 		}catch(NullPointerException e){
-			return new Reply(401, "You are not autherized,give valid details",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request,give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}	
 	}
 
 	/**
-	 * Checks if Consumer userName is already present in table. 
+	 * Checks if Users userName is already present in table. 
 	 * We are using this to avoid duplicates
 	 * @param userNameConsumer of Consumer
 	 * @return boolean
 	 */
-	private boolean isConsumerUserNameAlreadyExists(String userNameConsumer) {
-		if (userNameConsumer.equals(this.auth.isUserNameAlreadyExists(userNameConsumer,"mk_api_consumer"))) {
-			return true;
-		} else
-			return false;
+	private boolean isUserNameAlreadyExists(String typeOfUser,String userName) {
+		if(typeOfUser.equals("consumer")){
+			if (userName.equals(this.auth.isUserNameAlreadyExists(userName,"mk_api_consumer"))) {
+				return true;
+			} else
+				return false;
+		}
+		else if(typeOfUser.equals("admin")){
+			if (userName.equals(this.auth.isUserNameAlreadyExists(userName,"mk_api_user_admin"))) {
+				return true;
+			} else
+				return false;
+		}
+		else return false;
 	}
 	
 	/**
-	 * Checks if Admin userName is already present in table.
-	 * We are using this to avoid duplicates 
-	 * @param userNameAdmin
+	 * Checks whether the admin is in active state or not
+	 * @param apikey consists of his accessToken
 	 * @return true/false
 	 */
-	private boolean isAdminUserNameAlreadyExists(String userNameAdmin){
-		if (userNameAdmin.equals(this.auth.isUserNameAlreadyExists(userNameAdmin,"mk_api_user_admin"))) {
-			return true;
-		} else
-			return false;
-	}
-	
 	private boolean isAdminActive(String apikey){
 		if(this.auth.isAdminInActiveState(apikey) == 1)
 			return true;
@@ -363,7 +365,7 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	private int registerConsumer(JSONObject jsonData) {
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isConsumerUserNameAlreadyExists((String) jsonData.get("userName"))) {
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("consumer",(String) jsonData.get("userName"))) {
 			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"));
 			return id;
 		} else
@@ -376,7 +378,7 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	public int registerAdmin(JSONObject jsonData){
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isAdminUserNameAlreadyExists((String) jsonData.get("userName"))) {
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("admin",(String) jsonData.get("userName"))) {
 			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"));
 			return id;
 		} else
