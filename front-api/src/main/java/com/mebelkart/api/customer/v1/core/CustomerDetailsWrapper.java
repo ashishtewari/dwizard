@@ -3,7 +3,6 @@
  */
 package com.mebelkart.api.customer.v1.core;
 
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,7 +17,7 @@ import com.github.rkmk.annotations.PrimaryKey;
  */
 @JsonInclude(Include.NON_NULL)
 public class CustomerDetailsWrapper {
-	
+
 	@PrimaryKey()
 	@ColumnName("id_customer")
 	private int customerId;
@@ -48,24 +47,6 @@ public class CustomerDetailsWrapper {
 		this.wishList = wishList;
 	}
 
-	// public CustomerDetailsWrapper(int customerId, String firstname, String
-	// lastname,
-	// String email, String address1, String address2, String mobile,
-	// String city, String postcode, String orderId, String totalpaid) {
-	// // TODO Auto-generated constructor stub
-	// this.setCustomerId(customerId);
-	// this.setFirstName(firstname);
-	// this.setLastName(lastname);
-	// this.setEmail(email);
-	// this.setAddress1(address1);
-	// this.setAddress2(address2);
-	// this.setMobile(mobile);
-	// this.setCity(city);
-	// this.setPostCode(postcode);
-	// this.setOrderId(orderId);
-	// this.setTotalPaid(totalpaid);
-	// }
-
 	public List<CustomerOrdersWrapper> getOrders() {
 		return orders;
 	}
@@ -74,18 +55,13 @@ public class CustomerDetailsWrapper {
 		this.orders = orders;
 	}
 
-	// public CustomerDetailsWrapper(BigDecimal bigDecimal) {
-	// // TODO Auto-generated constructor stub
-	//
-	// }
+	public int getCustomerId() {
+		return customerId;
+	}
 
-	 public int getCustomerId() {
-	 return customerId;
-	 }
-	
-	 public void setCustomerId(int customerId) {
-	 this.customerId = customerId;
-	 }
+	public void setCustomerId(int customerId) {
+		this.customerId = customerId;
+	}
 
 	public String getFirstName() {
 		return firstName;

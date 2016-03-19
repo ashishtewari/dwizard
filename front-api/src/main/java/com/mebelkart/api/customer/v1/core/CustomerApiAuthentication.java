@@ -34,7 +34,6 @@ public class CustomerApiAuthentication {
 	public boolean isAuthKeyValid() {
 		List<CustomerAuthenticatonWrapper> customerAuthList = this.authenticationDao.isCustomerValid(authenticatonKey.trim());
 		List<CustomerAuthenticatonWrapper> adminAuthList = this.authenticationDao.isAdminValid(authenticatonKey.trim());
-		System.out.println("size in authkeyvalid = " + adminAuthList.size());
 		if ((customerAuthList.size() > 0 && customerAuthList.get(0).getIsActive()==1) || (adminAuthList.size() > 0 && adminAuthList.get(0).getIsActive()==1)) {
 			return true;
 		}

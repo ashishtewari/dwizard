@@ -10,7 +10,6 @@ package com.mebelkart.api.customer.v1.core;
 public class CustomerAuthenticatonWrapper {
 
 	private int customerId,isActive,isHavingGetPermission;
-	//private String firstname, lastname, email;
 
 	public CustomerAuthenticatonWrapper(int customerId, int isActive, int isHavingPermission) {
 		// TODO Auto-generated constructor stub

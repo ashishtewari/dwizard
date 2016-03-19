@@ -17,8 +17,12 @@ public class CustomerOrdersWrapper {
 	@PrimaryKey()
 	@ColumnName("id_order")
 	private int orderId;
+	@ColumnName("total_products")
+	private double totalAmount;
 	@ColumnName("total_paid")
-	private String totalPaid;
+	private double totalPaid;
+	@ColumnName("total_discounts")
+	private double totalDiscount;
 
 	public int getOrderId() {
 		return orderId;
@@ -28,12 +32,28 @@ public class CustomerOrdersWrapper {
 		this.orderId = orderId;
 	}
 
-	public String getTotalPaid() {
+	public double getTotalPaid() {
 		return totalPaid;
 	}
 
-	public void setTotalPaid(String totalPaid) {
+	public void setTotalPaid(double totalPaid) {
 		this.totalPaid = totalPaid;
+	}
+
+	public double getTotalAmount() {
+		return totalAmount;
+	}
+
+	public void setTotalAmount(double totalAmount) {
+		this.totalAmount = totalAmount;
+	}
+
+	public double getTotalDiscount() {
+		return totalDiscount;
+	}
+
+	public void setTotalDiscount(double totalDiscount) {
+		this.totalDiscount = totalDiscount;
 	}
 
 }

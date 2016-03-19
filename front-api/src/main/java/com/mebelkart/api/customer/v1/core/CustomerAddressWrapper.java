@@ -39,16 +39,20 @@ public class CustomerAddressWrapper {
 	}
 
 	public String getAddress1() {
+		if (!(address1 == null)) {
+			address1 = address1.replaceAll("\\r\\n", "");
+		}
 		return address1;
 	}
 
 	public void setAddress1(String address1) {
-		//System.out.println("this.address1 = " +this.address1);
 		this.address1 = address1;
-		//address1 = address1.replaceAll("\\r\\n","");
 	}
 
 	public String getAddress2() {
+		if (!(address2 == null)) {
+			address2 = address2.replaceAll("\\r\\n", "");
+		}
 		return address2;
 	}
 
@@ -87,13 +91,5 @@ public class CustomerAddressWrapper {
 	public void setPostCode(String postCode) {
 		this.postCode = postCode;
 	}
-
-	// public int getAddressId() {
-	// return addressId;
-	// }
-	//
-	// public void setAddressId(int addressId) {
-	// this.addressId = addressId;
-	// }
 
 }

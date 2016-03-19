@@ -24,7 +24,7 @@ public class HandleException {
 	public ChangeToJson getContentTypeNullValueException() {
 		String content = "";
 		message = "HTTP " + statusCode + " " + message
-				+ ", Specify Content-Type or apikey or customerid Correctly";
+				+ ", Content-Type or apikey or customerid or required_fields spelled Incorrectly";
 		ChangeToJson nullValueExceptionResult = new ChangeToJson(statusCode, message, content);
 		return nullValueExceptionResult;
 
