@@ -9,6 +9,7 @@ import com.mebelkart.api.admin.v1.resources.AdminResource;
 import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
+import com.mebelkart.api.util.HandleNullRequest;
 
 import io.dropwizard.Application;
 import io.dropwizard.jdbi.DBIFactory;
@@ -45,6 +46,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		mebelkartProdDatabaseConfiguration.registerContainerFactory(new FoldingListContainerFactory());
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
+		environment.jersey().register(new HandleNullRequest());
 	}
 
 }

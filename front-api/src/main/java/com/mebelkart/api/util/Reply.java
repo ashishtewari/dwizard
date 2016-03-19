@@ -1,4 +1,4 @@
-package com.mebelkart.api.admin.v1.api;
+package com.mebelkart.api.util;
 
 /**
  * @author Tinku

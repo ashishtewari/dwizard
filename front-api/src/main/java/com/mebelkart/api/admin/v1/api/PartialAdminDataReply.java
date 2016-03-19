@@ -8,10 +8,7 @@ package com.mebelkart.api.admin.v1.api;
  *
  */
 public class PartialAdminDataReply {	
-	/**
-	 * status
-	 */
-	public int status;
+	
 	/**
 	 * accessToken
 	 */
@@ -27,8 +24,7 @@ public class PartialAdminDataReply {
 	/**
 	 * The Default Constructer
 	 */
-	public PartialAdminDataReply(int status,String accessToken,String password,String email){
-		this.status = status;
+	public PartialAdminDataReply(String accessToken,String password,String email){
 		this.accessToken = accessToken;
 		this.password = password;
 		this.email = email;		

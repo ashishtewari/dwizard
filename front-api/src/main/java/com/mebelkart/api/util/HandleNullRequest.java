@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.admin.v1.resources;
+package com.mebelkart.api.util;
 
 
 import java.util.HashMap;
@@ -16,7 +16,7 @@ import javax.ws.rs.ext.ExceptionMapper;
  * @author Tinku
  *
  */
-public class HandleNullRequestResource implements ExceptionMapper<WebApplicationException>  {
+public class HandleNullRequest implements ExceptionMapper<WebApplicationException>  {
 	
 	@SuppressWarnings("serial")
 	/* (non-Javadoc)

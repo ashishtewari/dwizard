@@ -15,9 +15,8 @@
 		<json-simple.version>1.1.1</json-simple.version>
 		<commons-io.version>2.4</commons-io.version>
 		<commons-validator.version>1.4.0</commons-validator.version>
-		<felix.version>1.2.0</felix.version>
-		<json.version>20090211</json.version>
 		<parent.version>1.0.0-SNAPSHOT</parent.version>
+		<stringtemplate.version>2.3b6</stringtemplate.version>
 
 	</properties>
 
@@ -68,19 +67,9 @@
 			<version>${commons-validator.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.felix</groupId>
-			<artifactId>org.osgi.foundation</artifactId>
-			<version>${felix.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>${json.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>antlr</groupId>
 			<artifactId>stringtemplate</artifactId>
-			<version>2.3b6</version>
+			<version>${stringtemplate.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

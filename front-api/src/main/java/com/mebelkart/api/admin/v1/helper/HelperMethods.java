@@ -1,4 +1,4 @@
-package com.mebelkart.api.admin.v1.util;
+package com.mebelkart.api.admin.v1.helper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -14,7 +15,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.mebelkart.api.admin.v1.api.Reply;
+import com.mebelkart.api.util.HandleException;
+import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
 /**
@@ -70,7 +72,7 @@ public class HelperMethods {
 	 */
 	public boolean isUserDetailsContainsValidKeys(String userDetails){
 		JSONObject userDetailsObj = jsonParser(userDetails);
-		if(userDetailsObj.containsKey("userName") && userDetailsObj.containsKey("password") && userDetailsObj.containsKey("adminLevel"))
+		if(userDetailsObj.containsKey("userName") && userDetailsObj.containsKey("password"))
 				return true;
 		else
 			return false;
@@ -82,23 +84,32 @@ public class HelperMethods {
 	 * @param msg may be passed/Not passed
 	 * @return Object
 	 */
-	public Object checkStatus(int status, String msg) {
+	public Object checkStatus(int status) {
+		HandleException exception = null;
 		if (status == 0) {
-			return new Reply(400, msg+"No Permissions key specified/May be misspelled",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("No Permissions key specified/May be misspelled", null);
 		} else if (status == 1) {
-			return new Reply(201, msg+"Successfully Inserted and given Permissions",null);
+			return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 		} else if (status == 2) {
-			return new Reply(400, msg+"Permissions array is Empty",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Permissions array is Empty", null);
 		} else if (status == 3) {
-			return new Reply(400, msg+"Json field in Permissions array doesn't contain resourceId/permission or misspelled",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Json field in Permissions array doesn't contain resourceId/permission or misspelled", null);
 		} else if (status == 4) {
-			return new Reply(400, msg+"Expected Permission array, Found Non-Array",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Expected Permission array, Found Non-Array", null);
 		} else if (status == 5) {
-			return new Reply(400, msg+"The values inside permission are not correctly spelled",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("The values inside permission are not correctly spelled", null);
 		} else if (status == 6) {
-			return new Reply(201, msg+"Successfully Updated and given Permissions",null);
-		} else
-			return new Reply(400, msg+"Unknown Error in Check Status",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Successfully Updated and given Permissions", null);
+		} else{
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Unknown Error in Check Status", null);
+		}
 	}
 
 	/**

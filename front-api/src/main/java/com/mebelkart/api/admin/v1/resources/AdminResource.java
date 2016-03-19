@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -20,14 +21,14 @@ import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
-import com.mebelkart.api.admin.v1.util.HelperMethods;
+import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
 import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
-import com.mebelkart.api.admin.v1.api.SubStatusReply;
-import com.mebelkart.api.admin.v1.api.Reply;
+import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
+import com.mebelkart.api.util.HandleException;
 
 /**
  * @author Tinku
@@ -40,6 +41,11 @@ public class AdminResource {
 	 * auth
 	 */
 	AdminDAO auth;
+	
+	/**
+	 * exception
+	 */
+	HandleException exception = new HandleException();
 	
 	/**
 	 * helper
@@ -72,26 +78,29 @@ public class AdminResource {
 				JSONObject userDetailsObj = helper.jsonParser(userDetails);
 				String username = (String) userDetailsObj.get("userName");
 				String password = MD5Encoding.encrypt((String) userDetailsObj.get("password"));
-				long adminLevel = (long) userDetailsObj.get("adminLevel");
-				List<Admin> admin_details = this.auth.login(username, password, adminLevel);
+				List<Admin> admin_details = this.auth.login(username, password);
 				if (!admin_details.get(0).getA_user_name().equals(username)) {
-					return new Reply(401, "Login Fail Invalid Credentials",
-							new SubStatusReply(0, "Failure"));
-				} else {
-					return new Reply(200, "Test Success", new SubStatusReply(1, "Success"));
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details", null);
+				} else {					
+					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), null);
 				}
 			}
 			else{
-				return new Reply(400, "Bad Request, give Valid Json/keys",null);
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("give valid JsonData/keys", null);
 			}
 		}catch(NullPointerException e){
-			log.debug("Hello this is a debug message");
-		    log.info("Hello this is an info message");
-			return new Reply(401, "You are not autherized",null);
+//			log.debug("Hello this is a debug message");
+//		    log.info("Hello this is an info message");
+		    exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}catch(IndexOutOfBoundsException e){
-			return new Reply(400, "Bad Request, There are no users matching your requirments",null);
+			exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+			return exception.getException("please provide valid details", null);
 		}
 	}
 
@@ -123,33 +132,39 @@ public class AdminResource {
 					if (id != 0) {
 						int status = assigningPermission(rawData, id);
 						if(status == 1)
-							return new Reply(206, "Successfully inserted and given permissions to admin",new PartialAdminDataReply(1,generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						else
-							return helper.checkStatus(status,"Successfully inserted but ");
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 					} else {
-						return new Reply(406, "user Already Exists",null);
+						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+						return exception.getException("user name already exists", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					int rowId = registerConsumer(rawData);
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
-							return new Reply(206, "Successfully inserted and given permissions to Consumer",new PartialConsumerDataReply(1,generateduserAccessToken,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
 						else
-							return helper.checkStatus(status,"Successfully inserted but ");
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
 					} else {
-						return new Reply(406, "user Already Exists",null);
+						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+						return exception.getException("user name already exists", null);
 					}
 				} else {
-					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState ",null);
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			} else {
-				return new Reply(401, "You are not autherized",null);
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
 			}
 		}catch(NullPointerException e){
-			return new Reply(401, "You are not autherized",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}				
 	}
 
@@ -171,33 +186,39 @@ public class AdminResource {
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_user_admin");
 						int status = assigningPermission(rawData, rowId);
-						return helper.checkStatus(status,"");
+						return helper.checkStatus(status);
 					}
 					else{
-						return new Reply(404, "UserName not found", null);
+						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+						return exception.getException("give valid user name", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
-					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_consumer");
 						int status = assigningPermission(rawData, rowId);
-						return helper.checkStatus(status,"");
+						return helper.checkStatus(status);
 					}
 					else{
-						return new Reply(404, "UserName not found", null);
+						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+						return exception.getException("give valid user name", null);
 					}
 				} else {
-					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
-				return new Reply(401, "You are not autherized",null);
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
 			}
 		}catch(NullPointerException e){
-			return new Reply(401, "You are not autherized",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request, give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}			
 	}
 	
@@ -219,31 +240,37 @@ public class AdminResource {
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					if(isAdminUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin");
-						return new Reply(206, "Successfully updated active status of admin",null);
+						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						return new Reply(404, "UserName not found", null);
+						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+						return exception.getException("give valid user name", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
-					if(isConsumerUserNameAlreadyExists((String) rawData.get("userName"))){
+					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer");
-						return new Reply(206, "Successfully updated active status of consumer",null);
+						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						return new Reply(404, "UserName not found", null);
+						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+						return exception.getException("give valid user name", null);
 					}
 				} else {
-					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
-				return new Reply(401, "You are not autherized",null);
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
 			}
 		}catch(NullPointerException e){
-			return new Reply(401, "You are not autherized,give valid details",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request,give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}	
 	}
 	
@@ -264,65 +291,67 @@ public class AdminResource {
 			if((accessLevel == 1 || accessLevel == 2) && helper.isUserDetailsValidJson(userDetails)){
 				JSONObject rawData = helper.jsonParser(userDetails);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					System.out.println("In admin");
 					if(rawData.containsKey("status")){
-						System.out.println("in if");
 						List<UserStatus> userStatusDetails = this.auth.getUsersDetailsWithStatus((long) rawData.get("status"),"mk_api_user_admin");
-						return new Reply(200, "The request is OK.",userStatusDetails);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),userStatusDetails);
 					}
 					else{
-						System.out.println("in else");
 						List<UserStatus> allUsersStatusDetails = this.auth.getUsersDetailsWithoutStatus("mk_api_user_admin");
-						return new Reply(200, "The request is OK. Retrieved all admin status details", allUsersStatusDetails);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase()+". Retrieved all admin status details", allUsersStatusDetails);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(rawData.containsKey("status")){
 						List<UserStatus> userStatusDetails = this.auth.getUsersDetailsWithStatus((long) rawData.get("status"),"mk_api_consumer");
-						return new Reply(200, "The request is OK.",userStatusDetails);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),userStatusDetails);
 					}
 					else{
 						List<UserStatus> allUsersStatusDetails = this.auth.getUsersDetailsWithoutStatus("mk_api_consumer");
-						return new Reply(200, "The request is OK. Retrieved all consumer status details", allUsersStatusDetails);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase()+". Retrieved all consumer status details", allUsersStatusDetails);
 					}
 				} else {
-					return new Reply(400, "Bad Request, give Valid key of type or check your adminLevel/activeState",null);
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
-				return new Reply(401, "It is not valid Json format",null);
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
 			}
 		}catch(NullPointerException e){
-			return new Reply(401, "You are not autherized,give valid details",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
-			return new Reply(400, "Bad Request,give Valid Json/values",null);
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
 		}	
 	}
 
 	/**
-	 * Checks if Consumer userName is already present in table. 
+	 * Checks if Users userName is already present in table. 
 	 * We are using this to avoid duplicates
 	 * @param userNameConsumer of Consumer
 	 * @return boolean
 	 */
-	private boolean isConsumerUserNameAlreadyExists(String userNameConsumer) {
-		if (userNameConsumer.equals(this.auth.isUserNameAlreadyExists(userNameConsumer,"mk_api_consumer"))) {
-			return true;
-		} else
-			return false;
+	private boolean isUserNameAlreadyExists(String typeOfUser,String userName) {
+		if(typeOfUser.equals("consumer")){
+			if (userName.equals(this.auth.isUserNameAlreadyExists(userName,"mk_api_consumer"))) {
+				return true;
+			} else
+				return false;
+		}
+		else if(typeOfUser.equals("admin")){
+			if (userName.equals(this.auth.isUserNameAlreadyExists(userName,"mk_api_user_admin"))) {
+				return true;
+			} else
+				return false;
+		}
+		else return false;
 	}
 	
 	/**
-	 * Checks if Admin userName is already present in table.
-	 * We are using this to avoid duplicates 
-	 * @param userNameAdmin
+	 * Checks whether the admin is in active state or not
+	 * @param apikey consists of his accessToken
 	 * @return true/false
 	 */
-	private boolean isAdminUserNameAlreadyExists(String userNameAdmin){
-		if (userNameAdmin.equals(this.auth.isUserNameAlreadyExists(userNameAdmin,"mk_api_user_admin"))) {
-			return true;
-		} else
-			return false;
-	}
-	
 	private boolean isAdminActive(String apikey){
 		if(this.auth.isAdminInActiveState(apikey) == 1)
 			return true;
@@ -336,7 +365,7 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	private int registerConsumer(JSONObject jsonData) {
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isConsumerUserNameAlreadyExists((String) jsonData.get("userName"))) {
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("consumer",(String) jsonData.get("userName"))) {
 			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"));
 			return id;
 		} else
@@ -349,7 +378,7 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	public int registerAdmin(JSONObject jsonData){
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isAdminUserNameAlreadyExists((String) jsonData.get("userName"))) {
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("admin",(String) jsonData.get("userName"))) {
 			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"));
 			return id;
 		} else
