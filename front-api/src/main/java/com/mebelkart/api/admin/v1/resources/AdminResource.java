@@ -139,17 +139,17 @@ public class AdminResource {
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					int id = registerAdmin(rawData);
-					if (id != 0) {
-						int status = assigningPermission(rawData, id);
+					int rowId = registerAdmin(rawData);
+					if (rowId != 0) {
+						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 					} else {
-						log.warn("Not acceptable data in registerUser function");
+						log.warn("Not acceptable data in registerUser function for admin");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("user name already exists", null);
+						return exception.getException("check data once again", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					int rowId = registerConsumer(rawData);
@@ -160,9 +160,9 @@ public class AdminResource {
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
 					} else {
-						log.warn("Not acceptable data in registerUser function");
+						log.warn("Not acceptable data in registerUser function for consumer");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("user name already exists", null);
+						return exception.getException("check data once again", null);
 					}
 				} else {
 					log.warn("Unauthorized data in registerUser function");
@@ -217,7 +217,7 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
-						log.warn("Not found data in updatePermissions function");
+						log.warn("Not found data in updatePermissions function for admin");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -228,7 +228,7 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
-						log.warn("Not found data in updatePermissions function");
+						log.warn("Not found data in updatePermissions function for consumer");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -284,7 +284,7 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						log.warn("Not found data in changeUserActiveStatus function");
+						log.warn("Not found data in changeUserActiveStatus function for admin");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -294,7 +294,7 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						log.warn("Not found data in changeUserActiveStatus function");
+						log.warn("Not found data in changeUserActiveStatus function for consumer");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
