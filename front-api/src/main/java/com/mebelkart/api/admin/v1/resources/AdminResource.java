@@ -1,5 +1,6 @@
 package com.mebelkart.api.admin.v1.resources;
 
+import java.net.ConnectException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -102,9 +103,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 			return exception.getException("please provide valid details", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in login function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in login function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in login function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}
 	}
 
@@ -174,9 +181,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in registerUser function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in registerUser function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in registerUser function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}				
 	}
 
@@ -236,9 +249,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in updatePermissions function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in updatePermissions function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in updatePermissions function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}			
 	}
 	
@@ -296,9 +315,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in changeUserActiveStatus function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}	
 	}
 	
@@ -353,9 +378,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in getUsersStatus function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in getUsersStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in getUsersStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}	
 	}
 
