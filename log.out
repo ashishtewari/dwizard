@@ -1,0 +1,86 @@
+INFO   [2016-03-19_15:25:52.332] [main] o.e.j.u.log -  Logging initialized @3862ms 
+INFO   [2016-03-19_15:25:53.208] [main] i.d.s.ServerFactory -  Starting mkApi
+================================================================================
+
+                              MEBELKART API SERVER
+                         One Of The Most Secure API Server
+
+================================================================================
+
+ 
+INFO   [2016-03-19_15:25:53.244] [main] i.d.s.DefaultServerFactory -  Registering jersey handler with root path prefix: / 
+INFO   [2016-03-19_15:25:53.291] [main] i.d.s.DefaultServerFactory -  Registering admin handler with root path prefix: / 
+INFO   [2016-03-19_15:25:54.480] [main] i.d.j.HttpsConnectorFactory -  Supported protocols: [SSLv2Hello, SSLv3, TLSv1, TLSv1.1, TLSv1.2] 
+INFO   [2016-03-19_15:25:54.480] [main] i.d.j.HttpsConnectorFactory -  Supported cipher suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256, TLS_DHE_RSA_WITH_AES_128_CBC_SHA256, TLS_DHE_DSS_WITH_AES_128_CBC_SHA256, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_DSS_WITH_AES_128_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256, TLS_DHE_RSA_WITH_AES_128_GCM_SHA256, TLS_DHE_DSS_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA, SSL_RSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA, SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA, SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA, TLS_EMPTY_RENEGOTIATION_INFO_SCSV, TLS_DH_anon_WITH_AES_128_GCM_SHA256, TLS_DH_anon_WITH_AES_128_CBC_SHA256, TLS_ECDH_anon_WITH_AES_128_CBC_SHA, TLS_DH_anon_WITH_AES_128_CBC_SHA, TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA, SSL_DH_anon_WITH_3DES_EDE_CBC_SHA, SSL_RSA_WITH_DES_CBC_SHA, SSL_DHE_RSA_WITH_DES_CBC_SHA, SSL_DHE_DSS_WITH_DES_CBC_SHA, SSL_DH_anon_WITH_DES_CBC_SHA, SSL_RSA_EXPORT_WITH_DES40_CBC_SHA, SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA, SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA, SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA, TLS_RSA_WITH_NULL_SHA256, TLS_ECDHE_ECDSA_WITH_NULL_SHA, TLS_ECDHE_RSA_WITH_NULL_SHA, SSL_RSA_WITH_NULL_SHA, TLS_ECDH_ECDSA_WITH_NULL_SHA, TLS_ECDH_RSA_WITH_NULL_SHA, TLS_ECDH_anon_WITH_NULL_SHA, SSL_RSA_WITH_NULL_MD5, TLS_KRB5_WITH_3DES_EDE_CBC_SHA, TLS_KRB5_WITH_3DES_EDE_CBC_MD5, TLS_KRB5_WITH_DES_CBC_SHA, TLS_KRB5_WITH_DES_CBC_MD5, TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA, TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5] 
+INFO   [2016-03-19_15:25:54.548] [main] o.e.j.s.SetUIDListener -  Opened application@60f2e0bd{HTTP/1.1}{0.0.0.0:8080} 
+INFO   [2016-03-19_15:25:54.548] [main] o.e.j.s.SetUIDListener -  Opened application@469d003c{SSL-HTTP/1.1}{0.0.0.0:8443} 
+INFO   [2016-03-19_15:25:54.563] [main] o.e.j.s.SetUIDListener -  Opened admin@6b410923{HTTP/1.1}{0.0.0.0:8081} 
+INFO   [2016-03-19_15:25:54.564] [main] o.e.j.s.SetUIDListener -  Opened admin@57bd2029{SSL-HTTP/1.1}{0.0.0.0:8444} 
+INFO   [2016-03-19_15:25:54.568] [main] o.e.j.s.Server -  jetty-9.2.13.v20150730 
+INFO   [2016-03-19_15:25:57.319] [main] i.d.j.DropwizardResourceConfig -  The following paths were found for the configured resources:
+
+    PUT     /v1.0/admin/changeUserActiveStatus (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1.0/admin/getUsersStatus (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1.0/admin/login (com.mebelkart.api.admin.v1.resources.AdminResource)
+    POST    /v1.0/admin/registerUser (com.mebelkart.api.admin.v1.resources.AdminResource)
+    PUT     /v1.0/admin/updatePermissions (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1/customer/ (com.mebelkart.api.customer.v1.resources.CustomerResource)
+    GET     /v1/customer/getDetails (com.mebelkart.api.customer.v1.resources.CustomerResource)
+ 
+WARN   [2016-03-19_15:25:57.328] [main] o.g.j.i.Errors -  The following warnings have been detected: WARNING: The (sub)resource method noQueryParams in com.mebelkart.api.customer.v1.resources.CustomerResource contains empty path annotation.
+ 
+INFO   [2016-03-19_15:25:57.328] [main] o.e.j.s.h.ContextHandler -  Started i.d.j.MutableServletContextHandler@23f3da8b{/,null,AVAILABLE} 
+INFO   [2016-03-19_15:25:57.344] [main] i.d.s.AdminEnvironment -  tasks = 
+
+    POST    /tasks/log-level (io.dropwizard.servlets.tasks.LogConfigurationTask)
+    POST    /tasks/gc (io.dropwizard.servlets.tasks.GarbageCollectionTask)
+ 
+INFO   [2016-03-19_15:25:57.364] [main] o.e.j.s.h.ContextHandler -  Started i.d.j.MutableServletContextHandler@237f7970{/,null,AVAILABLE} 
+INFO   [2016-03-19_15:25:57.413] [main] o.e.j.s.ServerConnector -  Started application@60f2e0bd{HTTP/1.1}{0.0.0.0:8080} 
+INFO   [2016-03-19_15:25:57.512] [main] o.e.j.s.ServerConnector -  Started application@469d003c{SSL-HTTP/1.1}{0.0.0.0:8443} 
+INFO   [2016-03-19_15:25:57.580] [main] o.e.j.s.ServerConnector -  Started admin@6b410923{HTTP/1.1}{0.0.0.0:8081} 
+INFO   [2016-03-19_15:25:57.658] [main] o.e.j.s.ServerConnector -  Started admin@57bd2029{SSL-HTTP/1.1}{0.0.0.0:8444} 
+INFO   [2016-03-19_15:25:57.658] [main] o.e.j.s.Server -  Started @9183ms 
+INFO   [2016-03-19_16:06:33.841] [main] o.e.j.u.log -  Logging initialized @4172ms 
+INFO   [2016-03-19_16:06:34.709] [main] i.d.s.ServerFactory -  Starting mkApi
+================================================================================
+
+                              MEBELKART API SERVER
+                         One Of The Most Secure API Server
+
+================================================================================
+
+ 
+INFO   [2016-03-19_16:06:34.746] [main] i.d.s.DefaultServerFactory -  Registering jersey handler with root path prefix: / 
+INFO   [2016-03-19_16:06:34.793] [main] i.d.s.DefaultServerFactory -  Registering admin handler with root path prefix: / 
+INFO   [2016-03-19_16:06:36.066] [main] i.d.j.HttpsConnectorFactory -  Supported protocols: [SSLv2Hello, SSLv3, TLSv1, TLSv1.1, TLSv1.2] 
+INFO   [2016-03-19_16:06:36.066] [main] i.d.j.HttpsConnectorFactory -  Supported cipher suites: [TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256, TLS_DHE_RSA_WITH_AES_128_CBC_SHA256, TLS_DHE_DSS_WITH_AES_128_CBC_SHA256, TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, TLS_RSA_WITH_AES_128_CBC_SHA, TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA, TLS_ECDH_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_RSA_WITH_AES_128_CBC_SHA, TLS_DHE_DSS_WITH_AES_128_CBC_SHA, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256, TLS_DHE_RSA_WITH_AES_128_GCM_SHA256, TLS_DHE_DSS_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA, SSL_RSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA, TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA, SSL_DHE_RSA_WITH_3DES_EDE_CBC_SHA, SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA, TLS_EMPTY_RENEGOTIATION_INFO_SCSV, TLS_DH_anon_WITH_AES_128_GCM_SHA256, TLS_DH_anon_WITH_AES_128_CBC_SHA256, TLS_ECDH_anon_WITH_AES_128_CBC_SHA, TLS_DH_anon_WITH_AES_128_CBC_SHA, TLS_ECDH_anon_WITH_3DES_EDE_CBC_SHA, SSL_DH_anon_WITH_3DES_EDE_CBC_SHA, SSL_RSA_WITH_DES_CBC_SHA, SSL_DHE_RSA_WITH_DES_CBC_SHA, SSL_DHE_DSS_WITH_DES_CBC_SHA, SSL_DH_anon_WITH_DES_CBC_SHA, SSL_RSA_EXPORT_WITH_DES40_CBC_SHA, SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA, SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA, SSL_DH_anon_EXPORT_WITH_DES40_CBC_SHA, TLS_RSA_WITH_NULL_SHA256, TLS_ECDHE_ECDSA_WITH_NULL_SHA, TLS_ECDHE_RSA_WITH_NULL_SHA, SSL_RSA_WITH_NULL_SHA, TLS_ECDH_ECDSA_WITH_NULL_SHA, TLS_ECDH_RSA_WITH_NULL_SHA, TLS_ECDH_anon_WITH_NULL_SHA, SSL_RSA_WITH_NULL_MD5, TLS_KRB5_WITH_3DES_EDE_CBC_SHA, TLS_KRB5_WITH_3DES_EDE_CBC_MD5, TLS_KRB5_WITH_DES_CBC_SHA, TLS_KRB5_WITH_DES_CBC_MD5, TLS_KRB5_EXPORT_WITH_DES_CBC_40_SHA, TLS_KRB5_EXPORT_WITH_DES_CBC_40_MD5] 
+INFO   [2016-03-19_16:06:36.141] [main] o.e.j.s.SetUIDListener -  Opened application@60f2e0bd{HTTP/1.1}{0.0.0.0:8080} 
+INFO   [2016-03-19_16:06:36.141] [main] o.e.j.s.SetUIDListener -  Opened application@469d003c{SSL-HTTP/1.1}{0.0.0.0:8443} 
+INFO   [2016-03-19_16:06:36.141] [main] o.e.j.s.SetUIDListener -  Opened admin@6b410923{HTTP/1.1}{0.0.0.0:8081} 
+INFO   [2016-03-19_16:06:36.141] [main] o.e.j.s.SetUIDListener -  Opened admin@57bd2029{SSL-HTTP/1.1}{0.0.0.0:8444} 
+INFO   [2016-03-19_16:06:36.162] [main] o.e.j.s.Server -  jetty-9.2.13.v20150730 
+INFO   [2016-03-19_16:06:39.218] [main] i.d.j.DropwizardResourceConfig -  The following paths were found for the configured resources:
+
+    PUT     /v1.0/admin/changeUserActiveStatus (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1.0/admin/getUsersStatus (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1.0/admin/login (com.mebelkart.api.admin.v1.resources.AdminResource)
+    POST    /v1.0/admin/registerUser (com.mebelkart.api.admin.v1.resources.AdminResource)
+    PUT     /v1.0/admin/updatePermissions (com.mebelkart.api.admin.v1.resources.AdminResource)
+    GET     /v1/customer/ (com.mebelkart.api.customer.v1.resources.CustomerResource)
+    GET     /v1/customer/getDetails (com.mebelkart.api.customer.v1.resources.CustomerResource)
+ 
+WARN   [2016-03-19_16:06:39.226] [main] o.g.j.i.Errors -  The following warnings have been detected: WARNING: The (sub)resource method noQueryParams in com.mebelkart.api.customer.v1.resources.CustomerResource contains empty path annotation.
+ 
+INFO   [2016-03-19_16:06:39.230] [main] o.e.j.s.h.ContextHandler -  Started i.d.j.MutableServletContextHandler@23f3da8b{/,null,AVAILABLE} 
+INFO   [2016-03-19_16:06:39.246] [main] i.d.s.AdminEnvironment -  tasks = 
+
+    POST    /tasks/log-level (io.dropwizard.servlets.tasks.LogConfigurationTask)
+    POST    /tasks/gc (io.dropwizard.servlets.tasks.GarbageCollectionTask)
+ 
+INFO   [2016-03-19_16:06:39.262] [main] o.e.j.s.h.ContextHandler -  Started i.d.j.MutableServletContextHandler@237f7970{/,null,AVAILABLE} 
+INFO   [2016-03-19_16:06:39.326] [main] o.e.j.s.ServerConnector -  Started application@60f2e0bd{HTTP/1.1}{0.0.0.0:8080} 
+INFO   [2016-03-19_16:06:39.422] [main] o.e.j.s.ServerConnector -  Started application@469d003c{SSL-HTTP/1.1}{0.0.0.0:8443} 
+INFO   [2016-03-19_16:06:39.461] [main] o.e.j.s.ServerConnector -  Started admin@6b410923{HTTP/1.1}{0.0.0.0:8081} 
+INFO   [2016-03-19_16:06:39.550] [main] o.e.j.s.ServerConnector -  Started admin@57bd2029{SSL-HTTP/1.1}{0.0.0.0:8444} 
+INFO   [2016-03-19_16:06:39.550] [main] o.e.j.s.Server -  Started @9875ms 

@@ -80,6 +80,7 @@ public class AdminResource {
 				String password = MD5Encoding.encrypt((String) userDetailsObj.get("password"));
 				List<Admin> admin_details = this.auth.login(username, password);
 				if (!admin_details.get(0).getA_user_name().equals(username)) {
+					log.warn("unauthorized request in login function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details", null);
 				} else {					
@@ -91,16 +92,19 @@ public class AdminResource {
 				return exception.getException("give valid JsonData/keys", null);
 			}
 		}catch(NullPointerException e){
-//			log.debug("Hello this is a debug message");
-//		    log.info("Hello this is an info message");
 		    exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid keys", null);
 		}catch(ClassCastException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(IndexOutOfBoundsException e){
+			log.warn("unauthorized request in login function");
 			exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 			return exception.getException("please provide valid details", null);
+		}catch(Exception e){
+			log.warn("Unknown exception in login function");
+			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+			return exception.getException("unknown exception caused", null);
 		}
 	}
 
@@ -136,6 +140,7 @@ public class AdminResource {
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 					} else {
+						log.warn("Not acceptable data in registerUser function");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
 						return exception.getException("user name already exists", null);
 					}
@@ -148,14 +153,17 @@ public class AdminResource {
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
 					} else {
+						log.warn("Not acceptable data in registerUser function");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
 						return exception.getException("user name already exists", null);
 					}
 				} else {
+					log.warn("Unauthorized data in registerUser function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			} else {
+				log.warn("Unauthorized data in registerUser function");
 				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 				return exception.getException("your admin credentials are not acceptable", null);
 			}
@@ -165,6 +173,10 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			log.warn("Unknown exception in registerUser function");
+			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+			return exception.getException("unknown exception caused", null);
 		}				
 	}
 
@@ -192,6 +204,7 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
+						log.warn("Not found data in updatePermissions function");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -202,14 +215,17 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
+						log.warn("Not found data in updatePermissions function");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
 				} else {
+					log.warn("Unauthorized data in updatePermissions function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
+				log.warn("Unauthorized data in updatePermissions function");
 				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 				return exception.getException("your admin credentials are not acceptable", null);
 			}
@@ -219,6 +235,10 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			log.warn("Unknown exception in updatePermissions function");
+			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+			return exception.getException("unknown exception caused", null);
 		}			
 	}
 	
@@ -245,6 +265,7 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
+						log.warn("Not found data in changeUserActiveStatus function");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -254,14 +275,17 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
+						log.warn("Not found data in changeUserActiveStatus function");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
 				} else {
+					log.warn("Unauthorized data in changeUserActiveStatus function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
+				log.warn("Unauthorized data in changeUserActiveStatus function");
 				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 				return exception.getException("your admin credentials are not acceptable", null);
 			}
@@ -271,6 +295,10 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			log.warn("Unknown exception in changeUserActiveStatus function");
+			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+			return exception.getException("unknown exception caused", null);
 		}	
 	}
 	
@@ -309,10 +337,12 @@ public class AdminResource {
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase()+". Retrieved all consumer status details", allUsersStatusDetails);
 					}
 				} else {
+					log.warn("Unauthorized data in getUsersStatus function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
 				}
 			}else {
+				log.warn("Unauthorized data in getUsersStatus function");
 				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 				return exception.getException("your admin credentials are not acceptable", null);
 			}
@@ -322,6 +352,10 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			log.warn("Unknown exception in getUsersStatus function");
+			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+			return exception.getException("unknown exception caused", null);
 		}	
 	}
 
