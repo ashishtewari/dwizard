@@ -35,3 +35,18 @@ server:
       keyStorePassword: vinit@18
       validateCerts: false
       validatePeers: false
+logging:
+  level: INFO
+  loggers:
+    # Sets the level for 'com.mebelkart.api' to DEBUG.
+    com.mebelkart.api: WARN
+  appenders:
+    - type: console
+    - type: file
+      threshold: INFO
+      logFormat: "%-6level [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
+      currentLogFilename: log.out
+      archivedLogFilenamePattern: log-%d{yyyy-MM-dd}-%i.out.gz
+      archivedFileCount: 7
+      timeZone: UTC
+      maxFileSize: 10MB
