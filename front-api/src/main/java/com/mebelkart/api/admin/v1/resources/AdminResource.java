@@ -1,5 +1,6 @@
 package com.mebelkart.api.admin.v1.resources;
 
+import java.net.ConnectException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -102,9 +103,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 			return exception.getException("please provide valid details", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in login function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in login function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in login function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}
 	}
 
@@ -132,17 +139,17 @@ public class AdminResource {
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					int id = registerAdmin(rawData);
-					if (id != 0) {
-						int status = assigningPermission(rawData, id);
+					int rowId = registerAdmin(rawData);
+					if (rowId != 0) {
+						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 					} else {
-						log.warn("Not acceptable data in registerUser function");
+						log.warn("Not acceptable data in registerUser function for admin");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("user name already exists", null);
+						return exception.getException("check data once again", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					int rowId = registerConsumer(rawData);
@@ -153,9 +160,9 @@ public class AdminResource {
 						else
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
 					} else {
-						log.warn("Not acceptable data in registerUser function");
+						log.warn("Not acceptable data in registerUser function for consumer");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("user name already exists", null);
+						return exception.getException("check data once again", null);
 					}
 				} else {
 					log.warn("Unauthorized data in registerUser function");
@@ -174,9 +181,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in registerUser function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in registerUser function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in registerUser function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}				
 	}
 
@@ -204,7 +217,7 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
-						log.warn("Not found data in updatePermissions function");
+						log.warn("Not found data in updatePermissions function for admin");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -215,7 +228,7 @@ public class AdminResource {
 						return helper.checkStatus(status);
 					}
 					else{
-						log.warn("Not found data in updatePermissions function");
+						log.warn("Not found data in updatePermissions function for consumer");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -236,9 +249,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in updatePermissions function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in updatePermissions function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in updatePermissions function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}			
 	}
 	
@@ -265,7 +284,7 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						log.warn("Not found data in changeUserActiveStatus function");
+						log.warn("Not found data in changeUserActiveStatus function for admin");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -275,7 +294,7 @@ public class AdminResource {
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
-						log.warn("Not found data in changeUserActiveStatus function");
+						log.warn("Not found data in changeUserActiveStatus function for consumer");
 						exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 						return exception.getException("give valid user name", null);
 					}
@@ -296,9 +315,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in changeUserActiveStatus function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}	
 	}
 	
@@ -353,9 +378,15 @@ public class AdminResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
-			log.warn("Unknown exception in getUsersStatus function");
-			exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-			return exception.getException("unknown exception caused", null);
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in getUsersStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}else{
+				log.warn("Unknown exception in getUsersStatus function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
 		}	
 	}
 
