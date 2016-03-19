@@ -30,7 +30,7 @@ import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.ChangeToJson;
 import com.mebelkart.api.customer.v1.helper.CustomerRequestedDetails;
-import com.mebelkart.api.customer.v1.helper.HandleException;
+import com.mebelkart.api.util.HandleException;
 
 /**
  * @author Nikky-Akky
@@ -48,13 +48,6 @@ public class CustomerResource {
 	public CustomerResource(CustomerAuthenticationDAO customerAuth,CustomerDetailsDAO customerDetails){
 		this.customerAuthDao = customerAuth;
 		this.customerDetailsDao = customerDetails;
-	}
-	
-	@GET
-	@Path("")
-	public ChangeToJson noQueryParams() {
-		exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
-		return exception.getNoQueryParamsException();
 	}
 	
 	/**
@@ -95,22 +88,22 @@ public class CustomerResource {
 							}
 						} else{
 							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-							return exception.getCustomerIdNotValidException();
+							return exception.getException("CustomerId you mentioned was invalid",null);
 						}
 					} else {
 						exception = new HandleException(Response.Status.METHOD_NOT_ALLOWED.getStatusCode(),Response.Status.METHOD_NOT_ALLOWED.getReasonPhrase());
-						return exception.getMethodNotAllowedException();
+						return exception.getException("You are not authorized to perform this action",null);
 					}
 				} else {
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
-					return exception.getUnAuthorizedException();
+					return exception.getException("Invalid API key specified or key is inActive",null);
 				}
 
 			
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getContentTypeNullValueException();
+			return exception.getException("Content-Type or apikey or customerid or required_fields spelled Incorrectly",null);
 		}
 		
 		
