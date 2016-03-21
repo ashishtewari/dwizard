@@ -3,9 +3,12 @@
  */
 package com.mebelkart.api.customer.v1.core;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.github.rkmk.annotations.ColumnName;
+import com.github.rkmk.annotations.OneToMany;
 import com.github.rkmk.annotations.PrimaryKey;
 
 /**
@@ -23,6 +26,9 @@ public class CustomerOrdersWrapper {
 	private double totalPaid;
 	@ColumnName("total_discounts")
 	private double totalDiscount;
+	@OneToMany("messages")
+	private List<CustomerOrderMessagesWrapper> messages;
+	
 
 	public int getOrderId() {
 		return orderId;
@@ -54,6 +60,14 @@ public class CustomerOrdersWrapper {
 
 	public void setTotalDiscount(double totalDiscount) {
 		this.totalDiscount = totalDiscount;
+	}
+
+	public List<CustomerOrderMessagesWrapper> getMessages() {
+		return messages;
+	}
+
+	public void setMessages(List<CustomerOrderMessagesWrapper> messages) {
+		this.messages = messages;
 	}
 
 }

@@ -29,21 +29,32 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
-		// TODO: application initialization
+		
 	}
 
 	@Override
 	public void run(final mkApiConfiguration configuration,
 			final Environment environment) {
-		// TODO: implement application
 		final DBIFactory factory = new DBIFactory();
-		final DBI mkApiDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
-		final DBI mebelkartProdDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
-		final CustomerAuthenticationDAO customerAuthdao = mkApiDatabaseConfiguration.onDemand(CustomerAuthenticationDAO.class);
-		final CustomerDetailsDAO customerDao = mebelkartProdDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
-		final AdminDAO adminDao = mkApiDatabaseConfiguration.onDemand(AdminDAO.class);
-		mebelkartProdDatabaseConfiguration.registerMapper(new CustomMapperFactory());
-		mebelkartProdDatabaseConfiguration.registerContainerFactory(new FoldingListContainerFactory());
+		/*
+		 * configuring the both authentication database and mebelkart products database.
+		 */
+		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
+		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		/*
+		 * creating object to the database classes and initializing them
+		 */
+		final CustomerAuthenticationDAO customerAuthdao = apiAuthenticationDatabaseConfiguration.onDemand(CustomerAuthenticationDAO.class);
+		final CustomerDetailsDAO customerDao = mebelkartProductsDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
+		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
+		/*
+		 * Registering the database mapper classes
+		 */
+		mebelkartProductsDatabaseConfiguration.registerMapper(new CustomMapperFactory());
+		mebelkartProductsDatabaseConfiguration.registerContainerFactory(new FoldingListContainerFactory());
+		/*
+		 * registering the resource classes
+		 */
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
 		environment.jersey().register(new HandleNullRequest());

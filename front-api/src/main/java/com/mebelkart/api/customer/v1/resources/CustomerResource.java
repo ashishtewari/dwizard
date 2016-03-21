@@ -49,14 +49,14 @@ public class CustomerResource {
 	CustomerAuthenticationDAO customerAuthDao;
 	CustomerDetailsDAO customerDetailsDao;
 	HandleException exception = null;
-	static Logger log = LoggerFactory.getLogger(mkApiApplication.class);
+	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	public CustomerResource(CustomerAuthenticationDAO customerAuth,CustomerDetailsDAO customerDetails){
 		this.customerAuthDao = customerAuth;
 		this.customerDetailsDao = customerDetails;
 	}
 	
 	/**
-	 * Returns the customer details as per requested parameters
+	 * @return Returns the customer details as per requested parameters
 	 * @throws ParseException 
 	 */
 
@@ -70,7 +70,7 @@ public class CustomerResource {
 			jsonObject = (JSONObject) parser.parse(accessParam);
 			String accessToken = (String) jsonObject.get("apikey");
 			long customerId = (long) jsonObject.get("customerid");
-			 requiredFields =  (JSONArray)jsonObject.get("required_fields");
+			 requiredFields =  (JSONArray)jsonObject.get("requiredFields");
 			 CustomerRequestedDetails requestedDetails = new CustomerRequestedDetails();
 			 FoldingList<CustomerDetailsWrapper>customerDetailsResultSet = null;
 			 List<CustomerDetailsWrapper> customerDetailsResultSetValues = null;
@@ -87,47 +87,43 @@ public class CustomerResource {
 							}
 							else {
 								customerRequiredDetails = requestedDetails.getRequiredDetailsString(requiredFields);
-								customerDetailsResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1));
+								customerDetailsResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
 								customerDetailsResultSetValues =  customerDetailsResultSet.getValues();
 								return new Reply(200,"success",customerDetailsResultSetValues);
 							}
 						} else{
-							log.warn("CustomerId you mentioned was invalid");
+							errorLog.warn("CustomerId you mentioned was invalid");
 							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 							return exception.getException("CustomerId you mentioned was invalid",null);
 						}
 					} else {
-						log.warn("You are not authorized to perform this operation");
+						errorLog.warn("You are not authorized to perform this operation");
 						exception = new HandleException(Response.Status.METHOD_NOT_ALLOWED.getStatusCode(),Response.Status.METHOD_NOT_ALLOWED.getReasonPhrase());
 						return exception.getException("You are not authorized to perform this action",null);
 					}
 				} else {
-					log.warn("Invalid API key specified or key is inActive");
+					errorLog.warn("Invalid API key specified or key is inActive");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("Invalid API key specified or key is inActive",null);
 				}
 
 			
 		} 	catch (NullPointerException nullPointer) {
-				// TODO Auto-generated catch block
-			log.warn("Content-Type or apikey or customerid or required_fields spelled Incorrectly");
+			errorLog.warn("Content-Type or apikey or customerid or required_fields spelled Incorrectly");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Content-Type or apikey or customerid or required_fields spelled Incorrectly",null);
 		}
 			catch (ClassCastException classCast) {
-				// TODO Auto-generated catch block
-				log.warn("Give apikey as String,customerid as integer,required_fields as array of strings");
+				errorLog.warn("Give apikey as String,customerid as integer,required_fields as array of strings");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Give apikey as String,customerid as integer,required_fields as array of strings",null);
 		}
 			catch (ParseException parse) {
-				// TODO Auto-generated catch block
-				log.warn("Specify your requirement in required_feilds as array of string");
+				errorLog.warn("Specify your requirement in required_feilds as array of string");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Specify your requirement in required_feilds as array of string",null);
 		}
 			catch (Exception e) {
-				// TODO Auto-generated catch block
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Content-Type or apikey or customerid or required_fields spelled Incorrectly",null);
 		}

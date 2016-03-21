@@ -24,7 +24,6 @@ public class HandleNullRequest implements ExceptionMapper<WebApplicationExceptio
 	 */
 	@Override
 	public Response toResponse(WebApplicationException e) {
-		// TODO Auto-generated method stub
 		int status = e.getResponse() == null ? 404 : e.getResponse().getStatus();
 		final String status_code = e.getResponse().getStatus()+"";
 		final String message = e.getMessage();

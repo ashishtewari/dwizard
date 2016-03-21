@@ -13,13 +13,11 @@ public class HandleException {
 	private String message;
 	
 	public HandleException() {
-		// TODO Auto-generated constructor stub
 		this.statusCode = 0;
 		this.message = null;
 	} 
 
 	public HandleException(int statusCode, String message) {
-		// TODO Auto-generated constructor stub
 		this.statusCode = statusCode;
 		this.message = message;
 	}

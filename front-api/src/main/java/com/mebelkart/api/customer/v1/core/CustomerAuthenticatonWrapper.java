@@ -12,7 +12,6 @@ public class CustomerAuthenticatonWrapper {
 	private int customerId,isActive,isHavingGetPermission;
 
 	public CustomerAuthenticatonWrapper(int customerId, int isActive, int isHavingPermission) {
-		// TODO Auto-generated constructor stub
 		this.setCustomerId(customerId);
 		this.setIsActive(isActive);
 		this.setIsHavingGetPermission(isHavingPermission);

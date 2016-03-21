@@ -20,7 +20,7 @@ public class CustomerRequestedDetails {
 	 */
 	public List<String> getRequiredDetailsString(JSONArray requiredDetailsArray){
 		List<String> queryStrings = new ArrayList<String>();
-		String selectQueryString = "",queryJoinString="";
+		String selectQueryString = "",joinQueryString="",orderByQueryString="";
 		boolean isAddressDetailsAsked = false;
 		
 		if(requiredDetailsArray.contains("firstname")){
@@ -32,6 +32,8 @@ public class CustomerRequestedDetails {
 		if(requiredDetailsArray.contains("email")){
 			selectQueryString = selectQueryString+"ps_customer.email,";
 		}
+		if(! requiredDetailsArray.contains("address")){
+			
 		if(requiredDetailsArray.contains("address1")){
 			selectQueryString = selectQueryString+"ps_address.address1 AS address$address1,";
 			isAddressDetailsAsked=true;
@@ -56,6 +58,13 @@ public class CustomerRequestedDetails {
 			selectQueryString = selectQueryString+"ps_address.postcode AS address$postcode,";
 			isAddressDetailsAsked=true;
 		}
+		}else{
+			selectQueryString = selectQueryString
+					+ "ps_address.id_address AS address$id_address,ps_address.address1 AS address$address1,ps_address.address2 AS address$address2, "
+					+ "ps_address.phone_mobile AS address$phone_mobile,ps_address.city AS address$city,ps_state.name AS address$name, "
+					+ "ps_address.postcode AS address$postcode,";
+			isAddressDetailsAsked=true;
+		}
 		
 		/*
 		 * checking whether user asked the details of address if yes appending the address Id to the query string
@@ -63,7 +72,9 @@ public class CustomerRequestedDetails {
 		 */
 		if(isAddressDetailsAsked){ 
 			selectQueryString = "ps_address.id_address AS address$id_address,"+selectQueryString;
-			queryJoinString = queryJoinString+"LEFT JOIN ps_address ON ps_customer.id_customer=ps_address.id_customer LEFT JOIN ps_state ON ps_address.id_state=ps_state.id_state ";
+			joinQueryString = joinQueryString
+					+ "LEFT JOIN ps_address ON ps_customer.id_customer=ps_address.id_customer "
+					+ "LEFT JOIN ps_state ON ps_address.id_state=ps_state.id_state ";
 		}
 		
 		/*
@@ -71,8 +82,10 @@ public class CustomerRequestedDetails {
 		 * and also appending join query of wishlist table
 		 */
 		if(requiredDetailsArray.contains("wishlist")){
-			selectQueryString = selectQueryString+"ps_wishlist.id_wishlist AS wishlist$id_wishlist,ps_wishlist.name AS wishlist$name,ps_wishlist.date_add AS wishlist$date_add,ps_wishlist.date_upd AS wishlist$date_upd,";
-			queryJoinString = queryJoinString+"LEFT JOIN ps_wishlist ON ps_wishlist.id_customer=ps_customer.id_customer ";
+			selectQueryString = selectQueryString
+					+ "ps_wishlist.id_wishlist AS wishlist$id_wishlist,ps_wishlist.name AS wishlist$name,"
+					+ "ps_wishlist.date_add AS wishlist$date_add,ps_wishlist.date_upd AS wishlist$date_upd,";
+			joinQueryString = joinQueryString+"LEFT JOIN ps_wishlist ON ps_wishlist.id_customer=ps_customer.id_customer ";
 		}
 		
 		/*
@@ -80,13 +93,20 @@ public class CustomerRequestedDetails {
 		 * and also appending join query of orders table
 		 */
 		if(requiredDetailsArray.contains("orders")){
-			selectQueryString = selectQueryString+"ps_orders.id_order AS orders$id_order,ps_orders.total_products AS orders$total_products,ps_orders.total_paid AS orders$total_paid,ps_orders.total_discounts AS orders$total_discounts,";
-			queryJoinString = queryJoinString+"LEFT JOIN ps_orders ON ps_orders.id_customer=ps_customer.id_customer ";
+			selectQueryString = selectQueryString
+					+ "ps_orders.id_order AS orders$id_order,ps_orders.total_products AS orders$total_products,"
+					+ "ps_orders.total_paid AS orders$total_paid,ps_orders.total_discounts AS orders$total_discounts,"
+					+ "ps_message.id_message AS messages$id_message,ps_message.message AS messages$message,"
+					+ "ps_message.date_add AS messages$date_add,";
+			joinQueryString = joinQueryString+"LEFT JOIN ps_orders ON ps_orders.id_customer=ps_customer.id_customer "
+					+ "LEFT JOIN ps_message ON ps_message.id_customer=ps_customer.id_customer and ps_message.id_order=ps_orders.id_order";
+			orderByQueryString = orderByQueryString+"ORDER BY ps_message.id_message DESC";
 		}
 		
 		selectQueryString = selectQueryString.substring(0, selectQueryString.length()-1); // removing the comma at the end of the string
 		queryStrings.add(selectQueryString);
-		queryStrings.add(queryJoinString.trim());
+		queryStrings.add(joinQueryString.trim());
+		queryStrings.add(orderByQueryString);
 		return queryStrings;
 	
 		} 

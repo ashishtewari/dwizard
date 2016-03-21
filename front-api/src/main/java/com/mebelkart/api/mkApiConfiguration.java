@@ -9,26 +9,26 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 public class mkApiConfiguration extends Configuration {
-    // TODO: implement service configuration
+
 	@Valid
 	@NotNull
-	private DataSourceFactory database1 = new DataSourceFactory();
-	private DataSourceFactory database2 = new DataSourceFactory();
+	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
+	private DataSourceFactory mebelkartProductsDatabase = new DataSourceFactory();
 
-	@JsonProperty("database1")
+	@JsonProperty("apiAuthenticationDatabase")
 	public DataSourceFactory getDatabase1() {
-		return database1;
+		return apiAuthenticationDatabase;
 	}
-	@JsonProperty("database1")
+	@JsonProperty("apiAuthenticationDatabase")
 	public void setDatabase1(DataSourceFactory database1) {
-		this.database1 = database1;
+		this.apiAuthenticationDatabase = database1;
 	}
-	@JsonProperty("database2")
+	@JsonProperty("mebelkartProductsDatabase")
 	public DataSourceFactory getDatabase2() {
-		return database2;
+		return mebelkartProductsDatabase;
 	}
-	@JsonProperty("database2")
+	@JsonProperty("mebelkartProductsDatabase")
 	public void setDatabase2(DataSourceFactory database2) {
-		this.database2 = database2;
+		this.mebelkartProductsDatabase = database2;
 	}
 }

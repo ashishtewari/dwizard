@@ -58,7 +58,6 @@ public class CustomerApiAuthentication {
 	 * @return true if customerId is valid else false.
 	 */
 	public boolean isCustomerIdValid(long customerId) {
-		// TODO Auto-generated method stub
 		List<CustomerDetailsWrapper> customerIdList = this.customerDetailsDao.getCustomerId(customerId);
 		if(customerIdList.size()>0){
 			return true;
