@@ -30,7 +30,7 @@ public class HandleNullRequest implements ExceptionMapper<WebApplicationExceptio
         return Response.status(status)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(new HashMap<String, String>() { {             	
-                    put("status_code", status_code); 
+                    put("statusCode", status_code); 
                     put("message",message ); 
                 } }).build();
 	}
