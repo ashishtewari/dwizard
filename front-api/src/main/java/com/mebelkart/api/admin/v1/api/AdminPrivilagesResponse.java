@@ -9,9 +9,9 @@ package com.mebelkart.api.admin.v1.api;
  */
 public class AdminPrivilagesResponse {
 	
-	private String[] addPrivilages;
-	private String[] deletePrivilages;
-	private String[] resourcePrivilages;
+	private String[] addPrivileges;
+	private String[] deletePrivileges;
+	private String[] resourcePrivileges;
 	/**
 	 * Default Constructer
 	 */
@@ -32,22 +32,22 @@ public class AdminPrivilagesResponse {
 		this.setResourcePrivilages(new String[] { "GET", "POST", "PUT" });
 	}
 	public String[] getAddPrivilages() {
-		return addPrivilages;
+		return addPrivileges;
 	}
 	public void setAddPrivilages(String[] addPrivilages) {
-		this.addPrivilages = addPrivilages;
+		this.addPrivileges = addPrivilages;
 	}
 	public String[] getDeletePrivilages() {
-		return deletePrivilages;
+		return deletePrivileges;
 	}
 	public void setDeletePrivilages(String[] deletePrivilages) {
-		this.deletePrivilages = deletePrivilages;
+		this.deletePrivileges = deletePrivilages;
 	}
 	public String[] getResourcePrivilages() {
-		return resourcePrivilages;
+		return resourcePrivileges;
 	}
 	public void setResourcePrivilages(String[] resourcePrivilages) {
-		this.resourcePrivilages = resourcePrivilages;
+		this.resourcePrivileges = resourcePrivilages;
 	}
 
 }

@@ -407,7 +407,7 @@ public class AdminResource {
 	}
 	
 	@GET
-	@Path("/getUserPrivilages")
+	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object getUserPrivileges(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails){
 		try{

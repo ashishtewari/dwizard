@@ -21,6 +21,8 @@ doc/
 javadoc.xml
 .classpath
 .project
+*.out.gz
+*.out
 
 nb-configuration.xml
 atlassian-ide-plugin.xml

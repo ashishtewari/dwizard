@@ -16,13 +16,13 @@ public class UserPrivilagesResponse {
 	/**
 	 * privilages
 	 */
-	public List<Privilages> privilages;
+	public List<Privilages> privileges;
 
 	/**
 	 * @param status
 	 */
 	public UserPrivilagesResponse(String userName, List<Privilages> privilages) {
 		this.userName = userName;
-		this.privilages = privilages;
+		this.privileges = privilages;
 	}
 }
