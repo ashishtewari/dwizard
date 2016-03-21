@@ -7,12 +7,16 @@ package com.mebelkart.api.admin.v1.api;
  * @author Tinku
  *
  */
-public class PartialConsumerDataReply {
+public class AdminResponse {	
 	
 	/**
 	 * accessToken
 	 */
 	public String accessToken;
+	/**
+	 * password
+	 */
+	public String password;
 	/**
 	 * email
 	 */
@@ -20,8 +24,9 @@ public class PartialConsumerDataReply {
 	/**
 	 * The Default Constructer
 	 */
-	public PartialConsumerDataReply(String accessToken,String email){
+	public AdminResponse(String accessToken,String password,String email){
 		this.accessToken = accessToken;
-		this.email = email;
+		this.password = password;
+		this.email = email;		
 	}
 }
