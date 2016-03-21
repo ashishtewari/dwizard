@@ -11,8 +11,10 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.Privilages;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.mapper.AdminMapper;
+import com.mebelkart.api.admin.v1.mapper.PrivilagesMapper;
 import com.mebelkart.api.admin.v1.mapper.UserStatusMapper;
 
 /**
@@ -50,6 +52,15 @@ public interface AdminDAO {
 	@SqlQuery("select a_user_name,a_is_active from <tableName> order by a_user_name ASC")
 	@Mapper(UserStatusMapper.class)
 	List<UserStatus> getUsersDetailsWithoutStatus(@Define("tableName") String tableName);
+	
+	@SqlQuery("SELECT mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
+			+"<tableName>.a_have_put_permission, <tableName>.a_have_delete_permission "
+			+"FROM <tableName> "
+			+"INNER JOIN mk_api_resources "
+			+"ON <tableName>.a_resource_id = mk_api_resources.id "
+			+"WHERE <tableName>.<colName> = :userId")
+	@Mapper(PrivilagesMapper.class)
+	List<Privilages> getUserPrivileges(@Bind("userId") long userId,@Define("tableName") String tableName,@Define("colName") String colName);
 
 	/**
 	 * This query validates the given header token is valid or not

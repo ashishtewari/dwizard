@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 
 

@@ -23,10 +23,13 @@ import org.slf4j.LoggerFactory;
 import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
-import com.mebelkart.api.admin.v1.api.PartialAdminDataReply;
-import com.mebelkart.api.admin.v1.api.PartialConsumerDataReply;
+import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
+import com.mebelkart.api.admin.v1.api.AdminResponse;
+import com.mebelkart.api.admin.v1.api.ConsumerResponse;
+import com.mebelkart.api.admin.v1.api.UserPrivilagesResponse;
 import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.Privilages;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 import com.mebelkart.api.util.HandleException;
@@ -84,8 +87,21 @@ public class AdminResource {
 					log.warn("unauthorized request in login function");
 					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
 					return exception.getException("please provide valid details", null);
-				} else {					
-					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), null);
+				} else {
+					AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
+					if(admin_details.get(0).getA_admin_level() == 1){						
+						privilages.setSuperAdminPrivilages();
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), privilages);
+					}
+					else if(admin_details.get(0).getA_admin_level() == 2){
+						privilages.setAdminPrivilages();
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), privilages);
+					}
+					else{
+						log.warn("Unauthorized data in login function");
+						exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+						return exception.getException("your admin credentials are not acceptable", null);
+					}
 				}
 			}
 			else{
@@ -106,9 +122,9 @@ public class AdminResource {
 			if(e instanceof ConnectException){
 				log.warn("Connection refused exception in login function");
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("unknown exception caused", null);
+				return exception.getException("Connection refused exception caused", null);
 			}else{
-				log.warn("Unknown exception in login function");
+				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
 				return exception.getException("unknown exception caused", null);
 			}
@@ -143,9 +159,9 @@ public class AdminResource {
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
-							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						else
-							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialAdminDataReply(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 					} else {
 						log.warn("Not acceptable data in registerUser function for admin");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
@@ -156,9 +172,9 @@ public class AdminResource {
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1)
-							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						else
-							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new PartialConsumerDataReply(generateduserAccessToken,(String)rawData.get("userName")));
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 					} else {
 						log.warn("Not acceptable data in registerUser function for consumer");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
@@ -184,9 +200,9 @@ public class AdminResource {
 			if(e instanceof ConnectException){
 				log.warn("Connection refused exception in registerUser function");
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("unknown exception caused", null);
+				return exception.getException("Connection refused exception caused", null);
 			}else{
-				log.warn("Unknown exception in registerUser function");
+				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
 				return exception.getException("unknown exception caused", null);
 			}
@@ -252,9 +268,9 @@ public class AdminResource {
 			if(e instanceof ConnectException){
 				log.warn("Connection refused exception in updatePermissions function");
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("unknown exception caused", null);
+				return exception.getException("Connection refused exception caused", null);
 			}else{
-				log.warn("Unknown exception in updatePermissions function");
+				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
 				return exception.getException("unknown exception caused", null);
 			}
@@ -318,9 +334,9 @@ public class AdminResource {
 			if(e instanceof ConnectException){
 				log.warn("Connection refused exception in changeUserActiveStatus function");
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("unknown exception caused", null);
+				return exception.getException("Connection refused exception caused", null);
 			}else{
-				log.warn("Unknown exception in changeUserActiveStatus function");
+				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
 				return exception.getException("unknown exception caused", null);
 			}
@@ -369,7 +385,7 @@ public class AdminResource {
 			}else {
 				log.warn("Unauthorized data in getUsersStatus function");
 				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
-				return exception.getException("your admin credentials are not acceptable", null);
+				return exception.getException("your admin_credentials/user_details are not acceptable", null);
 			}
 		}catch(NullPointerException e){
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -381,19 +397,78 @@ public class AdminResource {
 			if(e instanceof ConnectException){
 				log.warn("Connection refused exception in getUsersStatus function");
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("unknown exception caused", null);
+				return exception.getException("Connection refused exception caused", null);
 			}else{
-				log.warn("Unknown exception in getUsersStatus function");
+				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
 				return exception.getException("unknown exception caused", null);
 			}
 		}	
 	}
+	
+	@GET
+	@Path("/getUserPrivileges")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object getUserPrivileges(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails){
+		try{
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if((accessLevel == 1 || accessLevel == 2) && helper.isUserDetailsValidJson(userDetails)){
+				JSONObject rawData = helper.jsonParser(userDetails);
+				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
+					if(rawData.containsKey("userName") && isUserNameAlreadyExists("admin",(String)rawData.get("userName"))){
+						int adminId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_user_admin");
+						List<Privilages> userDetail = this.auth.getUserPrivileges((long) adminId,"mk_api_resources_admin_permission","a_admin_id");
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
+					}
+					else{
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("give valid keys", null);
+					}
+				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
+					if(rawData.containsKey("userName") && isUserNameAlreadyExists("consumer",(String)rawData.get("userName"))){
+						int consumerId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_consumer");
+						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
+					}
+					else{
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("give valid keys", null);
+					}
+				} else {
+					log.warn("Unauthorized data in getUserPrivileges function");
+					exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+					return exception.getException("please provide valid details also check your adminLevel/activeState", null);
+				}
+			}else {
+				log.warn("Unauthorized data in getUserPrivileges function");
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin_credentials/user_details are not acceptable", null);
+			}
+		}catch(NullPointerException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
+		}catch(ClassCastException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused exception in getUserPrivileges function");
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("Connection refused exception caused", null);
+			}else{
+				log.warn(e.getMessage());
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
+		}
+	}
 
 	/**
 	 * Checks if Users userName is already present in table. 
 	 * We are using this to avoid duplicates
-	 * @param userNameConsumer of Consumer
+	 * @param userName the users name
+	 * @param typeOfUser admin/consumer
 	 * @return boolean
 	 */
 	private boolean isUserNameAlreadyExists(String typeOfUser,String userName) {
