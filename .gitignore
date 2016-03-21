@@ -6,6 +6,7 @@ pom.xml.versionsBackup
 release.properties
 *.DS_Store
 .DS_Store
+*.out
 
 # IntelliJ IDEA
 .idea/
