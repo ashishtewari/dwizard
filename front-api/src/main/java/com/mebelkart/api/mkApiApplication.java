@@ -29,7 +29,6 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
-		
 	}
 
 	@Override
@@ -37,10 +36,10 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			final Environment environment) {
 		final DBIFactory factory = new DBIFactory();
 		/*
-		 * configuring the both authentication database and mebelkart products database.
+		 * configuring the both admin database and products database.
 		 */
-		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
-		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "adminDatabase");
+		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "productsDatabase");
 		/*
 		 * creating object to the database classes and initializing them
 		 */

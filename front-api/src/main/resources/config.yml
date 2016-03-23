@@ -39,7 +39,7 @@ logging:
   level: INFO
   loggers:
     # Sets the level for 'com.mebelkart.api' to DEBUG.
-    com.mebelkart.api: WARN
+    com.mebelkart.api: INFO
   appenders:
     - type: console
     - type: file
