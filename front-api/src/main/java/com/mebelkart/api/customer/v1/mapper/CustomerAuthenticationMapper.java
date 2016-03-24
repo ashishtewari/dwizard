@@ -27,7 +27,7 @@ public class CustomerAuthenticationMapper implements ResultSetMapper<CustomerAut
 	@Override
 	public CustomerAuthenticatonWrapper map(int index, ResultSet resultSet, StatementContext statement)
 			throws SQLException {
-		return new CustomerAuthenticatonWrapper(resultSet.getInt("id"),resultSet.getInt("a_is_active"),resultSet.getInt("a_have_get_permission"));
+		return new CustomerAuthenticatonWrapper(resultSet.getInt("id"),resultSet.getInt("a_is_active"),resultSet.getInt("a_have_get_permission"), resultSet.getInt("a_have_post_permission"), resultSet.getInt("a_have_put_permission"), resultSet.getInt("a_have_delete_permission"));
 		
 	}
 	
