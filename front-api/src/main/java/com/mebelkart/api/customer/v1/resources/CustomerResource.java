@@ -48,14 +48,14 @@ import com.mebelkart.api.util.Reply;
 
 @Path("/v1.0/customer")
 @JsonInclude(Include.NON_NULL)
-@Produces({ MediaType.APPLICATION_JSON })
 public class CustomerResource {
 	
 	CustomerAuthenticationDAO customerAuthDao;
 	CustomerDetailsDAO customerDetailsDao;
 	HandleException exception = null;
 	
-	CustomerHelperMethods helper = new CustomerHelperMethods();
+	CustomerHelperMethods helperMethods = new CustomerHelperMethods();
+	CustomerApiAuthentication customerAuthentication = null;
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null,bodyInputJsonData = null;
 	JSONArray requiredFields;
@@ -72,31 +72,32 @@ public class CustomerResource {
 
 	@GET
 	@Path("/getDetails")
+	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
 		
 		try {
-			if(helper.isValidJson(accessParam)){
-			headerInputJsonData = (JSONObject) parser.parse(accessParam);
-			String accessToken = (String) headerInputJsonData.get("apiKey");
-			long customerId = (long) headerInputJsonData.get("customerId");
-			 requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-			 FoldingList<CustomerDetailsWrapper>customerDetailsResultSet = null;
-			 List<CustomerDetailsWrapper> customerDetailsResultSetValues = null;
-			 List<String> customerRequiredDetails = null;
-			 CustomerApiAuthentication customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
-				if (customerAuthentication.isAuthKeyValid(accessToken,"get")) {
-					if (customerAuthentication.isCustomerPermitted(accessToken,"get") ) {
-						if(customerAuthentication.isCustomerIdValid(customerId)){
-							if(requiredFields.size()==0){
-								customerDetailsResultSet = customerDetailsDao.getCustomerDetails(customerId);
-								customerDetailsResultSetValues = customerDetailsResultSet.getValues();
-								return new Reply(200,"success",customerDetailsResultSetValues);
+			if(helperMethods.isValidJson(accessParam)){ // validating the input json data
+				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
+				String accessToken = (String) headerInputJsonData.get("apiKey");
+				long customerId = (long) headerInputJsonData.get("customerId");
+				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
+				FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
+				List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
+				List<String> customerRequiredDetails = null;
+				customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
+				if (customerAuthentication.isAuthKeyValid(accessToken,"get")) { // validating the accesstoken given by user 
+					if (customerAuthentication.isCustomerPermitted(accessToken,"get") ) { // checking whether the user is authorized to use this method or not
+						if(customerAuthentication.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+							if(requiredFields.size()==0){ // if the user wants all the details
+								customerFoldingListResultSet = customerDetailsDao.getCustomerDetails(customerId);
+								customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
+								return new Reply(200,"success",customerFoldingListResultSetValues);
 							}
-							else {
-								customerRequiredDetails = helper.getRequiredDetailsString(requiredFields);
-								customerDetailsResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
-								customerDetailsResultSetValues =  customerDetailsResultSet.getValues();
-								return new Reply(200,"success",customerDetailsResultSetValues);
+							else { // if user specifies requirement separately
+								customerRequiredDetails = helperMethods.getRequiredDetailsString(requiredFields);
+								customerFoldingListResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
+								customerFoldingListResultSetValues =  customerFoldingListResultSet.getValues();
+								return new Reply(200,"success",customerFoldingListResultSetValues);
 							}
 						} else{
 							errorLog.warn("CustomerId you mentioned was invalid");
@@ -146,23 +147,23 @@ public class CustomerResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply addNewAddress(@Context HttpServletRequest request) throws ParseException{
-		bodyInputJsonData = helper.contextRequestParser(request);
+		bodyInputJsonData = helperMethods.contextRequestParser(request);
 		try {
-			CustomerApiAuthentication customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
+			customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			int isAddressAdded=0;
 			long customerId = (long) bodyInputJsonData.get("customerId");
-				if (customerAuthentication.isAuthKeyValid(accessToken,"put")) {
-					if (customerAuthentication.isCustomerPermitted(accessToken,"put") ) {
-						if(customerAuthentication.isCustomerIdValid(customerId)){
-							if(helper.validateInputValues(bodyInputJsonData).equals("success")){
-								isAddressAdded = customerDetailsDao.addNewAddress((long)bodyInputJsonData.get("countryId"),(long)bodyInputJsonData.get("stateId"),customerId,bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", ""),bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("postCode"), bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("mobile"));
-								errorLog.info("New address added for customerId:"+ customerId+" on "+ helper.getDateTime());
-								return new Reply(200,"success","New address added succesfully to customerId " + customerId);
+				if (customerAuthentication.isAuthKeyValid(accessToken,"put")) { // validating the accesstoken given by user
+					if (customerAuthentication.isCustomerPermitted(accessToken,"put") ) { // checking whether the user is authorized to use this method or not
+						if(customerAuthentication.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+							if(helperMethods.validateInputValues(bodyInputJsonData).equals("success")){ // validating input data given by the user
+								isAddressAdded = customerDetailsDao.addNewAddress((long)bodyInputJsonData.get("countryId"),(long)bodyInputJsonData.get("stateId"),customerId,bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", ""),bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), (String)bodyInputJsonData.get("postCode"), bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("mobile"));
+								errorLog.info("New address added for customerId:"+ customerId+" on "+ helperMethods.getDateTime());
+								return new Reply(201,"success","New address added succesfully to customerId " + customerId);
 							}else{
-								errorLog.warn("CustomerId you mentioned was invalid");
+								errorLog.warn(helperMethods.validateInputValues(bodyInputJsonData)); // adding error response from validateInputValues method
 								exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-								return exception.getException(helper.validateInputValues(bodyInputJsonData),null);
+								return exception.getException(helperMethods.validateInputValues(bodyInputJsonData),null);
 							}
 						} else {
 							errorLog.warn("CustomerId you mentioned was invalid");
@@ -205,32 +206,33 @@ public class CustomerResource {
 			String getUpdateDetails = "";
 			String splitUpdateDetails[]=null;
 			int isAddressUpdated = 0;
-			CustomerApiAuthentication customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
-			bodyInputJsonData = helper.contextRequestParser(request); 
+			customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
+			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-				if (customerAuthentication.isAuthKeyValid(accessToken,"put")) {
-					if (customerAuthentication.isCustomerPermitted(accessToken,"put") ) {
-						if (customerAuthentication.isCustomerIdValid(customerId)) {
-								getUpdateDetails = helper.getUpdateDetailsString(bodyInputJsonData);// getting update query if the values pass the validations else error message.
-								splitUpdateDetails = getUpdateDetails.split(" ");// splitting the returned string.
+				if (customerAuthentication.isAuthKeyValid(accessToken,"put")) { // validating the accesstoken given by user
+					if (customerAuthentication.isCustomerPermitted(accessToken,"put") ) { // checking whether the user is authorized to use this method or not
+						if (customerAuthentication.isCustomerIdValid(customerId)) { // checking whether the customerId is valid or not
+								getUpdateDetails = helperMethods.getUpdateDetailsString(bodyInputJsonData);// getting update query if the given values pass the validations else error message.
+								splitUpdateDetails = getUpdateDetails.split(" "); // splitting the returned string.
 								if(!splitUpdateDetails[0].trim().equals("Error")){ // checking whether the string has error in it.
 									isAddressUpdated = customerDetailsDao.updateAddress(addressId,customerId,getUpdateDetails);
 									
-										if (isAddressUpdated == 1) {// if the given addressId and customerId matches then query runs and return 1 else return 0. 
-											errorLog.info("Address of addressId "+addressId+" and customerId:"+ customerId+" updated successfully on "+ helper.getDateTime());
-											return new Reply(200,"success","Address of addressId "+addressId+" updated succesfully" );
+										if (isAddressUpdated == 1) { // if the given addressId and customerId matches then query runs and return 1 else return 0. 
+											errorLog.info("Address of addressId "+addressId+" and customerId:"+ customerId+" updated successfully on "+ helperMethods.getDateTime());
+											return new Reply(201,"success","Address of addressId "+addressId+" updated succesfully" );
 										} else {
 											exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+											errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
 											return exception.getException("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"",null);
 										}
 										
-							}else{
+							} else {
+								errorLog.warn(getUpdateDetails);
 								exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 								return exception.getException(""+getUpdateDetails+"",null); // if there is any error in validations then this will return that error.
 							}
-							
 						} else {
 							errorLog.warn("CustomerId you mentioned was invalid");
 							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -257,10 +259,10 @@ public class CustomerResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-		catch (Exception e) {
-			exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-			return exception.getException("check database connection",null);
-		}
+//		catch (Exception e) {
+//			exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+//			return exception.getException("check database connection",null);
+//		}
 }
 	
 	@DELETE
@@ -269,22 +271,23 @@ public class CustomerResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply deleteAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
-			CustomerApiAuthentication customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
-			bodyInputJsonData = helper.contextRequestParser(request); 
+			customerAuthentication = new CustomerApiAuthentication(customerAuthDao,customerDetailsDao);
+			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			int isAddressDeleted=0;
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-				if (customerAuthentication.isAuthKeyValid(accessToken,"delete")) {
-					if (customerAuthentication.isCustomerPermitted(accessToken,"delete") ) {
-						if(customerAuthentication.isCustomerIdValid(customerId)){
+				if (customerAuthentication.isAuthKeyValid(accessToken,"delete")) { // validating the accesstoken given by user
+					if (customerAuthentication.isCustomerPermitted(accessToken,"delete") ) { // checking whether the user is authorized to use this method or not
+						if(customerAuthentication.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
 							isAddressDeleted = customerDetailsDao.deleteAddress(addressId,customerId);
 							
-							if (isAddressDeleted == 1) {
-								errorLog.info("Address of addressId "+addressId+" and customerId:"+ customerId+" deleted successfully on "+ helper.getDateTime());
-								return new Reply(200,"success","Address of addressId "+addressId+" deleted succesfully" );
-							} else {
+							if (isAddressDeleted == 1) { // if the given addressId and customerId matches then query runs and return 1 else return 0.
+								errorLog.info("Address of addressId "+addressId+" and customerId:"+ customerId+" deleted successfully on "+ helperMethods.getDateTime());
+								return new Reply(201,"success","Address of addressId "+addressId+" deleted succesfully" );
+							} else { // return customerId and addressId not matched exception
 								exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+								errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
 								return exception.getException("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"",null);
 							}
 							

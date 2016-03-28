@@ -91,33 +91,33 @@ public class CustomerHelperMethods {
 		if(requiredDetailsArray.contains("email")){
 			selectQueryString = selectQueryString+"ps_customer.email,";
 		}
-		if(! requiredDetailsArray.contains("address")){
-			
-		if(requiredDetailsArray.contains("address1")){
-			selectQueryString = selectQueryString+"ps_address.address1 AS address$address1,";
-			isAddressDetailsAsked=true;
-		}
-		if(requiredDetailsArray.contains("address2")){
-			selectQueryString = selectQueryString+"ps_address.address2 AS address$address2,";
-			isAddressDetailsAsked=true;
-		}
-		if(requiredDetailsArray.contains("mobile")){
-			selectQueryString = selectQueryString+"ps_address.phone_mobile AS address$phone_mobile,";
-			isAddressDetailsAsked=true;
-		}
-		if(requiredDetailsArray.contains("city")){
-			selectQueryString = selectQueryString+"ps_address.city AS address$city,";
-			isAddressDetailsAsked=true;
-		}
-		if(requiredDetailsArray.contains("state")){
-			selectQueryString = selectQueryString+"ps_state.name AS address$name,";
-			isAddressDetailsAsked=true;
-		}
-		if(requiredDetailsArray.contains("postcode")){
-			selectQueryString = selectQueryString+"ps_address.postcode AS address$postcode,";
-			isAddressDetailsAsked=true;
-		}
-		}else{
+		
+		if(! requiredDetailsArray.contains("address")){	
+			if(requiredDetailsArray.contains("address1")){
+				selectQueryString = selectQueryString+"ps_address.address1 AS address$address1,";
+				isAddressDetailsAsked=true;
+			}
+			if(requiredDetailsArray.contains("address2")){
+				selectQueryString = selectQueryString+"ps_address.address2 AS address$address2,";
+				isAddressDetailsAsked=true;
+			}
+			if(requiredDetailsArray.contains("mobile")){
+				selectQueryString = selectQueryString+"ps_address.phone_mobile AS address$phone_mobile,";
+				isAddressDetailsAsked=true;
+			}
+			if(requiredDetailsArray.contains("city")){
+				selectQueryString = selectQueryString+"ps_address.city AS address$city,";
+				isAddressDetailsAsked=true;
+			}
+			if(requiredDetailsArray.contains("state")){
+				selectQueryString = selectQueryString+"ps_state.name AS address$name,";
+				isAddressDetailsAsked=true;
+			}
+			if(requiredDetailsArray.contains("postcode")){
+				selectQueryString = selectQueryString+"ps_address.postcode AS address$postcode,";
+				isAddressDetailsAsked=true;
+			}
+		} else {
 			selectQueryString = selectQueryString
 					+ "ps_address.id_address AS address$id_address,ps_address.address1 AS address$address1,ps_address.address2 AS address$address2, "
 					+ "ps_address.phone_mobile AS address$phone_mobile,ps_address.city AS address$city,ps_state.name AS address$name, "
@@ -176,51 +176,58 @@ public class CustomerHelperMethods {
 	 * @return query string for updateAddress if the validations are fine else it will return the error string
 	 */
 	public String getUpdateDetailsString(JSONObject bodyInputJsonData) {
-		String updateDetails = "",errorResponse = "Error ";
+		String updateDetails = "",errorResponse = "Error ",jsonKeyValue = ""; 
+		// jsonKeyValue is for storing values of keys given like firstname,lastname. once after storing we can use it anywhere
 		
 		if(bodyInputJsonData.containsKey("firstName")){
-			if(bodyInputJsonData.get("firstName").toString().length()!=0  && !bodyInputJsonData.get("firstName").toString().matches(".*\\d.*")){
-				updateDetails = updateDetails+"ps_address.firstname='"+bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", "")+"',";
+			jsonKeyValue = bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
+				updateDetails = updateDetails+"ps_address.firstname='"+jsonKeyValue+"',";
 			}else{
 				errorResponse = errorResponse+"firstName is needed and it should not be null";
 				return errorResponse;
 			}
 		}
 		if(bodyInputJsonData.containsKey("lastName")){
-			if(bodyInputJsonData.get("lastName").toString().length()!=0  && !bodyInputJsonData.get("lastName").toString().matches(".*\\d.*")){
-				updateDetails = updateDetails+"ps_address.lastname='"+bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", "")+"',";
+			jsonKeyValue = bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
+				updateDetails = updateDetails+"ps_address.lastname='"+jsonKeyValue+"',";
 			}else{
 				errorResponse = errorResponse+"lastName is needed and it should not be null";
 				return errorResponse;
 			}
 		}
 		if(bodyInputJsonData.containsKey("address1")){
-			if(bodyInputJsonData.get("address1").toString().length()!=0){
-				updateDetails = updateDetails+"ps_address.address1='"+bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", "")+"',";
+			jsonKeyValue = bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.length()!=0){
+				updateDetails = updateDetails+"ps_address.address1='"+bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", "")+"',";
 			}else{
 				errorResponse = errorResponse+"address1 is needed and it should not be null";
 				return errorResponse;
 			}
 		}
 		if(bodyInputJsonData.containsKey("address2")){
-			if(bodyInputJsonData.get("address2").toString().length()!=0){
-				updateDetails = updateDetails+"ps_address.address2='"+bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", "")+"',";
+			jsonKeyValue = bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.toString().length()!=0){
+				updateDetails = updateDetails+"ps_address.address2='"+bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", "")+"',";
 			}else{
 				errorResponse = errorResponse+"address2 is needed and it should not be null";
 				return errorResponse;
 			}
 		}
 		if(bodyInputJsonData.containsKey("mobile")){
-			if(bodyInputJsonData.get("mobile").toString().length()==10 && StringUtils.isNumeric(bodyInputJsonData.get("mobile").toString())){
-				updateDetails = updateDetails+"ps_address.phone_mobile='"+(String)bodyInputJsonData.get("mobile")+"',";
+			jsonKeyValue = bodyInputJsonData.get("mobile").toString();
+			if(jsonKeyValue.length()==10 && StringUtils.isNumeric(jsonKeyValue)){
+				updateDetails = updateDetails+"ps_address.phone_mobile='"+jsonKeyValue+"',";
 			}else{
 				errorResponse = errorResponse+"mobile is needed and it should be 10 digits";
 				return errorResponse;
 			}
 		}
 		if(bodyInputJsonData.containsKey("city")){
-			if(bodyInputJsonData.get("city").toString().length()!=0  && !bodyInputJsonData.get("city").toString().matches(".*\\d.*")){// validating the city string,if it contains any number return error 
-				updateDetails = updateDetails+"ps_address.city='"+bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", "")+"',";
+			jsonKeyValue = bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){// validating the city string,if it contains any number return error 
+				updateDetails = updateDetails+"ps_address.city='"+jsonKeyValue+"',";
 			}else{
 				errorResponse = errorResponse+"city is needed and it should not be null";
 				return errorResponse;
@@ -268,48 +275,48 @@ public class CustomerHelperMethods {
 
 	/**
 	 * @param bodyInputJsonData 
-	 * @return success if the input values are validated successfully else return error string.
+	 * @return "success" if the input values are validated successfully else return error message.
 	 */
 	public String validateInputValues(JSONObject bodyInputJsonData) {
 		String response = "";
-		if(!(bodyInputJsonData.containsKey("firstName")) || !(bodyInputJsonData.get("firstName").toString().length()!=0) || bodyInputJsonData.get("firstName").toString().matches(".*\\d.*")){
-			response = response+"firstName is needed and it should not be null";
+		if(!(bodyInputJsonData.containsKey("firstName")) || !(bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0) || bodyInputJsonData.get("firstName").toString().matches(".*\\d.*")){
+			response = response+"Error firstName is needed and it should not be null";
 			return response;
 		}else
-			if(!(bodyInputJsonData.containsKey("lastName")) || !(bodyInputJsonData.get("lastName").toString().length()!=0) || bodyInputJsonData.get("lastName").toString().matches(".*\\d.*")){
-				response = response+"lastName is needed and it should not be null";
+			if(!(bodyInputJsonData.containsKey("lastName")) || !(bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0) || bodyInputJsonData.get("lastName").toString().matches(".*\\d.*")){
+				response = response+"Error lastName is needed and it should not be null";
 				return response;
 		}else
-			if(!(bodyInputJsonData.containsKey("address1")) || !(bodyInputJsonData.get("address1").toString().length()!=0)){
-				response = response+"address1 is needed and it should not be null";
+			if(!(bodyInputJsonData.containsKey("address1")) || !(bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0)){
+				response = response+"Error address1 is needed and it should not be null";
 				return response;
 		}else
-			if(!(bodyInputJsonData.containsKey("address2")) || !(bodyInputJsonData.get("address2").toString().length()!=0)){
-				response = response+"address2 key is needed";
+			if(!(bodyInputJsonData.containsKey("address2")) || !(bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0)){
+				response = response+"Error address2 key is needed";
 				return response;
 		}else
 			if(!(bodyInputJsonData.containsKey("mobile")) || !(bodyInputJsonData.get("mobile").toString().length()==10)|| !StringUtils.isNumeric(bodyInputJsonData.get("mobile").toString())){
-				response = response+"mobile is needed and it should be 10 digits";
+				response = response+"Error mobile is needed and it should be 10 digits";
 				return response;
 		}else
-			if(!(bodyInputJsonData.containsKey("city")) || !(bodyInputJsonData.get("city").toString().length()!=0)|| bodyInputJsonData.get("city").toString().matches(".*\\d.*")){
-				response = response+"city is needed and it should not be null";
+			if(!(bodyInputJsonData.containsKey("city")) || !(bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0)|| bodyInputJsonData.get("city").toString().matches(".*\\d.*")){
+				response = response+"Error city is needed and it should not be null";
 				return response;
 		}else
 			if(!(bodyInputJsonData.containsKey("stateId")) || !(bodyInputJsonData.get("stateId").toString().length()!=0)){
-				response = response+"stateId is needed and it should not be null";
+				response = response+"Error stateId is needed and it should not be null";
 				return response;
 		}else
 			if(!(bodyInputJsonData.containsKey("countryId")) || !(bodyInputJsonData.get("countryId").toString().length()!=0)){
-				response = response+"countryId is needed and it should not be null";
+				response = response+"Error countryId is needed and it should not be null";
 				return response;
 		}else
 			if(!(bodyInputJsonData.containsKey("postCode")) || !(bodyInputJsonData.get("postCode").toString().length()==6) || !StringUtils.isNumeric(bodyInputJsonData.get("postCode").toString())){
-				response = response+"postCode is needed and it should be 6 digits";
+				response = response+"Error postCode is needed and it should be 6 digits";
 				return response;
 		}else 
-			if(!(bodyInputJsonData.containsKey("alias")) || !(bodyInputJsonData.get("alias").toString().length()!=0)){
-				response = response+"alias is needed and it should not be null";
+			if(!(bodyInputJsonData.containsKey("alias")) || !(bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", "").length()!=0)){
+				response = response+"Error alias is needed and it should not be null";
 				return response;
 		}else{
 			
