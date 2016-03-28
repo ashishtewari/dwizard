@@ -120,9 +120,9 @@ public class AdminResource {
 			return exception.getException("please provide valid details", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in login function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -205,9 +205,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in registerUser function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -296,9 +296,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in updatePermissions function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -365,9 +365,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in changeUserActiveStatus function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -428,9 +428,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in getUsersStatus function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -486,9 +486,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in getUserPrivileges function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
