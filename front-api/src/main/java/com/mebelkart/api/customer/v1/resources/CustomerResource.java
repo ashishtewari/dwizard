@@ -76,6 +76,7 @@ public class CustomerResource {
 	public Reply getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
 		
 		try {
+			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			if(helperMethods.isValidJson(accessParam)){ // validating the input json data
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = (String) headerInputJsonData.get("apiKey");
@@ -84,7 +85,6 @@ public class CustomerResource {
 				FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
 				List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
 				List<String> customerRequiredDetails = null;
-				helperMethods = new CustomerHelperMethods(customerDetailsDao);
 				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET") == 1) { // validating the accesstoken given by user 
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
 						if(requiredFields.size()==0){ // if the user wants all the details
@@ -112,25 +112,22 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly",null);
 			}	
-		} 	catch (NullPointerException nullPointer) {
-				errorLog.warn("Content-Type or apiKey or customerid or required_fields spelled Incorrectly");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly",null);
 		}
-			catch (ClassCastException classCast) {
-				errorLog.warn("Give apiKey as String,customerid as integer,required_fields as array of strings");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Give apiKey as String,customerid as integer,required_fields as array of strings",null);
-		}
+
+//			catch (ClassCastException classCast) {
+//				errorLog.warn("Give apiKey as String,customerid as integer,required_fields as array of strings");
+//				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+//				return exception.getException("Give apiKey as String,customerid as integer,required_fields as array of strings",null);
+//		}
 			catch (ParseException parse) {
 				errorLog.warn("Specify your requirement in required_feilds as array of string");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-			catch (Exception e) {
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly or check database connection",null);
-		}	
+//			catch (Exception e) {
+//				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+//				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly or check database connection",null);
+//		}	
 	}
 	
 	
