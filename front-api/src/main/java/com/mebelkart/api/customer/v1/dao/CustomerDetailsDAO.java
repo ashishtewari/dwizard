@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
@@ -47,9 +48,42 @@ public interface CustomerDetailsDAO {
 	 * @return customer requested details
 	 */
 	@RegisterMapperFactory(CustomMapperFactory.class)
-	@SqlQuery("SELECT ps_customer.id_customer,<selectValue> FROM ps_customer <joinQuery> WHERE ps_customer.id_customer= :customerId <orderByQuery>")
+	@SqlQuery("SELECT ps_customer.id_customer,<selectValue> FROM ps_customer <joinQuery> "
+			+ "WHERE ps_customer.id_customer= :customerId <orderByQuery>")
 	FoldingList<CustomerDetailsWrapper> getRequiredCustomerDetails(@Bind("customerId") long customerId,@Define("selectValue") String selectValue,@Define("joinQuery") String joinQuery,@Define("orderByQuery") String orderByQuery);
-
+	
+	/*
+	 * @return 1 if new address is created or 0 if address is not created
+	 */
+	@SqlUpdate("INSERT INTO ps_address(id_country,id_state,id_customer,alias,firstname,lastname,address1,address2,postcode,city,phone_mobile,date_add,date_upd) "
+			+ "VALUES(:countryId,:stateId,:customerId,:alias,:firstname,:lastname,:address1,:address2,:pincode,:city,:mobile,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP)")
+	int addNewAddress(@Bind("countryId")long countryId,
+			@Bind("stateId")long stateId,
+			@Bind("customerId")long customerId,
+			@Bind("alias")String alias,
+			@Bind("firstname")String firstname,
+			@Bind("lastname")String lastname,
+			@Bind("address1")String address1,
+			@Bind("address2")String address2,
+			@Bind("pincode")String pincode,
+			@Bind("city")String city,
+			@Bind("mobile")String mobile);
+	
+	/*
+	 * @return 1 if address updated or 0 if address is not updated
+	 */
+	
+	@SqlUpdate("UPDATE ps_address set <updateValuesString>ps_address.date_upd=CURRENT_TIMESTAMP where ps_address.id_address=:addressId and ps_address.id_customer=:customerId")
+	int updateAddress(@Bind("addressId")long addressId,@Bind("customerId")long customerId,@Define("updateValuesString")String updateValuesString);
+	
+	
+	/*
+	 * @return 1 if address deleted or 0 if address is not deleted
+	 */
+	
+	@SqlUpdate("DELETE FROM ps_address where ps_address.id_address=:addressId and ps_address.id_customer=:customerId")
+	int deleteAddress(@Bind("addressId")long addressId,@Bind("customerId")long customerId);
+	
 	/**
 	 * @param customerId
 	 * @return email of given customerId resulting that customerId is valid

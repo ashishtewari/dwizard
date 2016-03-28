@@ -3,9 +3,6 @@
  */
 package com.mebelkart.api.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 
 import redis.clients.jedis.Jedis;
@@ -143,8 +140,8 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			if (jedis.exists(userName)) {
-				if((currentCount(userName) <= maxCount(accessToken)) && currentCount(userName) > -1 && maxCount(accessToken) > -1){
+			if (jedis.exists(userName+":accessCount")) {
+				if((currentCount(userName+":accessCount") < maxCount(accessToken)) && currentCount(userName+":accessCount") > -1 && maxCount(accessToken) > -1){
 					return true;
 				}else{
 					return false;
@@ -172,7 +169,7 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			jedis.incrBy(userName, 1);
+			jedis.incrBy(userName+":accessCount", 1);
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -266,72 +263,4 @@ public class JedisFactory {
 				pool.returnResource(jedis);
 		}
 	}
-
-	public void addAccessTokens() {
-		// let us first add some data in our redis server using Redis SET.
-		String accessTokenSuperAdmin = "123456789";
-		String userIdSuperAdmin = "1";
-		String accessTokenAdmin = "984654321";
-		String userIdAdmin = "2";
-
-		// get a jedis connection jedis connection pool
-		Jedis jedis = pool.getResource();
-		try {
-			// save to redis
-			jedis.hset(accessTokenSuperAdmin, "superAdmin", userIdSuperAdmin);
-			jedis.hset(accessTokenAdmin, "admin", userIdAdmin);
-
-			// after saving the data, lets retrieve them to be sure that it has
-			// really added in redis
-			// Set<String> members = jedis.smembers(key);
-			// for (String member : members) {
-			// System.out.println(member);
-			// }
-		} catch (JedisException e) {
-			// if something wrong happen, return it back to the pool
-			if (null != jedis) {
-				pool.returnBrokenResource(jedis);
-				jedis = null;
-			}
-		} finally {
-			// /it's important to return the Jedis instance to the pool once
-			// you've finished using it
-			if (null != jedis)
-				pool.returnResource(jedis);
-		}
-	}
-
-	public void addHash() {
-		// add some values in Redis HASH
-		String key = "accessTokens";
-		Map<String, String> map = new HashMap<>();
-		map.put("Admin", "ghfufukdfysdg");
-		map.put("consumer", "gviudsguiius");
-
-		Jedis jedis = pool.getResource();
-		try {
-			// save to redis
-			jedis.hmset(key, map);
-
-			// after saving the data, lets retrieve them to be sure that it has
-			// really added in redis
-			Map<String, String> retrieveMap = jedis.hgetAll(key);
-			for (String keyMap : retrieveMap.keySet()) {
-				System.out.println(keyMap + " " + retrieveMap.get(keyMap));
-			}
-
-		} catch (JedisException e) {
-			// if something wrong happen, return it back to the pool
-			if (null != jedis) {
-				pool.returnBrokenResource(jedis);
-				jedis = null;
-			}
-		} finally {
-			// /it's important to return the Jedis instance to the pool once
-			// you've finished using it
-			if (null != jedis)
-				pool.returnResource(jedis);
-		}
-	}
-
 }
