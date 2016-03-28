@@ -120,9 +120,9 @@ public class AdminResource {
 			return exception.getException("please provide valid details", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in login function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -154,27 +154,34 @@ public class AdminResource {
 				String generatedpassword = helper.generateRandomPassword();
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
+				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
-					int rowId = registerAdmin(rawData);
+					int rowId = registerAdmin(rawData,adminUserName);
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
-						if(status == 1)
+						if(status == 1){
+							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
-						else
+						}else{
+							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
+						}
 					} else {
 						log.warn("Not acceptable data in registerUser function for admin");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
 						return exception.getException("check data once again", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
-					int rowId = registerConsumer(rawData);
+					int rowId = registerConsumer(rawData,adminUserName);
 					if (rowId != 0) {
 						int status = assigningPermission(rawData, rowId);
-						if(status == 1)
+						if(status == 1){
+							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
-						else
+						}else{
+							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
+						}
 					} else {
 						log.warn("Not acceptable data in registerUser function for consumer");
 						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
@@ -198,9 +205,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in registerUser function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -226,11 +233,23 @@ public class AdminResource {
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
+				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_user_admin");
 						int status = assigningPermission(rawData, rowId);
-						return helper.checkStatus(status);
+						if(status == 1){
+							//update consumer/admin table addedBy coloumn with adminUserName
+							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+						}else if(status == 6){
+							//update consumer/admin table addedBy coloumn with adminUserName
+							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+						}else
+							return helper.checkStatus(status);
 					}
 					else{
 						log.warn("Not found data in updatePermissions function for admin");
@@ -241,7 +260,18 @@ public class AdminResource {
 					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_consumer");
 						int status = assigningPermission(rawData, rowId);
-						return helper.checkStatus(status);
+						if(status == 1){
+							//update consumer/admin table addedBy coloumn with adminUserName
+							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+						}else if(status == 6){
+							//update consumer/admin table addedBy coloumn with adminUserName
+							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+						}else
+							return helper.checkStatus(status);
 					}
 					else{
 						log.warn("Not found data in updatePermissions function for consumer");
@@ -266,9 +296,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in updatePermissions function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -294,9 +324,11 @@ public class AdminResource {
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = helper.contextRequestParser(request);
+				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin");
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",adminUserName);
+						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -306,7 +338,8 @@ public class AdminResource {
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer");
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",adminUserName);
+						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -332,9 +365,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in changeUserActiveStatus function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -395,9 +428,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in getUsersStatus function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -453,9 +486,9 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused exception in getUserPrivileges function");
-				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
-				return exception.getException("Connection refused exception caused", null);
+				log.warn("Connection refused server stopped in login function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
 			}else{
 				log.warn(e.getMessage());
 				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
@@ -504,9 +537,9 @@ public class AdminResource {
 	 * @param jsonData of consumer details
 	 * @return int newly inserted row ID
 	 */
-	private int registerConsumer(JSONObject jsonData) {
+	private int registerConsumer(JSONObject jsonData,String addedBy) {
 		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("consumer",(String) jsonData.get("userName"))) {
-			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"));
+			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"),addedBy);
 			return id;
 		} else
 			return 0;
@@ -517,9 +550,9 @@ public class AdminResource {
 	 * @param jsonData of admin details
 	 * @return int newly inserted row ID
 	 */
-	public int registerAdmin(JSONObject jsonData){
+	public int registerAdmin(JSONObject jsonData,String addedBy){
 		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("admin",(String) jsonData.get("userName"))) {
-			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"));
+			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"),addedBy);
 			return id;
 		} else
 			return 0;
@@ -640,6 +673,11 @@ public class AdminResource {
 						//Refer to checkstatus method in HelperMethods class
 						return 3;
 					}
+				}
+				if(((String)jsonData.get("type")).equals("admin")){
+					this.auth.dateModified("mk_api_user_admin",helper.currentTimeStamp(),(long)userId);								
+				}else{
+					this.auth.dateModified("mk_api_consumer",helper.currentTimeStamp(),(long)userId);									
 				}
 				return result_status;
 			}

@@ -36,6 +36,14 @@ public interface AdminDAO {
 			@Bind("password") String password);
 	
 	/**
+	 * This query is used to get the username of the related accesstoken
+	 * @param apikey of admin
+	 * @return username
+	 */
+	@SqlQuery("select a_user_name from mk_api_user_admin where a_access_token = :apikey")
+	String getUserNameRelatedToAccessToken(@Bind("apikey") String apikey);
+	
+	/**
 	 * This query returns userNames and isActive status of each and every Admin based on type of status
 	 * @param status
 	 * @return
@@ -85,11 +93,12 @@ public interface AdminDAO {
 	 * @param countAssigned is given by user
 	 * @return inserted row id
 	 */
-	@SqlUpdate("insert into mk_api_consumer (a_user_name,a_access_token,a_count_assigned) values (:userName, :accessToken, :countAssigned)")
+	@SqlUpdate("insert into mk_api_consumer (a_user_name,a_access_token,a_count_assigned,a_added_by,a_modified_by) values (:userName, :accessToken, :countAssigned, :addedBy, :addedBy)")
 	@GetGeneratedKeys
 	int addConsumer(@Bind("userName") String userName,
 			@Bind("accessToken") String accessToken,
-			@Bind("countAssigned") long countAssigned);
+			@Bind("countAssigned") long countAssigned,
+			@Bind("addedBy") String addedBy);
 
 	/**
 	 * This query adds admin details to table
@@ -98,11 +107,12 @@ public interface AdminDAO {
 	 * @param accessToken is auto generated
 	 * @return inserted row id
 	 */
-	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_access_token,a_password) values (:userName, :accessToken, :password)")
+	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_access_token,a_password,a_added_by,a_modified_by) values (:userName, :accessToken, :password, :addedBy, :addedBy)")
 	@GetGeneratedKeys
 	int addAdmin(@Bind("userName") String userName,
 			@Bind("accessToken") String accessToken,
-			@Bind("password") String password);
+			@Bind("password") String password,
+			@Bind("addedBy") String addedBy);
 	
 	/**
 	 * This query adds permissions to user who is pre-registered
@@ -163,8 +173,8 @@ public interface AdminDAO {
 	 * @param userName email of Admin
 	 * @param status 1 for isActive/0 for isNotActive
 	 */
-	@SqlUpdate("update <tableName> set a_is_active = :status where a_user_name = :userName")
-	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,@Define("tableName") String tableName);
+	@SqlUpdate("update <tableName> set a_is_active = :status,a_modified_by = :modifiedBy where a_user_name = :userName")
+	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy);
 	
 	/**
 	 * Checks whether the user is given permissions for specific resource id or not
@@ -183,4 +193,22 @@ public interface AdminDAO {
 	 */
 	@SqlQuery("select id from mk_api_resources where id = :resourceId")
 	int isValidResource(@Bind("resourceId") long resourceId);
+	
+	/**
+	 * It modifies the date in user table when ever there is change in resource permission table
+	 * @param tableName admin/consumer table name
+	 * @param modifiedDate current time stamp
+	 * @param userId unique rowid of user
+	 */
+	@SqlUpdate("update <tableName> set a_date_modified = :modifiedDate where id = :userId")
+	void dateModified(@Define("tableName") String tableName,@Bind("modifiedDate") String modifiedDate,@Bind("userId") long userId);
+	
+	/**
+	 * It modifies the modifiedBy field in user table when ever there is change in resource permission table
+	 * @param tableName admin/consumer table name
+	 * @param modifiedBy current time stamp
+	 * @param userId unique rowid of user
+	 */
+	@SqlUpdate("update <tableName> set a_modified_by = :modifiedBy where id = :userId")
+	void modifiedBy(@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy,@Bind("userId") long userId);
 }

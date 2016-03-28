@@ -6,7 +6,6 @@ import com.github.rkmk.container.FoldingListContainerFactory;
 import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
-import com.mebelkart.api.customer.v1.dao.CustomerAuthenticationDAO;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
 import com.mebelkart.api.util.HandleNullRequest;
@@ -29,7 +28,6 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
-		
 	}
 
 	@Override
@@ -37,14 +35,13 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			final Environment environment) {
 		final DBIFactory factory = new DBIFactory();
 		/*
-		 * configuring the both authentication database and mebelkart products database.
+		 * configuring the both admin database and products database.
 		 */
-		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "mk_api");
-		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "mebelkart_prod");
+		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "adminDatabase");
+		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "productsDatabase");
 		/*
 		 * creating object to the database classes and initializing them
 		 */
-		final CustomerAuthenticationDAO customerAuthdao = apiAuthenticationDatabaseConfiguration.onDemand(CustomerAuthenticationDAO.class);
 		final CustomerDetailsDAO customerDao = mebelkartProductsDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
 		/*
@@ -56,7 +53,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		 * registering the resource classes
 		 */
 		environment.jersey().register(new AdminResource(adminDao));
-		environment.jersey().register(new CustomerResource(customerAuthdao,customerDao));
+		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new HandleNullRequest());
 	}
 

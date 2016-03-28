@@ -19,6 +19,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
+import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
+
 /**
  * @author Nikky-Akky
  *
@@ -26,7 +29,10 @@ import org.json.simple.parser.ParseException;
 public class CustomerHelperMethods {
 	
 	
-	
+	CustomerDetailsDAO customerDetailsDao;
+	public CustomerHelperMethods(CustomerDetailsDAO customerDetailsDao) {
+		this.customerDetailsDao = customerDetailsDao;
+	}
 	
 	/**
 	 * This method parse Json string to JsonObject
@@ -71,6 +77,19 @@ public class CustomerHelperMethods {
 			
 		}
 		return jsonParser(jsonString);
+	}
+	
+	
+	/**
+	 * @param customerId
+	 * @return true if customerId is valid else false.
+	 */
+	public boolean isCustomerIdValid(long customerId) {
+		List<CustomerDetailsWrapper> customerIdList = this.customerDetailsDao.getCustomerId(customerId);
+		if(customerIdList.size()>0){
+			return true;
+		}
+		return false;
 	}
 	
 	/**

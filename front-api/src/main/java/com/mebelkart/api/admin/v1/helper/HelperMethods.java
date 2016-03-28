@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;
@@ -15,8 +17,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.mebelkart.api.util.HandleException;
-import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
 /**
@@ -60,9 +63,12 @@ public class HelperMethods {
 	 * @return true/false
 	 */
 	public boolean isUserDetailsValidJson(String userDetails){
-		if(jsonParser(userDetails) == null)
-			return false;
-		else return true;
+		try {
+	        new JsonParser().parse(userDetails);
+	        return true;
+	    } catch (JsonSyntaxException e) {
+	        return false;
+	    }
 	}
 	
 	/**
@@ -89,8 +95,6 @@ public class HelperMethods {
 		if (status == 0) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("No Permissions key specified/May be misspelled", null);
-		} else if (status == 1) {
-			return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 		} else if (status == 2) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Permissions array is Empty", null);
@@ -103,9 +107,6 @@ public class HelperMethods {
 		} else if (status == 5) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("The values inside permission are not correctly spelled", null);
-		} else if (status == 6) {
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Successfully Updated and given Permissions", null);
 		} else{
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Unknown Error in Check Status", null);
@@ -160,4 +161,11 @@ public class HelperMethods {
 		}
 		return valid;
 	}
+	
+	public String currentTimeStamp()
+    {
+	 Date date= new java.util.Date();
+	 String[] time =  new Timestamp(date.getTime()).toString().split("\\.");
+	 return time[0];
+    }
 }
