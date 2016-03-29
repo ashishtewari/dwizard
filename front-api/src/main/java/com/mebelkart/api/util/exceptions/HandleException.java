@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.util;
+package com.mebelkart.api.util.exceptions;
 
 import javax.ws.rs.core.Response;
 
@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.mkApiApplication;
+import com.mebelkart.api.util.Reply;
 
 /**
  * @author Nikky-Akky

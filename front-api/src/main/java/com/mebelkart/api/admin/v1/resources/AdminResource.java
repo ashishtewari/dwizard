@@ -32,7 +32,7 @@ import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.Privilages;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
-import com.mebelkart.api.util.HandleException;
+import com.mebelkart.api.util.exceptions.HandleException;
 
 /**
  * @author Tinku

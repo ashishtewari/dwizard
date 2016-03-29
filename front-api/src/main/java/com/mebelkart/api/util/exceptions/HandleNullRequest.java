@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.util;
+package com.mebelkart.api.util.exceptions;
 
 
 import java.util.HashMap;
