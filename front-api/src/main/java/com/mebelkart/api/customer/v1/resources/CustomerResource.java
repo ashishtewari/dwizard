@@ -114,20 +114,20 @@ public class CustomerResource {
 			}	
 		}
 
-//			catch (ClassCastException classCast) {
-//				errorLog.warn("Give apiKey as String,customerid as integer,required_fields as array of strings");
-//				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-//				return exception.getException("Give apiKey as String,customerid as integer,required_fields as array of strings",null);
-//		}
+			catch (ClassCastException classCast) {
+				errorLog.warn("Give apiKey as String,customerid as integer,required_fields as array of strings");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Give apiKey as String,customerid as integer,required_fields as array of strings",null);
+		}
 			catch (ParseException parse) {
 				errorLog.warn("Specify your requirement in required_feilds as array of string");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-//			catch (Exception e) {
-//				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-//				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly or check database connection",null);
-//		}	
+			catch (Exception e) {
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly or check database connection",null);
+		}	
 	}
 	
 	
