@@ -19,6 +19,7 @@
 		<stringtemplate.version>2.3b6</stringtemplate.version>
 		<jedis.version>2.4.2</jedis.version>
 		<gson.version>2.2.4</gson.version>
+		<es.version>2.2.0</es.version>
 
 	</properties>
 
@@ -28,6 +29,15 @@
 	<version>${parent.version}</version>
 
 	<dependencies>
+
+
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>${es.version}</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
@@ -64,6 +74,11 @@
 			<version>${commons-io.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.dropwizard.modules</groupId>
+			<artifactId>dropwizard-elasticsearch</artifactId>
+			<version>0.9.1-1</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>${commons-validator.version}</version>
@@ -82,6 +97,12 @@
 			<groupId>redis.clients</groupId>
 			<artifactId>jedis</artifactId>
 			<version>${jedis.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.spinscale</groupId>
+			<artifactId>dropwizard-jobs-core</artifactId>
+			<version>1.0.1</version>
 		</dependency>
 	</dependencies>
 	<build>
