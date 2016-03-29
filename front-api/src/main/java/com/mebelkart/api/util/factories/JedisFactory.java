@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.util;
+package com.mebelkart.api.util.factories;
 
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 

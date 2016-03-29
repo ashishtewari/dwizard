@@ -37,8 +37,8 @@ import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
-import com.mebelkart.api.util.HandleException;
-import com.mebelkart.api.util.JedisFactory;
+import com.mebelkart.api.util.exceptions.HandleException;
+import com.mebelkart.api.util.factories.JedisFactory;
 import com.mebelkart.api.util.Reply;
 
 /**

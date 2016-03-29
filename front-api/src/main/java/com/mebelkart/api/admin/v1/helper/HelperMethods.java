@@ -19,7 +19,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.mebelkart.api.util.HandleException;
+import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
 /**
