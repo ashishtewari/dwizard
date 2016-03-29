@@ -205,7 +205,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in registerUser function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -296,7 +296,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in updatePermissions function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -365,7 +365,58 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
+			}else{
+				log.warn(e.getMessage());
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
+		}	
+	}
+	
+	/**
+	 * This is the Put method accessed by path HOST/v1.0/admin/changeRateLimit
+	 * This method used to change user's countAssigned in DB
+	 * @param apikey
+	 * @param request
+	 * @return
+	 */
+	@PUT
+	@Path("/changeRateLimit")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object changeRateLimit(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+		try{
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if(accessLevel == 1 || accessLevel == 2){
+				JSONObject rawData = helper.contextRequestParser(request);
+				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+				if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
+					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),adminUserName);
+					log.info(adminUserName+" has changed countAssigned of user "+(String)rawData.get("userName"));
+					return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+				}else{
+					log.warn("Not found userName in changeRateLimit function");
+					exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+					return exception.getException("give valid user name", null);
+				}
+			}else {
+				log.warn("Unauthorized data in changeRateLimit function");
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
+			}
+		}catch(NullPointerException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
+		}catch(ClassCastException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused server stopped in changeRateLimit function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -428,7 +479,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in getUsersStatus function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -439,6 +490,13 @@ public class AdminResource {
 		}	
 	}
 	
+	/**
+	 * This is the Get method accessed by path HOST/v1.0/admin/getUserPrivileges
+	 * It gives userName and privilages of every user
+	 * @param apikey
+	 * @param userDetails
+	 * @return
+	 */
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -486,7 +544,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in getUserPrivileges function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
