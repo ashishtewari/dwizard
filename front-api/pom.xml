@@ -10,6 +10,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>front-api</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>de.spinscale</groupId>
+            <artifactId>dropwizard-jobs-core</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+    </dependencies>
 
     <properties>
         <mainClass>com.mebelkart.api.mkApiApplication</mainClass>
@@ -66,6 +78,5 @@
             </plugin>
         </plugins>
     </build>
-
 
 </project>
