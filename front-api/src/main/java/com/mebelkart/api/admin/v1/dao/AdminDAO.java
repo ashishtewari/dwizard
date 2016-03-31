@@ -61,6 +61,13 @@ public interface AdminDAO {
 	@Mapper(UserStatusMapper.class)
 	List<UserStatus> getUsersDetailsWithoutStatus(@Define("tableName") String tableName);
 	
+	/**
+	 * This query shows the previlages of each type of user
+	 * @param userId
+	 * @param tableName
+	 * @param colName
+	 * @return
+	 */
 	@SqlQuery("SELECT mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
 			+"<tableName>.a_have_put_permission, <tableName>.a_have_delete_permission "
 			+"FROM <tableName> "
