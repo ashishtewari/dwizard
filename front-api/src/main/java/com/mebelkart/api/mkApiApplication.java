@@ -8,6 +8,8 @@ import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
+import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
+import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
 import com.mebelkart.api.util.exceptions.HandleNullRequest;
 
 import io.dropwizard.Application;
@@ -43,6 +45,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		 */
 		final CustomerDetailsDAO customerDao = mebelkartProductsDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
+		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -53,6 +56,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		 */
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
+		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
 		environment.jersey().register(new HandleNullRequest());
 	}
 

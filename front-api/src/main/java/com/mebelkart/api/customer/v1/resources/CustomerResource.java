@@ -108,16 +108,16 @@ public class CustomerResource {
 					return exception.accessTokenException(jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET"));
 				}
 			}else{
-				errorLog.warn("Content-Type or apiKey or customerid or required_fields spelled Incorrectly");
+				errorLog.warn("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly",null);
+				return exception.getException("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly",null);
 			}	
 		}
 
 			catch (ClassCastException classCast) {
-				errorLog.warn("Give apiKey as String,customerid as integer,required_fields as array of strings");
+				errorLog.warn("Give apiKey as String,customerid as integer,requiredFields as array of strings");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Give apiKey as String,customerid as integer,required_fields as array of strings",null);
+				return exception.getException("Give apiKey as String,customerid as integer,requiredFields as array of strings",null);
 		}
 			catch (ParseException parse) {
 				errorLog.warn("Specify your requirement in required_feilds as array of string");
@@ -126,7 +126,7 @@ public class CustomerResource {
 		}
 			catch (Exception e) {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or required_fields spelled Incorrectly or check database connection",null);
+				return exception.getException("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly or check database connection",null);
 		}	
 	}
 	
