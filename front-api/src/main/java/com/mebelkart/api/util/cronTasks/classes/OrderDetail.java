@@ -1,5 +1,7 @@
 package com.mebelkart.api.util.cronTasks.classes;
 
+import java.sql.Date;
+
 /**
  * Created by vinitpayal on 28/03/16.
  */
@@ -14,42 +16,46 @@ public class OrderDetail {
     private Integer productQuantityInStock;
     private Integer productQuantityRefunded;
     private Integer productQuantityReinjected;
-    private Integer orderDetailWholeSalePrice;
-    private Integer productPrice;
-    private Integer reductionPercentage;
-    private Integer reductionAmount;
-    private Integer groupReduction;
-    private Integer productQuantityDiscount;
-    private Integer orderDetailProductAdvanceAmount;
+    private Float orderDetailWholeSalePrice;
+    private Float productPrice;
+    private Float reductionPercentage;
+    private Float reductionAmount;
+    private Float groupReduction;
+    private Float productQuantityDiscount;
+    private Float orderDetailProductAdvanceAmount;
     private Integer shippedFromDate;
     private Integer shippedToDate;
     private Integer deliveredFromDate;
     private Integer deliveredToDate;
+
     private String productEan13;
     private String productUpc;
-
     private String productRefrence;
     private String productSupplierRefrence;
-    private String productWeight;
+    private Float productWeight;
     private String taxName;
     private Float taxRate;
-    private Float EcotaxRate;
-    private Float discountQuantityApplied;
-    private Float downloadHash;
-    private Float downloadNb;
-    private Float downloadDeadline;
+    private Float ecoTax;
+    private Float ecotaxRate;
+    private Boolean discountQuantityApplied;
+    private String downloadHash;
+    private Integer downloadNb;
+    private Date downloadDeadline;
+    private OrderDetailVendorStatus orderDetailVendorStatus;
+    private OrderDetailLogisticService orderDetailLogisticService;
+    private OrderDetailShipments orderDetailShipments;
+    private OrderDetailAssignToOtherVendor orderDetailAssignToOtherVendor;
+    private OrderDetailPaymentInfo orderDetailPaymentInfo;
 
-    public OrderDetail(Integer orderDetailId, Integer orderId, Integer productId
-            ,Integer productAttributeId, String productName, Integer productQuantity
-            ,Integer productQuantityInStock, Integer productQuantityRefunded
-            , Integer productQuantityReinjected, Integer orderDetailWholeSalePrice
-            , Integer productPrice, Integer reductionPercentage, Integer reductionAmount
-            , Integer groupReduction, Integer productQuantityDiscount
-            , Integer orderDetailProductAdvanceAmount, Integer shippedFromDate, Integer shippedToDate
-            , Integer deliveredFromDate, Integer deliveredToDate, String productEan13, String productUpc
-            , String productRefrence, String productSupplierRefrence, String productWeight, String taxName
-            , Float taxRate, Float ecotaxRate, Float discountQuantityApplied, Float downloadHash, Float downloadNb
-            , Float downloadDeadline) {
+    public OrderDetail(Integer orderDetailId, Integer orderId, Integer productId, Integer productAttributeId, String productName
+            , Integer productQuantity, Integer productQuantityInStock, Integer productQuantityRefunded
+            , Integer productQuantityReinjected, Float orderDetailWholeSalePrice, Float productPrice, Float reductionPercentage
+            , Float reductionAmount, Float groupReduction, Float productQuantityDiscount, Float orderDetailProductAdvanceAmount
+            , Integer shippedFromDate, Integer shippedToDate, Integer deliveredFromDate, Integer deliveredToDate, String productEan13
+            , String productUpc, String productRefrence, String productSupplierRefrence, Float productWeight, String taxName
+            , Float taxRate, Float ecoTax, Float ecotaxRate, Boolean discountQuantityApplied, String downloadHash, Integer downloadNb
+            , Date downloadDeadline,OrderDetailVendorStatus orderDetailVendorStatus,OrderDetailLogisticService orderDetailLogisticService
+            , OrderDetailShipments orderDetailShipments,OrderDetailAssignToOtherVendor orderDetailAssignToOtherVendor,OrderDetailPaymentInfo orderDetailPaymentInfo){
         this.orderDetailId = orderDetailId;
         this.orderId = orderId;
         this.productId = productId;
@@ -77,11 +83,34 @@ public class OrderDetail {
         this.productWeight = productWeight;
         this.taxName = taxName;
         this.taxRate = taxRate;
-        EcotaxRate = ecotaxRate;
+        this.ecoTax=ecoTax;
+        this.ecotaxRate = ecotaxRate;
         this.discountQuantityApplied = discountQuantityApplied;
         this.downloadHash = downloadHash;
         this.downloadNb = downloadNb;
         this.downloadDeadline = downloadDeadline;
+        this.orderDetailVendorStatus=orderDetailVendorStatus;
+        this.orderDetailLogisticService=orderDetailLogisticService;
+        this.orderDetailShipments=orderDetailShipments;
+        this.orderDetailAssignToOtherVendor=orderDetailAssignToOtherVendor;
+        this.orderDetailPaymentInfo=orderDetailPaymentInfo;
+    }
+
+
+    public OrderDetailLogisticService getOrderDetailLogisticService() {
+        return orderDetailLogisticService;
+    }
+
+    public void setOrderDetailLogisticService(OrderDetailLogisticService orderDetailLogisticService) {
+        this.orderDetailLogisticService = orderDetailLogisticService;
+    }
+
+    public OrderDetailVendorStatus getOrderDetailVendorStatus() {
+        return orderDetailVendorStatus;
+    }
+
+    public void setOrderDetailVendorStatus(OrderDetailVendorStatus orderDetailVendorStatus) {
+        this.orderDetailVendorStatus = orderDetailVendorStatus;
     }
 
     public Integer getOrderDetailId() {
@@ -156,59 +185,59 @@ public class OrderDetail {
         this.productQuantityReinjected = productQuantityReinjected;
     }
 
-    public Integer getOrderDetailWholeSalePrice() {
+    public Float getOrderDetailWholeSalePrice() {
         return orderDetailWholeSalePrice;
     }
 
-    public void setOrderDetailWholeSalePrice(Integer orderDetailWholeSalePrice) {
+    public void setOrderDetailWholeSalePrice(Float orderDetailWholeSalePrice) {
         this.orderDetailWholeSalePrice = orderDetailWholeSalePrice;
     }
 
-    public Integer getProductPrice() {
+    public Float getProductPrice() {
         return productPrice;
     }
 
-    public void setProductPrice(Integer productPrice) {
+    public void setProductPrice(Float productPrice) {
         this.productPrice = productPrice;
     }
 
-    public Integer getReductionPercentage() {
+    public Float getReductionPercentage() {
         return reductionPercentage;
     }
 
-    public void setReductionPercentage(Integer reductionPercentage) {
+    public void setReductionPercentage(Float reductionPercentage) {
         this.reductionPercentage = reductionPercentage;
     }
 
-    public Integer getReductionAmount() {
+    public Float getReductionAmount() {
         return reductionAmount;
     }
 
-    public void setReductionAmount(Integer reductionAmount) {
+    public void setReductionAmount(Float reductionAmount) {
         this.reductionAmount = reductionAmount;
     }
 
-    public Integer getGroupReduction() {
+    public Float getGroupReduction() {
         return groupReduction;
     }
 
-    public void setGroupReduction(Integer groupReduction) {
+    public void setGroupReduction(Float groupReduction) {
         this.groupReduction = groupReduction;
     }
 
-    public Integer getProductQuantityDiscount() {
+    public Float getProductQuantityDiscount() {
         return productQuantityDiscount;
     }
 
-    public void setProductQuantityDiscount(Integer productQuantityDiscount) {
+    public void setProductQuantityDiscount(Float productQuantityDiscount) {
         this.productQuantityDiscount = productQuantityDiscount;
     }
 
-    public Integer getOrderDetailProductAdvanceAmount() {
+    public Float getOrderDetailProductAdvanceAmount() {
         return orderDetailProductAdvanceAmount;
     }
 
-    public void setOrderDetailProductAdvanceAmount(Integer orderDetailProductAdvanceAmount) {
+    public void setOrderDetailProductAdvanceAmount(Float orderDetailProductAdvanceAmount) {
         this.orderDetailProductAdvanceAmount = orderDetailProductAdvanceAmount;
     }
 
@@ -276,11 +305,11 @@ public class OrderDetail {
         this.productSupplierRefrence = productSupplierRefrence;
     }
 
-    public String getProductWeight() {
+    public Float getProductWeight() {
         return productWeight;
     }
 
-    public void setProductWeight(String productWeight) {
+    public void setProductWeight(Float productWeight) {
         this.productWeight = productWeight;
     }
 
@@ -300,43 +329,74 @@ public class OrderDetail {
         this.taxRate = taxRate;
     }
 
+    public Float getEcoTax() {
+        return ecoTax;
+    }
+
+    public void setEcoTax(Float ecoTax) {
+        this.ecoTax = ecoTax;
+    }
+
     public Float getEcotaxRate() {
-        return EcotaxRate;
+        return ecotaxRate;
     }
 
     public void setEcotaxRate(Float ecotaxRate) {
-        EcotaxRate = ecotaxRate;
+        this.ecotaxRate = ecotaxRate;
     }
 
-    public Float getDiscountQuantityApplied() {
+    public Boolean getDiscountQuantityApplied() {
         return discountQuantityApplied;
     }
 
-    public void setDiscountQuantityApplied(Float discountQuantityApplied) {
+    public void setDiscountQuantityApplied(Boolean discountQuantityApplied) {
         this.discountQuantityApplied = discountQuantityApplied;
     }
 
-    public Float getDownloadHash() {
+    public String getDownloadHash() {
         return downloadHash;
     }
 
-    public void setDownloadHash(Float downloadHash) {
+    public void setDownloadHash(String downloadHash) {
         this.downloadHash = downloadHash;
     }
 
-    public Float getDownloadNb() {
+    public Integer getDownloadNb() {
         return downloadNb;
     }
 
-    public void setDownloadNb(Float downloadNb) {
+    public void setDownloadNb(Integer downloadNb) {
         this.downloadNb = downloadNb;
     }
 
-    public Float getDownloadDeadline() {
+    public Date getDownloadDeadline() {
         return downloadDeadline;
     }
 
-    public void setDownloadDeadline(Float downloadDeadline) {
+    public void setDownloadDeadline(Date downloadDeadline) {
         this.downloadDeadline = downloadDeadline;
+    }
+
+    public OrderDetailShipments getOrderDetailShipments() {
+        return orderDetailShipments;
+    }
+    public void setOrderDetailShipments(OrderDetailShipments orderDetailShipments) {
+        this.orderDetailShipments = orderDetailShipments;
+    }
+
+    public OrderDetailAssignToOtherVendor getOrderDetailAssignToOtherVendor() {
+        return orderDetailAssignToOtherVendor;
+    }
+
+    public void setOrderDetailAssignToOtherVendor(OrderDetailAssignToOtherVendor orderDetailAssignToOtherVendor) {
+        this.orderDetailAssignToOtherVendor = orderDetailAssignToOtherVendor;
+    }
+
+    public OrderDetailPaymentInfo getOrderDetailPaymentInfo() {
+        return orderDetailPaymentInfo;
+    }
+
+    public void setOrderDetailPaymentInfo(OrderDetailPaymentInfo orderDetailPaymentInfo) {
+        this.orderDetailPaymentInfo = orderDetailPaymentInfo;
     }
 }

@@ -13,7 +13,7 @@ public class OrderDetailLogisticService {
     private Integer noOfPackages;
     private String shipmentWeight;
     private String shipmentWeightUnit;
-    private Integer dimensions;
+    private String dimensions;
     private String dimensionUnit;
     private String remarks;
     private String currentPickupDate;
@@ -27,7 +27,7 @@ public class OrderDetailLogisticService {
 
     public OrderDetailLogisticService(Integer idOrderDetailLogisticService, Integer idOrderDetail, String idOrder
             , Integer logisticService, Integer logisticServiceMode, Integer noOfPackages, String shipmentWeight
-            , String shipmentWeightUnit, Integer dimensions, String dimensionUnit, String remarks, String currentPickupDate
+            , String shipmentWeightUnit, String dimensions, String dimensionUnit, String remarks, String currentPickupDate
             , String addressCloseTime, String invoiceValue, boolean carrierRiskInfo, boolean active, Integer useAmb
             , boolean migratedToGetit) {
         this.idOrderDetailLogisticService = idOrderDetailLogisticService;
@@ -114,11 +114,11 @@ public class OrderDetailLogisticService {
         this.shipmentWeightUnit = shipmentWeightUnit;
     }
 
-    public Integer getDimensions() {
+    public String getDimensions() {
         return dimensions;
     }
 
-    public void setDimensions(Integer dimensions) {
+    public void setDimensions(String dimensions) {
         this.dimensions = dimensions;
     }
 

@@ -1,7 +1,6 @@
 package com.mebelkart.api.util.cronTasks.classes;
 
 public class OrderDetailShipments {
-	
 
 	private Integer shipmentId;
 	private Integer orderDetailId;
