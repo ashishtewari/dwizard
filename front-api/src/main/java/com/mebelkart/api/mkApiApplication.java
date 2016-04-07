@@ -49,8 +49,8 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		/*
 		 * configuring the both admin database and products database.
 		 */
-		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "adminDatabase");
-		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "productsDatabase");
+		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getApiAuthenticationDatabase(), "adminDatabase");
+		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getMebelkartProductsDatabase(), "productsDatabase");
 		/*
 		 * creating object to the database classes and initializing them
 		 */

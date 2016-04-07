@@ -82,11 +82,11 @@ public class CustomerResource {
 				String accessToken = (String) headerInputJsonData.get("apiKey");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
-				List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
-				List<String> customerRequiredDetails = null;
 				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET") == 1) { // validating the accesstoken given by user 
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+						FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
+						List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
+						List<String> customerRequiredDetails = null;
 						if(requiredFields.size()==0){ // if the user wants all the details
 							customerFoldingListResultSet = customerDetailsDao.getCustomerDetails(customerId);
 							customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
@@ -113,14 +113,13 @@ public class CustomerResource {
 				return exception.getException("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly",null);
 			}	
 		}
-
 			catch (ClassCastException classCast) {
 				errorLog.warn("Give apiKey as String,customerid as integer,requiredFields as array of strings");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Give apiKey as String,customerid as integer,requiredFields as array of strings",null);
 		}
 			catch (ParseException parse) {
-				errorLog.warn("Specify your requirement in required_feilds as array of string");
+				errorLog.warn("Specify correct data type for the values as mentioned in instructions");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
@@ -133,7 +132,7 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@PUT
-	@Path("addAddress")
+	@Path("/addAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply addNewAddress(@Context HttpServletRequest request) throws ParseException{
@@ -181,7 +180,7 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("updateAddress")
+	@Path("/updateAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply updateAddress(@Context HttpServletRequest request) throws ParseException{
@@ -242,7 +241,7 @@ public class CustomerResource {
 }
 	
 	@DELETE
-	@Path("deleteAddress")
+	@Path("/deleteAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply deleteAddress(@Context HttpServletRequest request) throws ParseException{
