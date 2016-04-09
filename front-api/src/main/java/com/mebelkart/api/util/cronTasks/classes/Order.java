@@ -13,15 +13,15 @@ public class Order {
     private String paymentMode;
     private String module;
     private List<OrderDetail> orderDetails;
-    private List<OrderDetailLogisticService> logisticDetails;
+//    private List<OrderDetailLogisticService> logisticDetails;
 
-    public List<OrderDetailLogisticService> getLogisticDetails() {
-        return logisticDetails;
-    }
+//    public List<OrderDetailLogisticService> getLogisticDetails() {
+//        return logisticDetails;
+//    }
 
-    public void setLogisticDetails(List<OrderDetailLogisticService> logisticDetails) {
-        this.logisticDetails = logisticDetails;
-    }
+//    public void setLogisticDetails(List<OrderDetailLogisticService> logisticDetails) {
+//        this.logisticDetails = logisticDetails;
+//    }
 
     public List<OrderDetail> getOrderDetails() {
         return orderDetails;
