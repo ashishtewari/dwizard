@@ -3,6 +3,7 @@
  */
 package com.mebelkart.api.manufacturer.v1.resources;
 
+import java.rmi.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -32,7 +33,6 @@ import com.mebelkart.api.manufacturer.v1.core.ManufacturerOrders;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
 import com.mebelkart.api.util.PaginationReply;
-import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
@@ -63,7 +63,7 @@ public class ManufacturerResource {
 	
 	@GET
 	@Path("/getDetails")
-	public Reply getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int pageNumber) throws ParseException, InterruptedException, ExecutionException{
+	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int pageNumber) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
 			helperMethods = new ManufacturerHelperMethods(manufacturerDetailsDao);
 			if(helperMethods.isValidJson(accessParam)){
@@ -101,8 +101,7 @@ public class ManufacturerResource {
 								 for(int i=0;i<searchHits.length;i++){
 									 sourceResultList.add(helperMethods.changeOrdersToCamelCase(searchHits[i].getSource()));
 								 }
-								 sourceResult = new PaginationReply(response.getHits().getTotalHits(),nowShowing,pageNumber+1,sourceResultList);
-								 return new Reply(200,"success",sourceResult);
+								 return new PaginationReply(200,"success",response.getHits().getTotalHits(),nowShowing,pageNumber+1,sourceResultList);
 								 
 							} else
 								if(requiredFields.contains("products")) {
@@ -126,8 +125,7 @@ public class ManufacturerResource {
 									 for(int i=0;i<searchHits.length;i++){
 										 sourceResultList.add(searchHits[i].getSource());
 									 }
-									 PaginationReply sourceResult = new PaginationReply(response.getHits().getTotalHits(),nowShowing,pageNumber+1,sourceResultList);
-									 return new Reply(200,"success",sourceResult);
+									 return new PaginationReply(200,"success",response.getHits().getTotalHits(),nowShowing,pageNumber+1,sourceResultList);
 									 
 							} else {
 								exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
