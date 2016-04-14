@@ -100,7 +100,10 @@ public class CustomerHelperMethods {
 		List<String> queryStrings = new ArrayList<String>();
 		String selectQueryString = "",joinQueryString="",orderByQueryString="";
 		boolean isAddressDetailsAsked = false;
-		
+		/*
+		 * this will return the query strings separately like select string,join string and orderby string,this will return as per the 
+		 * consumer request 
+		 */
 		if(requiredDetailsArray.contains("firstname")){
 			selectQueryString = selectQueryString+"ps_customer.firstname,";
 		}
@@ -196,8 +199,9 @@ public class CustomerHelperMethods {
 	 */
 	public String getUpdateDetailsString(JSONObject bodyInputJsonData) {
 		String updateDetails = "",errorResponse = "Error ",jsonKeyValue = ""; 
-		// jsonKeyValue is for storing values of keys given like firstname,lastname. once after storing we can use it anywhere
-		
+			/*
+			 * jsonKeyValue is for storing values of keys given like firstname,lastname. once after storing we can use it anywhere
+			 */
 		if(bodyInputJsonData.containsKey("firstName")){
 			jsonKeyValue = bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
@@ -207,6 +211,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether lastName field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("lastName")){
 			jsonKeyValue = bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
@@ -216,6 +223,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether address1 field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("address1")){
 			jsonKeyValue = bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0){
@@ -225,6 +235,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether address2 field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("address2")){
 			jsonKeyValue = bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.toString().length()!=0){
@@ -234,6 +247,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether mobile field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("mobile")){
 			jsonKeyValue = bodyInputJsonData.get("mobile").toString();
 			if(jsonKeyValue.length()==10 && StringUtils.isNumeric(jsonKeyValue)){
@@ -243,6 +259,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether city field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("city")){
 			jsonKeyValue = bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){// validating the city string,if it contains any number return error 
@@ -252,6 +271,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether stateId field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("stateId")){
 			if(bodyInputJsonData.get("stateId").toString().length()!=0){
 				updateDetails = updateDetails+"ps_address.id_state="+(long)bodyInputJsonData.get("stateId")+",";
@@ -260,6 +282,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether postCode field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("postCode")){
 			if(bodyInputJsonData.get("postCode").toString().length()==6  && StringUtils.isNumeric(bodyInputJsonData.get("postCode").toString())){
 				updateDetails = updateDetails+"ps_address.id_postcode="+(long)bodyInputJsonData.get("postCode")+",";
@@ -268,6 +293,9 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+			/*
+			 * checking whether countryId field is updating or not, if required then checking validations
+			 */
 		if(bodyInputJsonData.containsKey("countryId")){
 			if(bodyInputJsonData.get("countryId").toString().length()!=0){
 				updateDetails = updateDetails+"ps_address.id_country="+(long)bodyInputJsonData.get("countryId")+",";

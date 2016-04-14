@@ -82,10 +82,11 @@ public class CustomerResource {
 				String accessToken = (String) headerInputJsonData.get("apiKey");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
+				int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET");
 					/*
 					 * validating the accesstoken given by user
 					 */
-				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET") == 1) {
+				if (isAccessTokenValid == 1) {
 					    /*
 					     * checking whether the customerId is valid or not
 					     */
@@ -105,41 +106,57 @@ public class CustomerResource {
 							customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
 							return new Reply(200,"success",customerFoldingListResultSetValues);
 						}
-						else { // if user specifies requirement separately
+						else {
+							/*
+							 * getting required fields string to append directly to query in dao class
+							 */
 							customerRequiredDetails = helperMethods.getRequiredDetailsString(requiredFields);
+						
 							customerFoldingListResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
+							
 							customerFoldingListResultSetValues =  customerFoldingListResultSet.getValues();
 							return new Reply(200,"success",customerFoldingListResultSetValues);
 						}
 					} else{
-						errorLog.warn("CustomerId you mentioned was invalid");
+						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
 				} else {
 					exception = new HandleException();
-					return exception.accessTokenException(jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET"));
+					return exception.accessTokenException(isAccessTokenValid);
 				}
-			}else{
-				errorLog.warn("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly");
+			} else {
+				errorLog.warn("The parameter which you specified is not in json format");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly",null);
+				return exception.getException("The parameters which you specified is not in json format",null);
 			}	
 		}
+			catch (NullPointerException nullPointer) {
+				errorLog.warn("apiKey or customerId spelled Incorrectly or mention necessary fields of address");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("apiKey or customerId spelled Incorrectly or mention necessary fields of address",null);
+			}
 			catch (ClassCastException classCast) {
 				errorLog.warn("Give apiKey as String,customerid as integer,requiredFields as array of strings");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Give apiKey as String,customerid as integer,requiredFields as array of strings",null);
-		}
+			}
 			catch (ParseException parse) {
 				errorLog.warn("Specify correct data type for the values as mentioned in instructions");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
-		}
+				return exception.getException("Specify correct data type for the values as mentioned in CustomerReadme doc",null);
+			}
 			catch (Exception e) {
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or customerid or requiredFields spelled Incorrectly or check database connection",null);
-		}	
+				if(e instanceof IllegalArgumentException){
+					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
+					exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+					return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
+				} else {
+					exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+					return exception.getException("Internal server error",null);
+				}
+			}	
 	}
 	
 	
@@ -153,27 +170,38 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressAdded=0;
+			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
 			long customerId = (long) bodyInputJsonData.get("customerId");
-				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT") == 1) { // validating the accesstoken given by user
+				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
-						if(helperMethods.validateInputValues(bodyInputJsonData).equals("success")){ // validating input data given by the user
+						String isValidInputValues = helperMethods.validateInputValues(bodyInputJsonData);
+						     /*
+						      * validating input data given by the user
+						      */
+						if(isValidInputValues.equals("success")){ 
+								/*
+								 * adding all the new address details to the query
+								 */
 							isAddressAdded = customerDetailsDao.addNewAddress((long)bodyInputJsonData.get("countryId"),(long)bodyInputJsonData.get("stateId"),customerId,bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", ""),bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), (String)bodyInputJsonData.get("postCode"), bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("mobile"));
-							errorLog.info("New address added for customerId:"+ customerId+" by user:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
+							    /*
+							     * adding response info to the log file
+							     */
+							errorLog.info("New address added for customerId:"+ customerId+" by consumer:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
 							return new Reply(201,"success","New address added succesfully to customerId " + customerId);
-						}else{
-							errorLog.warn(helperMethods.validateInputValues(bodyInputJsonData)); // adding error response from validateInputValues method
+							
+						} else {
+							errorLog.warn(isValidInputValues); // adding error response from validateInputValues method
 							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 							return exception.getException(helperMethods.validateInputValues(bodyInputJsonData),null);
 						}
 					} else {
-						errorLog.warn("CustomerId you mentioned was invalid");
+						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
 				} else {
 					exception = new HandleException();
-					return exception.accessTokenException(jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT"));
+					return exception.accessTokenException(isAccessTokenValid);
 				}
 			} 	
 		catch (NullPointerException nullPointer) {
@@ -184,11 +212,17 @@ public class CustomerResource {
 		catch (ClassCastException classCast) {
 			errorLog.warn("Please check the values data types");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+			return exception.getException("Specify correct data type for the values as mentioned in CustomerReadme doc",null);
 		}
 		catch (Exception e) {
-			exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-			return exception.getException("check database connection",null);
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify correct keys for the values as mentioned in instructions");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
+			} else {
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Internal server error",null);
+			}
 		}
 }
 	
@@ -206,14 +240,31 @@ public class CustomerResource {
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT") == 1) { // validating the accesstoken given by user
-					if (helperMethods.isCustomerIdValid(customerId)) { // checking whether the customerId is valid or not
-						getUpdateDetails = helperMethods.getUpdateDetailsString(bodyInputJsonData);// getting update query if the given values pass the validations else error message.
-						splitUpdateDetails = getUpdateDetails.split(" "); // splitting the returned string.
-						if(!splitUpdateDetails[0].trim().equals("Error")){ // checking whether the string has error in it.
-							isAddressUpdated = customerDetailsDao.updateAddress(addressId,customerId,getUpdateDetails);
+			int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
+				/*
+				 * validating the accesstoken given by user
+				 */
+				if (isAccessTokenValid == 1) { 
+						/*
+						 * checking whether the customerId is valid or not
+						 */
+					if (helperMethods.isCustomerIdValid(customerId)) { 
+						/*
+						 * getting update query if the given values pass the validations else error message.
+						 */
+						getUpdateDetails = helperMethods.getUpdateDetailsString(bodyInputJsonData);
 							
-								if (isAddressUpdated == 1) { // if the given addressId and customerId matches then query runs and return 1 else return 0.
+							// splitting the returned string.
+						splitUpdateDetails = getUpdateDetails.split(" "); 
+							/*
+							 * checking whether the string has error in it.
+							 */
+						if(!splitUpdateDetails[0].trim().equals("Error")){
+							isAddressUpdated = customerDetailsDao.updateAddress(addressId,customerId,getUpdateDetails);
+									/*
+									 * if the given addressId and customerId matches then query runs and return 1 else return 0.
+									 */
+								if (isAddressUpdated == 1) { 
 									errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" updated successfully by user:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
 									return new Reply(201,"success","Address of addressId "+addressId+" updated succesfully" );
 								} else {
@@ -228,28 +279,34 @@ public class CustomerResource {
 							return exception.getException(""+getUpdateDetails+"",null); // if there is any error in validations then this will return that error.
 						}
 					} else {
-						errorLog.warn("CustomerId you mentioned was invalid");
+						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
 				} else {
 					exception = new HandleException();
-					return exception.accessTokenException(jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT"));
+					return exception.accessTokenException(isAccessTokenValid);
 					}
 				} 	
 		catch (NullPointerException nullPointer) {
-			errorLog.warn("Content-Type or apiKey or customerId or addressId spelled Incorrectly");
+			errorLog.warn("apiKey or customerId or addressId spelled Incorrectly");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("apiKey or customerid or addressId spelled Incorrectly",null);
 		}	
 		catch (ClassCastException classCast) {
 			errorLog.warn("Please check the values data types");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+			return exception.getException("Specify correct data type for the values as mentioned in CustomerReadme doc",null);
 		}
 		catch (Exception e) {
-			exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-			return exception.getException("check database connection",null);
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify correct keys for the values as mentioned in instructions");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
+			} else {
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Internal server error",null);
+			}
 		}
 }
 	
@@ -262,16 +319,20 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressDeleted=0;
+			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "DELETE") == 1) { // validating the accesstoken given by user
+				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+						/*
+						 * Below method if given addressId and customerId matches then  query runs and return 1 else return 0.
+						 */
 						isAddressDeleted = customerDetailsDao.deleteAddress(addressId,customerId);
-						
-						if (isAddressDeleted == 1) { // if the given addressId and customerId matches then query runs and return 1 else return 0.
+							
+						if (isAddressDeleted == 1) { 
 							errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" deleted successfully by user:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
 							return new Reply(201,"success","Address of addressId "+addressId+" deleted succesfully" );
+							
 						} else { // return customerId and addressId not matched exception
 							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 							errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
@@ -279,13 +340,13 @@ public class CustomerResource {
 						}
 						
 					} else {
-						errorLog.warn("CustomerId you mentioned was invalid");
+						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
 				} else {
 					exception = new HandleException();
-					return exception.accessTokenException(jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "DELETE"));
+					return exception.accessTokenException(isAccessTokenValid);
 				}
 			} 	
 		catch (NullPointerException nullPointer) {
@@ -294,13 +355,19 @@ public class CustomerResource {
 			return exception.getException("apiKey or customerid or addressId spelled Incorrectly",null);
 		}	
 		catch (ClassCastException classCast) {
-			errorLog.warn("Please check the values data types");
+			errorLog.warn("Specify correct data type for the values as mentioned in CustomerReadme doc");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+			return exception.getException("Specify correct data type for the values as mentioned in CustomerReadme doc",null);
 		}
 		catch (Exception e) {
-			exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-			return exception.getException("check database connection",null);
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify correct keys for the values as mentioned in instructions");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
+			} else {
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Internal server error",null);
+			}
 		}
 	}
 }
