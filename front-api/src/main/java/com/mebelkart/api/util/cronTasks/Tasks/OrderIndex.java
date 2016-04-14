@@ -33,6 +33,7 @@ public class OrderIndex extends Job{
         try {
 
             OrderDao orderDaoObject=new OrderDao();
+
             /**
              * getting all new orders from mysql which are updated or created after last indexing
              */
@@ -87,7 +88,7 @@ public class OrderIndex extends Job{
                      Integer shippedToDate=orderDetails.getInt("shipped_to_date");
                      Integer deliveredFromDate=orderDetails.getInt("delivered_from_date");
                      Integer deliveredToDate=orderDetails.getInt("delivered_to_date");
-                     String productEan13=orderDetails.getString("product_ean13");
+                     String productEan13=orderDetails.getString("product_ean13")+"LOL ";
                      String productUpc=orderDetails.getString("product_upc");
                      String productRefrence=orderDetails.getString("product_reference");
                      String productSupplierRefrence=orderDetails.getString("product_supplier_reference");
@@ -100,6 +101,7 @@ public class OrderIndex extends Job{
                      String downloadHash=orderDetails.getString("download_hash");
                      Integer downloadNb=orderDetails.getInt("download_nb");
                      Date downloadDeadline=null;//orderDetails.getDate("download_deadline");
+
                     /**
                      * Initializing all variables for creating orderDetailVendorStatus object
                      */
@@ -127,6 +129,7 @@ public class OrderIndex extends Job{
                      * will contain logistic details for current suborderId
                      */
                     ResultSet logisticDetailsResultSet=orderDaoObject.getLogisticDetailsForASuborder(subOrderId);
+                    //System.out.println("logistic resultset "+logisticDetailsResultSet.getMetaData());
                     System.out.println("--------------------------------------------");
                     System.out.println("Order Id :"+orderId+" suborderId :"+subOrderId);
                     OrderDetailLogisticService orderDetailLogisticService=null;
@@ -234,6 +237,7 @@ public class OrderIndex extends Job{
                                  transactionBankReference,vendorSuggestedTransferPrice,  otherCharges, transactionComments
                                 ,  totalAmountTransferred, isPaymentDone) ;
                     }
+
 
                     /**
                      * Creating object of orderDetail

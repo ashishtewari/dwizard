@@ -11,6 +11,8 @@ import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
+import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
+import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
 import com.mebelkart.api.util.exceptions.HandleNullRequest;
 
 import io.dropwizard.Application;
@@ -49,14 +51,15 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		/*
 		 * configuring the both admin database and products database.
 		 */
-		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getDatabase1(), "adminDatabase");
-		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getDatabase2(), "productsDatabase");
+		final DBI apiAuthenticationDatabaseConfiguration = factory.build(environment,configuration.getApiAuthenticationDatabase(), "adminDatabase");
+		final DBI mebelkartProductsDatabaseConfiguration = factory.build(environment,configuration.getMebelkartProductsDatabase(), "productsDatabase");
 		/*
 		 * creating object to the database classes and initializing them
 		 */
 		final CustomerDetailsDAO customerDao = mebelkartProductsDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
 		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
+		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -67,6 +70,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		 */
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
+		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 	}

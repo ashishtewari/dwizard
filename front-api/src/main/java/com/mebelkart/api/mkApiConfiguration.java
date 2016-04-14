@@ -19,19 +19,19 @@ public class mkApiConfiguration extends Configuration {
 	private DataSourceFactory mebelkartProductsDatabase = new DataSourceFactory();
 
 	@JsonProperty("apiAuthenticationDatabase")
-	public DataSourceFactory getDatabase1() {
+	public DataSourceFactory getApiAuthenticationDatabase() {
 		return apiAuthenticationDatabase;
 	}
 	@JsonProperty("apiAuthenticationDatabase")
-	public void setDatabase1(DataSourceFactory database1) {
-		this.apiAuthenticationDatabase = database1;
+	public void setDatabase1(DataSourceFactory apiAuthenticationDatabase) {
+		this.apiAuthenticationDatabase = apiAuthenticationDatabase;
 	}
 	@JsonProperty("mebelkartProductsDatabase")
-	public DataSourceFactory getDatabase2() {
+	public DataSourceFactory getMebelkartProductsDatabase() {
 		return mebelkartProductsDatabase;
 	}
 	@JsonProperty("mebelkartProductsDatabase")
-	public void setDatabase2(DataSourceFactory database2) {
-		this.mebelkartProductsDatabase = database2;
+	public void setDatabase2(DataSourceFactory mebelkartProductsDatabase) {
+		this.mebelkartProductsDatabase = mebelkartProductsDatabase;
 	}
 }
