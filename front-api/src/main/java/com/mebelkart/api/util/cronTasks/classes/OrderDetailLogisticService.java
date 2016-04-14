@@ -194,4 +194,3 @@ public class OrderDetailLogisticService {
         this.migratedToGetit = migratedToGetit;
     }
 }
-

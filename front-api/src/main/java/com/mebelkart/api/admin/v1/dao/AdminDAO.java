@@ -61,6 +61,13 @@ public interface AdminDAO {
 	@Mapper(UserStatusMapper.class)
 	List<UserStatus> getUsersDetailsWithoutStatus(@Define("tableName") String tableName);
 	
+	/**
+	 * This query shows the previlages of each type of user
+	 * @param userId
+	 * @param tableName
+	 * @param colName
+	 * @return
+	 */
 	@SqlQuery("SELECT mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
 			+"<tableName>.a_have_put_permission, <tableName>.a_have_delete_permission "
 			+"FROM <tableName> "
@@ -170,11 +177,20 @@ public interface AdminDAO {
 	
 	/**
 	 * This query updates active status of User
-	 * @param userName email of Admin
+	 * @param userName email of user
 	 * @param status 1 for isActive/0 for isNotActive
 	 */
 	@SqlUpdate("update <tableName> set a_is_active = :status,a_modified_by = :modifiedBy where a_user_name = :userName")
 	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy);
+	
+	/**
+	 * This query updates countAssigned coloumn of specific user in DB
+	 * @param userName email of consumer
+	 * @param rateLimit countAssigned in DB
+	 * @param modifiedBy admin userName
+	 */
+	@SqlUpdate("update mk_api_consumer set a_count_assigned = :rateLimit,a_modified_by = :modifiedBy where a_user_name = :userName")
+	void changeRateLimit(@Bind("userName") String userName,@Bind("rateLimit") long rateLimit,@Bind("modifiedBy") String modifiedBy);
 	
 	/**
 	 * Checks whether the user is given permissions for specific resource id or not
