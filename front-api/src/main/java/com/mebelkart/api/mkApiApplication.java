@@ -1,5 +1,7 @@
 package com.mebelkart.api;
 
+import com.mebelkart.api.order.v1.dao.OrderDao;
+import com.mebelkart.api.order.v1.resources.OrderResource;
 import de.spinscale.dropwizard.jobs.JobsBundle;
 import org.skife.jdbi.v2.DBI;
 
@@ -33,7 +35,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			/**
 			 *  Registering jobs bundle to run all cron jobs
 			 */
-			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
+			//bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Done ...........");
@@ -54,6 +56,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		 */
 		final CustomerDetailsDAO customerDao = mebelkartProductsDatabaseConfiguration.onDemand(CustomerDetailsDAO.class);
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
+		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -65,6 +68,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new HandleNullRequest());
+		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 	}
 
 }

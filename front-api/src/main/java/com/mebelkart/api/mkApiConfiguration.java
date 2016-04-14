@@ -4,12 +4,15 @@ import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.dropwizard.elasticsearch.config.EsConfiguration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 public class mkApiConfiguration extends Configuration {
 
+
+//	EsConfiguration esConfiguration=new EsConfiguration();
 	@Valid
 	@NotNull
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
