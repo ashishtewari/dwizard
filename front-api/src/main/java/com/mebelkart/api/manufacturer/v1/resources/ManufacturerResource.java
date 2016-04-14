@@ -150,11 +150,11 @@ public class ManufacturerResource {
 				return exception.getException("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly",null);
 			}
 		}
-//		catch (NullPointerException nullPointer) {
-//			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-//			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-//			return exception.getException("apiKey or manufacturerId spelled Incorrectly or mention necessary fields",null);
-//		}
+		catch (NullPointerException nullPointer) {
+			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("apiKey or manufacturerId spelled Incorrectly or mention necessary fields",null);
+		}
 		catch (ParseException parse) {
 			errorLog.warn("Specify your requirement in requiredFeilds as array of string");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -165,10 +165,10 @@ public class ManufacturerResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-//		catch (Exception illegalArgument) {
-//			errorLog.warn("Specify date format correctly and it should not be null");
-//			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-//			return exception.getException("Specify date format correctly and it should not be null",null);
-//		}
+		catch (Exception illegalArgument) {
+			errorLog.warn("Specify date format correctly and it should not be null");
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Specify date format correctly and it should not be null",null);
+		}
 	}
 }
