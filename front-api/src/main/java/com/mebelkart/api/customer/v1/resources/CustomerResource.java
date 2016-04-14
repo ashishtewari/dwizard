@@ -82,13 +82,26 @@ public class CustomerResource {
 				String accessToken = (String) headerInputJsonData.get("apiKey");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET") == 1) { // validating the accesstoken given by user 
-					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+					/*
+					 * validating the accesstoken given by user
+					 */
+				if (jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET") == 1) {
+					    /*
+					     * checking whether the customerId is valid or not
+					     */
+					if(helperMethods.isCustomerIdValid(customerId)){ 
+						
 						FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
 						List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
 						List<String> customerRequiredDetails = null;
 						if(requiredFields.size()==0){ // if the user wants all the details
+							/*
+							 * Adding customerDetails resultSet to foldingList
+							 */
 							customerFoldingListResultSet = customerDetailsDao.getCustomerDetails(customerId);
+							/*
+							 * Retrieving values from foldingList and adding them to a list
+							 */
 							customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
 							return new Reply(200,"success",customerFoldingListResultSetValues);
 						}
