@@ -19,9 +19,12 @@ import javax.ws.rs.core.Response;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -90,7 +93,7 @@ public class ManufacturerResource {
 								 * query for getting orders from start date to end date of respective
 								 * manufacturer id
 								 */
-							 
+//							
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
 										//.must(QueryBuilders.matchQuery("manufacturerId", manufacturerId));
 							            .should(QueryBuilders.termsQuery("_id", manufacturerId+""));
@@ -106,8 +109,8 @@ public class ManufacturerResource {
 										   .setSearchType(SearchType.QUERY_AND_FETCH)
 										   .setFetchSource(consumerRequestedFieldsArray,null)
 										   .setQuery(query)//.setPostFilter(QueryBuilders.rangeQuery("manufacturerOrders.orderDetails.orderId").from(1).to(1))
-										  // .addAggregation(AggregationBuilders.terms("mk").field("manufacturerProducts.orderDetails.orderId").size(10))
-										   //.addSort(SortBuilders.fieldSort("manufacturerOrders.orderDetails.orderId").order(SortOrder.DESC))
+										   //.addAggregation(AggregationBuilders.terms("mk").field("manufacturerProducts").size(1))
+										   .addSort(SortBuilders.fieldSort("manufacturerProducts").order(SortOrder.DESC))
 //										   .setFrom(0)
 //										   .setSize(2)
 										   .execute()
@@ -162,10 +165,21 @@ public class ManufacturerResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-		catch (Exception illegalArgument) {
-			errorLog.warn("Specify date format correctly and it should not be null");
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify date format correctly and it should not be null",null);
+		catch (IndexNotFoundException classCast) {
+			errorLog.warn("Index for which you are searching is not found");
+			exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+			return exception.getException("Index for which you are searching is not found",null);
+		}
+		catch (Exception e) {
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify date format correctly and it should not be null");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify date format correctly and it should not be null",null);
+			} else {
+				errorLog.warn("Internal server connection error");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Internal server connection error",null);
+			}
 		}
 	}
 }

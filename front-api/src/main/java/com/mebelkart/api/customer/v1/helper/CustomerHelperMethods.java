@@ -198,7 +198,9 @@ public class CustomerHelperMethods {
 	 * @return query string for updateAddress if the validations are fine else it will return the error string
 	 */
 	public String getUpdateDetailsString(JSONObject bodyInputJsonData) {
-		String updateDetails = "",errorResponse = "Error ",jsonKeyValue = ""; 
+		String updateDetails = "",errorResponse = "Error ",jsonKeyValue = "";
+		int updateFieldsCount = 0;
+		System.out.println("json data size = " + bodyInputJsonData.size());
 			/*
 			 * jsonKeyValue is for storing values of keys given like firstname,lastname. once after storing we can use it anywhere
 			 */
@@ -206,6 +208,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
 				updateDetails = updateDetails+"ps_address.firstname='"+jsonKeyValue+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"firstName is needed and it should not be null";
 				return errorResponse;
@@ -218,6 +221,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){
 				updateDetails = updateDetails+"ps_address.lastname='"+jsonKeyValue+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"lastName is needed and it should not be null";
 				return errorResponse;
@@ -230,6 +234,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0){
 				updateDetails = updateDetails+"ps_address.address1='"+bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", "")+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"address1 is needed and it should not be null";
 				return errorResponse;
@@ -242,6 +247,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.toString().length()!=0){
 				updateDetails = updateDetails+"ps_address.address2='"+bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", "")+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"address2 is needed and it should not be null";
 				return errorResponse;
@@ -254,6 +260,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("mobile").toString();
 			if(jsonKeyValue.length()==10 && StringUtils.isNumeric(jsonKeyValue)){
 				updateDetails = updateDetails+"ps_address.phone_mobile='"+jsonKeyValue+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"mobile is needed and it should be 10 digits";
 				return errorResponse;
@@ -266,6 +273,7 @@ public class CustomerHelperMethods {
 			jsonKeyValue = bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", "");
 			if(jsonKeyValue.length()!=0  && !jsonKeyValue.matches(".*\\d.*")){// validating the city string,if it contains any number return error 
 				updateDetails = updateDetails+"ps_address.city='"+jsonKeyValue+"',";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"city is needed and it should not be null";
 				return errorResponse;
@@ -277,6 +285,7 @@ public class CustomerHelperMethods {
 		if(bodyInputJsonData.containsKey("stateId")){
 			if(bodyInputJsonData.get("stateId").toString().length()!=0){
 				updateDetails = updateDetails+"ps_address.id_state="+(long)bodyInputJsonData.get("stateId")+",";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"stateId is needed and it should not be null";
 				return errorResponse;
@@ -288,6 +297,7 @@ public class CustomerHelperMethods {
 		if(bodyInputJsonData.containsKey("postCode")){
 			if(bodyInputJsonData.get("postCode").toString().length()==6  && StringUtils.isNumeric(bodyInputJsonData.get("postCode").toString())){
 				updateDetails = updateDetails+"ps_address.id_postcode="+(long)bodyInputJsonData.get("postCode")+",";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"postCode is needed and it should be 6 digits";
 				return errorResponse;
@@ -299,10 +309,20 @@ public class CustomerHelperMethods {
 		if(bodyInputJsonData.containsKey("countryId")){
 			if(bodyInputJsonData.get("countryId").toString().length()!=0){
 				updateDetails = updateDetails+"ps_address.id_country="+(long)bodyInputJsonData.get("countryId")+",";
+				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"countryId is needed and it should not be null";
 				return errorResponse;
 			}
+		}
+		/*
+		 * checking whether given fields are spelled correctly to update that address details.
+		 * Total size-3 is removing apikey,customerId,addressId from the count.because we 
+		 * should not consider those three fields.
+		 */
+		if(updateFieldsCount != (bodyInputJsonData.size()-3)){
+			errorResponse = errorResponse+"please check the field names which you had given.Some of them are misspelled";
+			return errorResponse;
 		}
 		
 		return updateDetails;
