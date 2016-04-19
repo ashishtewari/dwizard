@@ -3,6 +3,7 @@ package com.mebelkart.api;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 import de.spinscale.dropwizard.jobs.JobsBundle;
+
 import org.skife.jdbi.v2.DBI;
 
 import com.github.rkmk.container.FoldingListContainerFactory;
@@ -13,6 +14,7 @@ import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
+import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.exceptions.HandleNullRequest;
 
 import io.dropwizard.Application;
@@ -71,6 +73,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
+		environment.jersey().register(new ProductResource());
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 	}

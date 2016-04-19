@@ -22,13 +22,10 @@ import com.mebelkart.api.util.cronTasks.classes.ManufacturerCompanyInfo;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerProducts;
 import com.mebelkart.api.util.cronTasks.dao.ManufacturerDao;
 import com.mebelkart.api.util.factories.ElasticFactory;
-
 import de.spinscale.dropwizard.jobs.Job;
+import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 
-/**
- * Created by vinitpayal on 01/04/16.
- */
-//@OnApplicationStart
+@OnApplicationStart
 public class ManufacturerIndex extends Job{
 
 	Client elasticInstance= ElasticFactory.getElasticClient();
@@ -153,7 +150,5 @@ public class ManufacturerIndex extends Job{
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
 		} 
-
-
     }
 }

@@ -5,9 +5,7 @@ package com.mebelkart.api.manufacturer.v1.resources;
 
 import java.rmi.ConnectException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.GET;
@@ -87,7 +85,6 @@ public class ManufacturerResource {
 							 */
 							String consumerRequestedFieldsArray[] = helperMethods.getRequiredDetails(requiredFields);
 							 List<Object>sourceResultList = new ArrayList<Object>();
-							 Map<String,Object>productsMap = new HashMap<String,Object>();
 							 SearchResponse response = null;
 								/*
 								 * query for getting orders from start date to end date of respective

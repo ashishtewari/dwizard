@@ -157,7 +157,7 @@ public class AdminResource {
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isAdminActive(apikey)) {
 					int rowId = registerAdmin(rawData,adminUserName);
-					if (rowId != 0) {
+					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
@@ -166,14 +166,26 @@ public class AdminResource {
 							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}
-					} else {
-						log.warn("Not acceptable data in registerUser function for admin");
-						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("check data once again", null);
+					} else if(rowId == 0) {
+						log.warn("Invalid keys in registerUser function for admin");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("check your keys once again", null);
+					} else if(rowId == -1){
+						log.warn("Invalid email provided in registerUser function for admin");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("please provide valid email", null);
+					} else if (rowId == -2){
+						log.warn("Conflict, User name already exists in registerUser function for admin");
+						exception = new HandleException(Response.Status.FORBIDDEN.getStatusCode(),Response.Status.FORBIDDEN.getReasonPhrase());
+						return exception.getException("user name already exist", null);
+					}else{
+						log.warn("UnKnown Exception in registerUser function for admin");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("UnKnown Exception", null);
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isAdminActive(apikey)) {
 					int rowId = registerConsumer(rawData,adminUserName);
-					if (rowId != 0) {
+					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
@@ -182,10 +194,22 @@ public class AdminResource {
 							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						}
-					} else {
-						log.warn("Not acceptable data in registerUser function for consumer");
-						exception = new HandleException(Response.Status.NOT_ACCEPTABLE.getStatusCode(),Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-						return exception.getException("check data once again", null);
+					} else if(rowId == 0) {
+						log.warn("Invalid keys in registerUser function for consumer");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("check your keys once again", null);
+					} else if(rowId == -1){
+						log.warn("Invalid email provided in registerUser function for consumer");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("please provide valid email", null);
+					} else if (rowId == -2){
+						log.warn("Conflict, User name already exists in registerUser function for consumer");
+						exception = new HandleException(Response.Status.FORBIDDEN.getStatusCode(),Response.Status.FORBIDDEN.getReasonPhrase());
+						return exception.getException("user name already exist", null);
+					}else{
+						log.warn("UnKnown Exception in registerUser function for consumer");
+						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+						return exception.getException("UnKnown Exception", null);
 					}
 				} else {
 					log.warn("Unauthorized data in registerUser function");
@@ -205,7 +229,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in registerUser function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -296,7 +320,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in updatePermissions function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -365,7 +389,58 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in changeUserActiveStatus function");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Connection refused server stopped", null);
+			}else{
+				log.warn(e.getMessage());
+				exception = new HandleException(Response.Status.EXPECTATION_FAILED.getStatusCode(),Response.Status.EXPECTATION_FAILED.getReasonPhrase());
+				return exception.getException("unknown exception caused", null);
+			}
+		}	
+	}
+	
+	/**
+	 * This is the Put method accessed by path HOST/v1.0/admin/changeRateLimit
+	 * This method used to change user's countAssigned in DB
+	 * @param apikey
+	 * @param request
+	 * @return
+	 */
+	@PUT
+	@Path("/changeRateLimit")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object changeRateLimit(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+		try{
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if(accessLevel == 1 || accessLevel == 2){
+				JSONObject rawData = helper.contextRequestParser(request);
+				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+				if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
+					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),adminUserName);
+					log.info(adminUserName+" has changed countAssigned of user "+(String)rawData.get("userName"));
+					return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
+				}else{
+					log.warn("Not found userName in changeRateLimit function");
+					exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+					return exception.getException("give valid user name", null);
+				}
+			}else {
+				log.warn("Unauthorized data in changeRateLimit function");
+				exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
+				return exception.getException("your admin credentials are not acceptable", null);
+			}
+		}catch(NullPointerException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid keys", null);
+		}catch(ClassCastException e){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid values", null);
+		}catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused server stopped in changeRateLimit function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -428,7 +503,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in getUsersStatus function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -439,6 +514,13 @@ public class AdminResource {
 		}	
 	}
 	
+	/**
+	 * This is the Get method accessed by path HOST/v1.0/admin/getUserPrivileges
+	 * It gives userName and privilages of every user
+	 * @param apikey
+	 * @param userDetails
+	 * @return
+	 */
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -486,7 +568,7 @@ public class AdminResource {
 			return exception.getException("give valid values", null);
 		}catch(Exception e){
 			if(e instanceof ConnectException){
-				log.warn("Connection refused server stopped in login function");
+				log.warn("Connection refused server stopped in getUserPrivileges function");
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Connection refused server stopped", null);
 			}else{
@@ -538,9 +620,17 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	private int registerConsumer(JSONObject jsonData,String addedBy) {
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("consumer",(String) jsonData.get("userName"))) {
-			int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"),addedBy);
-			return id;
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("countAssigned")) {
+			if(helper.emailIsValid((String) jsonData.get("userName"))){
+				if(!isUserNameAlreadyExists("consumer",(String) jsonData.get("userName"))){
+					int id = this.auth.addConsumer((String) jsonData.get("userName"),(String) jsonData.get("accessToken"),(long) jsonData.get("countAssigned"),addedBy);
+					return id;
+				}else{
+					return -2;
+				}			
+			}else{
+				return -1;
+			}			
 		} else
 			return 0;
 	}
@@ -551,9 +641,17 @@ public class AdminResource {
 	 * @return int newly inserted row ID
 	 */
 	public int registerAdmin(JSONObject jsonData,String addedBy){
-		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password") && helper.emailIsValid((String) jsonData.get("userName")) && !isUserNameAlreadyExists("admin",(String) jsonData.get("userName"))) {
-			int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"),addedBy);
-			return id;
+		if (jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("password")) {
+			if(helper.emailIsValid((String) jsonData.get("userName"))){
+				if(!isUserNameAlreadyExists("admin",(String) jsonData.get("userName"))){
+					int id = this.auth.addAdmin((String) jsonData.get("userName"),MD5Encoding.encrypt((String) jsonData.get("password")),(String) jsonData.get("accessToken"),addedBy);
+					return id;					
+				}else{
+					return -2;
+				}				
+			}else{
+				return -1;
+			}
 		} else
 			return 0;
 	}
