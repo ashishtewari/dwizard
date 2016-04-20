@@ -82,7 +82,7 @@ public interface AdminDAO {
 	 * @param accessToken of admin/superadmin
 	 * @return non zero on success
 	 */
-	@SqlQuery("select a_admin_level from mk_api_user_admin where a_access_token = :accessToken")
+	@SqlQuery("select a_admin_level from mk_api_user_admin where a_access_token = :accessToken and a_is_active = 1")
 	int validate(@Bind("accessToken") String accessToken);
 	
 	/**
@@ -100,7 +100,8 @@ public interface AdminDAO {
 	 * @param countAssigned is given by user
 	 * @return inserted row id
 	 */
-	@SqlUpdate("insert into mk_api_consumer (a_user_name,a_access_token,a_count_assigned,a_added_by,a_modified_by) values (:userName, :accessToken, :countAssigned, :addedBy, :addedBy)")
+	@SqlUpdate("insert into mk_api_consumer (a_user_name,a_access_token,a_count_assigned,a_added_by,a_modified_by) "
+			+ "values (:userName, :accessToken, :countAssigned, :addedBy, :addedBy)")
 	@GetGeneratedKeys
 	int addConsumer(@Bind("userName") String userName,
 			@Bind("accessToken") String accessToken,
@@ -114,7 +115,8 @@ public interface AdminDAO {
 	 * @param accessToken is auto generated
 	 * @return inserted row id
 	 */
-	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_access_token,a_password,a_added_by,a_modified_by) values (:userName, :accessToken, :password, :addedBy, :addedBy)")
+	@SqlUpdate("insert into mk_api_user_admin (a_user_name,a_access_token,a_password,a_added_by,a_modified_by) "
+			+ "values (:userName, :accessToken, :password, :addedBy, :addedBy)")
 	@GetGeneratedKeys
 	int addAdmin(@Bind("userName") String userName,
 			@Bind("accessToken") String accessToken,
@@ -130,13 +132,13 @@ public interface AdminDAO {
 	 * @param havePutPermission consists 1/0
 	 * @param haveDeletePermission consists 1/0
 	 */
-	@SqlUpdate("insert into <table> (a_resource_id,<userColoumnName>,a_have_get_permission,a_have_post_permission,a_have_put_permission,a_have_delete_permission) values (:resourceId, :userId, :haveGetPermission, :havePostPermission, :havePutPermission, :haveDeletePermission)")
+	@SqlUpdate("insert into <table> (a_resource_id,<userColoumnName>,a_have_get_permission,a_have_post_permission,a_have_put_permission) "
+			+ "values (:resourceId, :userId, :haveGetPermission, :havePostPermission, :havePutPermission)")
 	void insertUserPermission(@Bind("resourceId") long resourceId,
 			@Bind("userId") long userId,
 			@Bind("haveGetPermission") long haveGetPermission,
 			@Bind("havePostPermission") long havePostPermission,
 			@Bind("havePutPermission") long havePutPermission,
-			@Bind("haveDeletePermission") long haveDeletePermission,
 			@Define("table") String table,
 			@Define("userColoumnName") String colName);
 	
@@ -149,7 +151,9 @@ public interface AdminDAO {
 	 * @param havePutPermission consists 1/0
 	 * @param haveDeletePermission consists 1/0
 	 */
-	@SqlUpdate("update <tableName> set a_have_get_permission = :haveGetPermission,a_have_post_permission = :havePostPermission,a_have_put_permission = :havePutPermission,a_have_delete_permission = :haveDeletePermission where a_resource_id = :resourceId and <userColoumnName> = :userId")
+	@SqlUpdate("update <tableName> set a_have_get_permission = :haveGetPermission,a_have_post_permission = :havePostPermission,"
+			+ "a_have_put_permission = :havePutPermission,a_have_delete_permission = :haveDeletePermission "
+			+ "where a_resource_id = :resourceId and <userColoumnName> = :userId")
 	void updateUserPermission(@Bind("resourceId") long resourceId,
 			@Bind("userId") long consumerId,
 			@Bind("haveGetPermission") long haveGetPermission,
@@ -181,7 +185,8 @@ public interface AdminDAO {
 	 * @param status 1 for isActive/0 for isNotActive
 	 */
 	@SqlUpdate("update <tableName> set a_is_active = :status,a_modified_by = :modifiedBy where a_user_name = :userName")
-	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy);
+	void changeUserActiveStatus(@Bind("userName") String userName,@Bind("status") long status,
+			@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy);
 	
 	/**
 	 * This query updates countAssigned coloumn of specific user in DB
@@ -227,4 +232,166 @@ public interface AdminDAO {
 	 */
 	@SqlUpdate("update <tableName> set a_modified_by = :modifiedBy where id = :userId")
 	void modifiedBy(@Define("tableName") String tableName,@Bind("modifiedBy") String modifiedBy,@Bind("userId") long userId);
+	
+	/**
+	 * This query assigns function permissions to particular resource_id for a user
+	 * @param resourceId This is the id of resource
+	 * @param userId This is the id of user
+	 * @param type This name of the method request 
+	 * @param functionName This is the name of the function in a particular resource_id
+	 * @param isActive This tells whether the user is having active permissions to this particular function of particular resource_id
+	 * @param userColoumnName This is the coloumn name of the consumer or admin in this table
+	 */
+	@SqlUpdate("insert into <tableName> (<userColoumnName>,a_function_id,a_is_active) "
+			+ "values (:userId, :functionId, :isActive)")
+	void insertUserFunctionPermissions(@Bind("userId") long userId,@Bind("functionId") long functionId,
+			@Bind("isActive") int isActive,@Define("tableName") String tableName,@Define("userColoumnName") String userColoumnName);
+	
+	/**
+	 * This query retrieves all the function name with respect to their method type of a particular resource 
+	 * @param resourceId This is the resource id
+	 * @param type This is the type of the method
+	 * @return List of function names
+	 */
+	@SqlQuery("select a_function_name from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
+	List<String> getFunctionNames(@Bind("resourceId") long resourceId,@Bind("type") String type);
+	
+	/**
+	 * This query deactivates all functions permissions for a specific resource of user
+	 * @param resourceId 
+	 * @param userId
+	 * @param type
+	 * @param isActive
+	 * @param userColoumnName
+	 */
+	//update mk_api_resources_consumer_function_permission t1
+	//inner join mk_api_functions t2 on
+	//    t1.a_function_id = t2.id
+	//set t1.a_is_active = 0 WHERE t2.a_resource_id = 5 and t1.a_consumer_id = 1 and t2.a_type = "get"
+	@SqlUpdate("update <tableName> t1 inner join mk_api_functions t2 on "
+			+ "t1.a_function_id = t2.id "
+			+ "set t1.a_is_active = :isActive "
+			+ "WHERE t2.a_resource_id = :resourceId and t1.<userColoumnName> = :userId and t2.a_type = :type")
+	void removeFunctionPermissions(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
+			@Bind("isActive") int isActive, @Define("userColoumnName") String userColoumnName, @Define("tableName")String tableName);
+	
+	/**
+	 * This query retrieves the function names of user for a particular resource
+	 * @param resourceId
+	 * @param userId
+	 * @param type
+	 * @param isActive
+	 * @param userColoumnName
+	 * @return
+	 */
+	@SqlQuery("select mk_api_functions.a_function_name from mk_api_functions inner join <tableName> ON mk_api_functions.id = <tableName>.a_function_id "
+			+ "where <tableName>.<userColoumnName> = :userId and <tableName>.a_is_active = :isActive and mk_api_functions.a_resource_id = :resourceId "
+			+ "and mk_api_functions.a_type = :type and mk_api_functions.a_is_active = 1")
+	List<String> getPreAssignedFunctionNames(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
+			@Bind("isActive") int isActive, @Define("userColoumnName") String userColoumnName, @Define("tableName")String tableName);
+	
+	/**
+	 * This query deactivates the specific function of user for a specific resource
+	 * @param resourceId
+	 * @param userId
+	 * @param type
+	 * @param functionName
+	 * @param isActive
+	 * @param userColoumnName
+	 */
+	@SqlUpdate("update <tableName> set a_is_active = :isActive where <userColoumnName> = :userId and a_function_id = :functionId")
+	void updateSpecificFunctionNames(@Bind("functionId") long functionId, @Bind("userId") long userId, 
+			@Bind("isActive") int isActive, @Define("userColoumnName") String userColoumnName, @Define("tableName")String tableName);
+	
+	/**
+	 * This query checks whether user is having specific method permission to specific resource 
+	 * @param resourceId
+	 * @param userId
+	 * @param tableName
+	 * @param colName
+	 * @param wantedColName
+	 * @return
+	 */
+	@SqlQuery("select <userWantedColoumnName> from <tableName> where a_resource_id = :resourceId and <userColoumnName> = :userId")
+	int isMethodPermissionExists(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Define("tableName")String tableName,@Define("userColoumnName") String colName, @Define("userWantedColoumnName") String wantedColName);
+	
+	/**
+	 * This query returns all the resource names related to user(admin or superAdmin)
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName")
+	List<String> getResourceNames(@Bind("resourceName") String resourceName);
+	
+	/**
+	 * This query returns the id of the resource
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select id from mk_api_resources WHERE a_resource_name = :resourceName")
+	int getResourceId(@Bind("resourceName") String resourceName);
+
+	/**
+	 * This query returns non-zero value which means the particular user id is having access to this particular resource id
+	 * @param userId
+	 * @param resourceId
+	 * @return
+	 */
+	@SqlQuery("select a_permission_id from <tableName> where a_resource_id = :resourceId and <coloumnName> = :userId")
+	int hasAccessToThisResource(@Bind("userId") long userId, @Bind("resourceId") long resourceId, @Define("tableName") String tableName, @Define("coloumnName") String coloumnName);
+	
+	/**
+	 * This query checks whether the user having permission to this resource have permission to this function or not
+	 * @param userId
+	 * @param resourceId
+	 * @param methodType
+	 * @param functionName
+	 * @param coloumnName
+	 * @return
+	 */
+	@SqlQuery("select a_is_active from <tableName> where <coloumnName> = :userId and a_function_id = :functionId")
+	int hasAccessToThisFunction(@Bind("userId") long userId, @Bind("functionId") long functionId, @Define("coloumnName") String coloumnName, @Define("tableName") String tableName);
+	
+	/**
+	 * This query updates the coloumn name a_changes_exist if there were any changes made to that user
+	 * @param tableName
+	 * @param userId
+	 * @param changedStatus
+	 */
+	@SqlUpdate("update <tableName> set a_changes_exist = :changedStatus where id = :userId")
+	void updateUserChanges(@Define("tableName") String tableName, @Bind("userId") long userId, @Bind("changedStatus") long changedStatus);
+
+	/**
+	 * This query returns the function id of the particular function related to its resourceId and methodType
+	 * @param resourceId
+	 * @param methodType
+	 * @param functionName
+	 * @return
+	 */
+	@SqlQuery("select id from mk_api_functions where a_resource_id = :resourceId and a_function_name = :functionName and a_type = :methodType and a_is_active = 1")
+	int getFunctionId(@Bind("resourceId") long resourceId,@Bind("methodType") String methodType, @Bind("functionName")String functionName);
+
+	/**
+	 * This query returns the admin level of the admin user
+	 * @param userName
+	 * @return
+	 */
+	@SqlQuery("select a_admin_level from mk_api_user_admin where a_user_name = :userName")
+	int isUserSuperAdmin(@Bind("userName") String userName);
+
+	/**
+	 * This query inserts new resource names into db
+	 * @param resourceName
+	 */
+	@SqlUpdate("insert into mk_api_resources (a_resource_name) values (:resourceName)")
+	void addNewResource(@Bind("resourceName") String resourceName);
+
+	/**
+	 * This query adds new functions to this table
+	 * @param resourceId
+	 * @param functionName
+	 * @param type
+	 */
+	@SqlUpdate("insert into mk_api_functions (a_resource_id,a_function_name,a_type) values (:resourceId,:functionName,:type)")
+	void insertNewFunction(@Bind("resourceId")long resourceId,@Bind("functionName") String functionName,@Bind("type") String type);
 }
