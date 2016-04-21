@@ -1,10 +1,9 @@
 package com.mebelkart.api.order.v1.resources;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.mebelkart.api.order.v1.api.InvalidInputReplyClass;
 import com.mebelkart.api.order.v1.dao.OrderDao;
-import io.dropwizard.jersey.params.DateTimeParam;
-import org.joda.time.DateTime;
+import com.mebelkart.api.order.v1.core.Order;
+import com.mebelkart.api.util.PaginationReply;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -31,7 +30,6 @@ public class OrderResource {
     @Produces({ MediaType.APPLICATION_JSON })
     public Object getAllOrders(@HeaderParam("headerParam") String headerParam)
     {
-        System.out.println(headerParam);
         try {
             JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
             SimpleDateFormat formatter = new SimpleDateFormat("dd-M-yyyy HH:mm:SS");
@@ -40,10 +38,13 @@ public class OrderResource {
             Date toDate=null;
             Integer merchantId=null;
             String statusRequired=null;
+            Integer orderId=null;
+            Integer offset=null;//offset is for pagination from where we have to display output
+            Integer currentPageNum=null;
             if(headerParamJson.containsKey("from")) {
                 fromDate = formatter.parse((String) headerParamJson.get("from"));
                 whereQuery+=" o.date_add >= :fromDate";
-                System.out.println("from value :"+fromDate);
+//                System.out.println("from value :"+fromDate);
             }
             if(headerParamJson.containsKey("to")){
                 toDate = formatter.parse((String) headerParamJson.get("to"));
@@ -51,7 +52,7 @@ public class OrderResource {
                     whereQuery+=" and ";
                 }
                 whereQuery+="o.date_add <= :toDate";
-                System.out.println("to value :"+toDate);
+//                System.out.println("to value :"+toDate);
             }
             if(headerParamJson.containsKey("merchant")){
                 merchantId= (Integer) headerParamJson.get("merchant");
@@ -63,15 +64,68 @@ public class OrderResource {
                     whereQuery+=" and ";
                 }
                 whereQuery+="LOWER(status_name)= :statusRequired";
-
             }
-//            System.out.println(" Where condition of sql query "+whereQuery);
-            List<Integer> allOrderDetail=orderDao.getAllOrders(whereQuery,fromDate,toDate,statusRequired);
-            return allOrderDetail;
+            if(headerParamJson.containsKey("orderId")){
+                try {
+                    orderId = Integer.parseInt((String) headerParamJson.get("orderId"));
+                    if(whereQuery!=""){
+                        whereQuery+=" and ";
+                    }
+                    whereQuery+=" o.id_order= :orderId ";
+                }
+                catch (NumberFormatException e){
+                    System.out.println("Invalid order id passed");
+                    InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(200,"Invalid Order Id passed please check your order id");
+                    return invalidOrderId;
+                }
+            }
+            if(headerParamJson.containsKey("pageNum")){
+                try {
+                    currentPageNum=(Integer.parseInt((String) headerParamJson.get("pageNum")));
+                    offset = ((Integer.parseInt((String) headerParamJson.get("pageNum")))-1)*20;
+                    if(offset<0){
+                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pagenum as a valid integer number greater then 0");
+                        return invalidPageNum;
+                    }
+                }
+                catch (NumberFormatException num){
+                    InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pagenum as a valid integer number");
+                    return invalidPageNum;
+                }
+            }
+            else {
+                InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(200,"Please mention pageNum in input parameter as this api can contain large ouput set");
+                return noPageNum;
+            }
+            Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
+            if(offset>totalResultCount){
+                InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(200,"Page number exceeds limit");
+                return invalidPageNumber;
+            }
+            List<Order> allOrderDetail=orderDao.getAllOrders(whereQuery,fromDate,toDate,statusRequired,orderId,offset);
+
+            Integer arrayLength=allOrderDetail.size();
+
+            for(int i=0;i<arrayLength;i++){
+                Order orderObj=allOrderDetail.get(i);
+                Integer currentOrderId=orderObj.getOrderId();
+                orderObj.setOrderDetails(orderDao.getSuborderDetail(currentOrderId));
+            }
+
+            String currentlyShowing;
+            if(offset+20>totalResultCount) {
+                currentlyShowing=offset + " - " +totalResultCount;
+            }
+            else {
+                currentlyShowing = offset + " - " + (offset + 20);
+            }
+            PaginationReply orderPaginationResult=new PaginationReply(200,"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
+            return orderPaginationResult;
         } catch (ParseException e) {
             e.printStackTrace();
-            System.out.println("Exception occured while parsing json string");
-            return null;
+//            System.out.println("Exception occured while parsing json string");
+            InvalidInputReplyClass invalidJSON=new InvalidInputReplyClass(200,"Input is not valid");
+            return invalidJSON;
         }
         catch (NullPointerException npe){
             npe.printStackTrace();
@@ -79,8 +133,8 @@ public class OrderResource {
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.out.println("generic exception occured");
-            return null;
+            InvalidInputReplyClass serverError=new InvalidInputReplyClass(500,"Server error occured while serving the request");
+            return serverError;
         }
 
     }
