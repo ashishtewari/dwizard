@@ -39,7 +39,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			/**
 			 *  Registering jobs bundle to run all cron jobs
 			 */
-			//bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Done ...........");
@@ -73,7 +73,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
-		environment.jersey().register(new ProductResource());
+		//environment.jersey().register(new ProductResource());
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 	}

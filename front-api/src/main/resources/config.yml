@@ -1,3 +1,9 @@
+elasticsearchHost: 127.0.0.1
+
+elasticPort: 9300
+
+clusterName: elasticsearch
+
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver

@@ -20,7 +20,7 @@ import com.mebelkart.api.util.factories.ElasticFactory;
 public class ProductResource {
 
 	@SuppressWarnings("static-access")
-	Client client = new ElasticFactory().getRemoteElasticClient();
+	Client client = ElasticFactory.getRemoteElasticClient();
 	
 	public ProductResource() {
 		// TODO Auto-generated constructor stub

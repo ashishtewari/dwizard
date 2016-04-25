@@ -41,13 +41,21 @@ public class OrderResource {
             Integer orderId=null;
             Integer offset=null;//offset is for pagination from where we have to display output
             Integer currentPageNum=null;
+
+            /*
+                Will check for every key if it is present then add it to where condition otherwise not
+             */
+
             if(headerParamJson.containsKey("from")) {
                 fromDate = formatter.parse((String) headerParamJson.get("from"));
                 whereQuery+=" o.date_add >= :fromDate";
-//                System.out.println("from value :"+fromDate);
             }
             if(headerParamJson.containsKey("to")){
                 toDate = formatter.parse((String) headerParamJson.get("to"));
+                /*
+                    To check whether any where query is already present if yes then append and and write new where condition
+                 */
+
                 if(whereQuery!=""){
                     whereQuery+=" and ";
                 }
@@ -59,6 +67,9 @@ public class OrderResource {
 
             }
             if(headerParamJson.containsKey("status")){
+                /*
+                    To perform case insensitive comparision
+                 */
                 statusRequired=((String) headerParamJson.get("status")).toLowerCase();
                 if(whereQuery!=""){
                     whereQuery+=" and ";
@@ -74,7 +85,7 @@ public class OrderResource {
                     whereQuery+=" o.id_order= :orderId ";
                 }
                 catch (NumberFormatException e){
-                    System.out.println("Invalid order id passed");
+//                    System.out.println("Invalid order id passed");
                     InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(200,"Invalid Order Id passed please check your order id");
                     return invalidOrderId;
                 }
@@ -84,7 +95,7 @@ public class OrderResource {
                     currentPageNum=(Integer.parseInt((String) headerParamJson.get("pageNum")));
                     offset = ((Integer.parseInt((String) headerParamJson.get("pageNum")))-1)*20;
                     if(offset<0){
-                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pagenum as a valid integer number greater then 0");
+                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pageNum as a valid integer number greater then 0");
                         return invalidPageNum;
                     }
                 }
@@ -129,7 +140,8 @@ public class OrderResource {
         }
         catch (NullPointerException npe){
             npe.printStackTrace();
-            return null;
+            InvalidInputReplyClass nullPointer=new InvalidInputReplyClass(200,"Some error occured");
+            return nullPointer;
         }
         catch (Exception e) {
             e.printStackTrace();
