@@ -12,6 +12,16 @@ public class Order {
     private Integer currencyId;
     private String paymentMode;
     private String module;
+    private String orderDate;
+
+    public String getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(String orderDate) {
+        this.orderDate = orderDate;
+    }
+
     private List<OrderDetail> orderDetails;
 
     public List<OrderDetail> getOrderDetails() {

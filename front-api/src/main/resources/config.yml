@@ -21,6 +21,7 @@ mebelkartProductsDatabase:
     # the password
     password: root
     # the JDBC URL; the database is called DWGettingStarted
+    #convertToNull is to handle date requests which contains all zeros
     url: jdbc:mysql://localhost:3306/mebelkart_prod?zeroDateTimeBehavior=convertToNull
 server:
   applicationConnectors:

@@ -36,7 +36,6 @@ public class OrderMapper implements ResultSetMapper<Order> {
                 ,resultSet.getInt("ist.tax_behavior"),resultSet.getBoolean("ist.active"));
 
 
-        System.out.println("deliver address added date :"+resultSet.getString("da.date_add"));
         Address deliveryAddress=new Address(resultSet.getInt("da.id_address"),resultSet.getInt("da.id_country"),resultSet.getInt("da.id_state")
                                 ,resultSet.getInt("da.id_manufacturer"),resultSet.getInt("da.id_supplier"),resultSet.getString("da.alias")
                                 ,resultSet.getString("da.company"),resultSet.getString("da.firstname"),resultSet.getString("da.lastname"),resultSet.getString("da.address1")

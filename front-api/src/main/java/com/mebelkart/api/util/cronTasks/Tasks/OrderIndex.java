@@ -57,6 +57,7 @@ public class OrderIndex extends Job{
                 order.setCustomerId(ordersResultSet.getInt("id_customer"));
                 order.setModule(ordersResultSet.getString("module"));
                 order.setModule(ordersResultSet.getString("payment"));
+                order.setOrderDate(ordersResultSet.getString("date_add"));
 
                 /**
                  * converting order class to json object which can be indexed in elastic

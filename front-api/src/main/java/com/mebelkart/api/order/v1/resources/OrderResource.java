@@ -28,7 +28,7 @@ public class OrderResource {
     @GET
     @Path("/all")
     @Produces({ MediaType.APPLICATION_JSON })
-    public Object getAllOrders(@HeaderParam("headerParam") String headerParam)
+    public Object getAllOrders(@HeaderParam("filterParam") String headerParam)
     {
         try {
             JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
