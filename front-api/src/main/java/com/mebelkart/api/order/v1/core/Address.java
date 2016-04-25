@@ -25,8 +25,8 @@ public class Address {
     private String vatNumber;
     private String dni;
     private Boolean isGuestAddress;
-    private DateTime dateAdd;
-    private DateTime dateUpd;
+    private String dateAdd;
+    private String dateUpd;
     private Boolean active;
     private Country country;
     private State state;
@@ -35,8 +35,8 @@ public class Address {
     public Address(Integer idAddress, Integer idCountry, Integer idState, Integer idManufacturer
             , Integer idSupplier, String alias, String company, String firstName, String lastName
             , String address1, String address2, String postCode, String city, String other, String phone
-            , String phoneMobile, String vatNumber, String dni, Boolean isGuestAddress, DateTime dateAdd
-            , DateTime dateUpd, Boolean active, Country country, State state) {
+            , String phoneMobile, String vatNumber, String dni, Boolean isGuestAddress, String dateAdd
+            , String dateUpd, Boolean active, Country country, State state) {
         this.idAddress = idAddress;
         this.idCountry = idCountry;
         this.idState = idState;
@@ -215,19 +215,19 @@ public class Address {
         isGuestAddress = guestAddress;
     }
 
-    public DateTime getDateAdd() {
+    public String getDateAdd() {
         return dateAdd;
     }
 
-    public void setDateAdd(DateTime dateAdd) {
+    public void setDateAdd(String dateAdd) {
         this.dateAdd = dateAdd;
     }
 
-    public DateTime getDateUpd() {
+    public String getDateUpd() {
         return dateUpd;
     }
 
-    public void setDateUpd(DateTime dateUpd) {
+    public void setDateUpd(String dateUpd) {
         this.dateUpd = dateUpd;
     }
 

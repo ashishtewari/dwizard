@@ -14,16 +14,16 @@ public class Customer {
     private String firstName;
     private String lastName;
     private String email;
-    private Date birthDay;
+    private String birthDay;
     private Boolean newsletter;
     private Boolean isGuest;
     private Boolean deleted;
-    private Date dateAdd;
-    private Date dateUpd;
+    private String dateAdd;
+    private String dateUpd;
 
     public Customer(Integer idCustomer, Integer idGender, Integer idDefaultGroup, String firstName
-            , String lastName, String email, Date birthDay, Boolean newsletter, Boolean isGuest, Boolean deleted
-            , Date dateAdd, Date dateUpd) {
+            , String lastName, String email, String birthDay, Boolean newsletter, Boolean isGuest, Boolean deleted
+            , String dateAdd, String dateUpd) {
         this.idCustomer = idCustomer;
         this.idGender = idGender;
         this.idDefaultGroup = idDefaultGroup;
@@ -86,11 +86,11 @@ public class Customer {
         this.email = email;
     }
 
-    public Date getBirthDay() {
+    public String getBirthDay() {
         return birthDay;
     }
 
-    public void setBirthDay(Date birthDay) {
+    public void setBirthDay(String birthDay) {
         this.birthDay = birthDay;
     }
 
@@ -118,19 +118,19 @@ public class Customer {
         this.deleted = deleted;
     }
 
-    public Date getDateAdd() {
+    public String getDateAdd() {
         return dateAdd;
     }
 
-    public void setDateAdd(Date dateAdd) {
+    public void setDateAdd(String dateAdd) {
         this.dateAdd = dateAdd;
     }
 
-    public Date getDateUpd() {
+    public String getDateUpd() {
         return dateUpd;
     }
 
-    public void setDateUpd(Date dateUpd) {
+    public void setDateUpd(String dateUpd) {
         this.dateUpd = dateUpd;
     }
 }

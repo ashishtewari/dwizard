@@ -40,7 +40,7 @@ public class OrderDetail {
     private Boolean discountQuantityApplied;
     private String downloadHash;
     private Integer downloadNb;
-    private Date downloadDeadline;
+    private String downloadDeadline;
 
     public OrderDetail(Integer orderDetailId, Integer orderId, Integer productId, Integer productAttributeId
             , String productName, Integer productQuantity, Integer productQuantityInStock, Integer productQuantityRefunded
@@ -49,7 +49,7 @@ public class OrderDetail {
             , Integer shippedFromDate, Integer shippedToDate, Integer deliveredFromDate, Integer deliveredToDate, String productEan13
             , String productUpc, String productRefrence, String productSupplierRefrence, Float productWeight, String taxName
             , Float taxRate, Float ecoTax, Float ecotaxRate, Boolean discountQuantityApplied, String downloadHash, Integer downloadNb
-            , Date downloadDeadline) {
+            , String downloadDeadline) {
         this.orderDetailId = orderDetailId;
         this.orderId = orderId;
         this.productId = productId;
@@ -341,11 +341,11 @@ public class OrderDetail {
         this.downloadNb = downloadNb;
     }
 
-    public Date getDownloadDeadline() {
+    public String getDownloadDeadline() {
         return downloadDeadline;
     }
 
-    public void setDownloadDeadline(Date downloadDeadline) {
+    public void setDownloadDeadline(String downloadDeadline) {
         this.downloadDeadline = downloadDeadline;
     }
 }
