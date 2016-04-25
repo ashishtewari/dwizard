@@ -20,9 +20,6 @@ public class mkApiConfiguration extends Configuration {
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
 	private DataSourceFactory mebelkartProductsDatabase = new DataSourceFactory();
 
-	@NotNull
-	private Map<String, Map<String, String>> viewRendererConfiguration = Collections.emptyMap();
-
 /*
 	These variables are declared static because we will be accessing these variables in elasticFactory
 	and to keep values read from config.yml we have to keep them static so that we can access them statically
