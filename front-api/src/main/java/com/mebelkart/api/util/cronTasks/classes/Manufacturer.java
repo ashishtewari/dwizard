@@ -1,7 +1,6 @@
 package com.mebelkart.api.util.cronTasks.classes;
 
 import java.util.Date;
-import java.util.List;
 
 public class Manufacturer {
 	private Integer manufacturerId;
@@ -12,16 +11,12 @@ public class Manufacturer {
 	private String email;
 	private Integer isCommisionableVendor;
 	private Integer isWholesaleVendor;
-	private List<ManufacturerAddresses> manufacturerAddresses;
-	private List<ManufacturerProducts> manufacturerProducts;
-	private List<ManufacturerCompanyInfo> manufacturerCompanyInfo;
-	private List<Object> manufacturerOrders;
+	private ManufacturerCompanyInfo manufacturerCompanyInfo;
 	
 	public Manufacturer(Integer manufacturerId, String name, Date dateAdd,
 			Date dateUpd, boolean active, String email,
 			Integer isCommisionableVendor, Integer isWholesaleVendor,
-			List<ManufacturerAddresses>manufacturerAddresses,List<ManufacturerProducts> manufacturerProducts,
-			List<ManufacturerCompanyInfo>manufacturerCompanyInfo,List<Object> manufacturerOrders){
+			ManufacturerCompanyInfo manufacturerCompanyInfo){
 		this.manufacturerId = manufacturerId;
 		this.name = name;
 		this.dateAdd = dateAdd;
@@ -30,10 +25,7 @@ public class Manufacturer {
 		this.email = email;
 		this.isCommisionableVendor = isCommisionableVendor;
 		this.isWholesaleVendor = isWholesaleVendor;
-		this.manufacturerAddresses = manufacturerAddresses;
-		this.manufacturerProducts = manufacturerProducts;
 		this.manufacturerCompanyInfo = manufacturerCompanyInfo;
-		this.manufacturerOrders = manufacturerOrders;
 	}
 
 	/**
@@ -107,36 +99,12 @@ public class Manufacturer {
 		this.isWholesaleVendor = isWholesaleVendor;
 	}
 
-	public List<ManufacturerAddresses> getManufacturerAddresses() {
-		return manufacturerAddresses;
-	}
-
-	public void setManufacturerAddresses(List<ManufacturerAddresses> manufacturerAddresses) {
-		this.manufacturerAddresses = manufacturerAddresses;
-	}
-
-	public List<ManufacturerProducts> getManufacturerProducts() {
-		return manufacturerProducts;
-	}
-
-	public void setManufacturerProducts(List<ManufacturerProducts> manufacturerProducts) {
-		this.manufacturerProducts = manufacturerProducts;
-	}
-
-	public List<Object> getManufacturerOrders() {
-		return manufacturerOrders;
-	}
-
-	public void setManufacturerOrders(List<Object> manufacturerOrders) {
-		this.manufacturerOrders = manufacturerOrders;
-	}
-
-	public List<ManufacturerCompanyInfo> getManufacturerCompanyInfo() {
+	public ManufacturerCompanyInfo getManufacturerCompanyInfo() {
 		return manufacturerCompanyInfo;
 	}
 
 	public void setManufacturerCompanyInfo(
-			List<ManufacturerCompanyInfo> manufacturerCompanyInfo) {
+			ManufacturerCompanyInfo manufacturerCompanyInfo) {
 		this.manufacturerCompanyInfo = manufacturerCompanyInfo;
 	}
 
