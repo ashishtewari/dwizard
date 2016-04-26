@@ -64,7 +64,7 @@ public class ManufacturerResource {
 	
 	@SuppressWarnings("unused")
 	@GET
-	@Path("/getDetails")
+	@Path("/getManufacturerDetails")
 	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int pageNumber) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
 			helperMethods = new ManufacturerHelperMethods(manufacturerDetailsDao);
@@ -75,7 +75,7 @@ public class ManufacturerResource {
 				String startDate = headerInputJsonData.get("startDate").toString();
 				String endDate = headerInputJsonData.get("endDate").toString();
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isUserAuthorized = jedisCustomerAuthentication.validate(accessToken, "MANUFACTURER", "GET");
+				int isUserAuthorized = jedisCustomerAuthentication.validate(accessToken, "manufacturer", "get", "getManufacturerDetails");
 				if (isUserAuthorized == 1) { // validating the accesstoken given by user
 					if(helperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){

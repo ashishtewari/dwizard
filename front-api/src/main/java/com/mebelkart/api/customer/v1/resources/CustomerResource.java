@@ -71,7 +71,7 @@ public class CustomerResource {
 	 */	
 	
 	@GET
-	@Path("/getDetails")
+	@Path("/getCustomerDetails")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
 		
@@ -82,7 +82,7 @@ public class CustomerResource {
 				String accessToken = (String) headerInputJsonData.get("apiKey");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "GET");
+				int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "get","getCustomerDetails");
 					/*
 					 * validating the accesstoken given by user
 					 */
@@ -162,7 +162,7 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@PUT
-	@Path("/addAddress")
+	@Path("/addNewAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply addNewAddress(@Context HttpServletRequest request) throws ParseException{
@@ -170,7 +170,7 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
+			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put","addNewAddress");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
@@ -240,7 +240,7 @@ public class CustomerResource {
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-			int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
+			int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put","updateAddress");
 				/*
 				 * validating the accesstoken given by user
 				 */
@@ -319,7 +319,7 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "CUSTOMER", "PUT");
+			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put", "deleteAddress");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
 				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
