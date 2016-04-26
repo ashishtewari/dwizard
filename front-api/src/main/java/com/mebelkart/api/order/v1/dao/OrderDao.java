@@ -21,7 +21,7 @@ import java.util.List;
 public interface OrderDao {
 
     @Mapper(OrderMapper.class)
-    @SqlQuery("select * "
+    @SqlQuery("select DISTINCT(o.id_order),o.*,p.*,c.*,da.*,ia.*,dc.*,ic.*,ds.*,ist.* "
             +" from ps_orders as o inner join ps_order_detail as od on o.id_order=od.id_order"
             +" left join ps_product as p on od.product_id=p.id_product "
             +" left join ps_order_detail_vendor_status as odvs on odvs.id_order_detail_vendor_status=od.id_order_detail"
@@ -38,7 +38,7 @@ public interface OrderDao {
     List<Order> getAllOrders(@Define("whereQuery") String whereQuery, @Bind("fromDate") Date fromDate, @Bind("toDate") Date toDate, @Bind("statusRequired") String statusRequired, @Bind("orderId") Integer orderId, @Bind("offset") Integer offset);
 
 
-    @SqlQuery("select count(o.id_order)"
+    @SqlQuery("select count(DISTINCT(o.id_order))"
             +" from ps_orders as o inner join ps_order_detail as od on o.id_order=od.id_order"
             +" left join ps_product as p on od.product_id=p.id_product "
             +" left join ps_order_detail_vendor_status as odvs on odvs.id_order_detail_vendor_status=od.id_order_detail"
@@ -47,7 +47,11 @@ public interface OrderDao {
     Integer getOrderCount(@Define("whereQuery") String whereQuery,@Bind("fromDate") Date fromDate,@Bind("toDate") Date toDate,@Bind("statusRequired") String statusRequired,@Bind("orderId") Integer orderId);
 
     @Mapper(OrderDetailMapper.class)
-    @SqlQuery("select * from ps_order_detail where id_order= :currentOrderId")
+    @SqlQuery("select * from ps_order_detail as od"
+            + " left join ps_order_detail_vendor_status as odvs on od.id_order_detail=odvs.id_order_detail_vendor_status"
+            + " left join ps_order_detail_seller_statuses as odss on odvs.id_current_status=odss.id_order_detail_status"
+            + " where id_order= :currentOrderId"
+    )
     List<OrderDetail> getSuborderDetail(@Bind("currentOrderId") Integer currentOrderId);
 
 

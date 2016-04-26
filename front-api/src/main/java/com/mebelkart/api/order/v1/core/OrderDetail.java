@@ -27,6 +27,24 @@ public class OrderDetail {
     private Integer shippedToDate;
     private Integer deliveredFromDate;
     private Integer deliveredToDate;
+    private String currentOrderStatus;
+    private Integer currentOrderStatusId;
+
+    public Integer getCurrentOrderStatusId() {
+        return currentOrderStatusId;
+    }
+
+    public void setCurrentOrderStatusId(Integer currentOrderStatusId) {
+        this.currentOrderStatusId = currentOrderStatusId;
+    }
+
+    public String getCurrentOrderStatus() {
+        return currentOrderStatus;
+    }
+
+    public void setCurrentOrderStatus(String currentOrderStatus) {
+        this.currentOrderStatus = currentOrderStatus;
+    }
 
     private String productEan13;
     private String productUpc;
@@ -49,7 +67,7 @@ public class OrderDetail {
             , Integer shippedFromDate, Integer shippedToDate, Integer deliveredFromDate, Integer deliveredToDate, String productEan13
             , String productUpc, String productRefrence, String productSupplierRefrence, Float productWeight, String taxName
             , Float taxRate, Float ecoTax, Float ecotaxRate, Boolean discountQuantityApplied, String downloadHash, Integer downloadNb
-            , String downloadDeadline) {
+            , String downloadDeadline,String currentOrderStatus,Integer currentOrderStatusId) {
         this.orderDetailId = orderDetailId;
         this.orderId = orderId;
         this.productId = productId;
@@ -83,6 +101,8 @@ public class OrderDetail {
         this.downloadHash = downloadHash;
         this.downloadNb = downloadNb;
         this.downloadDeadline = downloadDeadline;
+        this.currentOrderStatus=currentOrderStatus;
+        this.currentOrderStatusId=currentOrderStatusId;
     }
 
     public Integer getOrderDetailId() {
