@@ -19,18 +19,13 @@ import com.mebelkart.api.util.cronTasks.classes.ManufacturerOrders;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerProducts;
 import com.mebelkart.api.util.cronTasks.dao.ManufacturerDao;
 import com.mebelkart.api.util.factories.ElasticFactory;
-
 import de.spinscale.dropwizard.jobs.Job;
 import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 
-/**
- * Created by vinitpayal on 01/04/16.
- */
 @OnApplicationStart
 public class ManufacturerIndex extends Job{
 
-	@SuppressWarnings("static-access")
-	Client elasticInstance = new ElasticFactory().getElasticClient();
+	Client elasticInstance = ElasticFactory.getElasticClient();
     @SuppressWarnings("unused")
 	@Override
     public void doJob() {

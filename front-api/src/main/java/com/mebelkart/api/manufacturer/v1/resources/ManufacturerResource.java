@@ -57,8 +57,7 @@ public class ManufacturerResource {
 	JSONArray requiredFields;
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	PaginationReply sourceResult = null;
-	@SuppressWarnings("static-access")
-	Client client = new ElasticFactory().getElasticClient();
+	Client client = ElasticFactory.getElasticClient();
 	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	
 	public ManufacturerResource(ManufacturerDetailsDAO manufacturerDetailsDao){

@@ -71,7 +71,7 @@ public class CustomerResource {
 	 */	
 	
 	@GET
-	@Path("/getDetails")
+	@Path("/getCustomerDetails")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
 		
@@ -162,7 +162,7 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@PUT
-	@Path("/addAddress")
+	@Path("/addNewAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Reply addNewAddress(@Context HttpServletRequest request) throws ParseException{

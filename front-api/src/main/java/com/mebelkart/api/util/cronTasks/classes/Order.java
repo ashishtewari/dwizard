@@ -12,16 +12,17 @@ public class Order {
     private Integer currencyId;
     private String paymentMode;
     private String module;
+    private String orderDate;
+
+    public String getOrderDate() {
+        return orderDate;
+    }
+
+    public void setOrderDate(String orderDate) {
+        this.orderDate = orderDate;
+    }
+
     private List<OrderDetail> orderDetails;
-//    private List<OrderDetailLogisticService> logisticDetails;
-
-//    public List<OrderDetailLogisticService> getLogisticDetails() {
-//        return logisticDetails;
-//    }
-
-//    public void setLogisticDetails(List<OrderDetailLogisticService> logisticDetails) {
-//        this.logisticDetails = logisticDetails;
-//    }
 
     public List<OrderDetail> getOrderDetails() {
         return orderDetails;
