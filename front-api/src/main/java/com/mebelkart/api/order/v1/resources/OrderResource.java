@@ -10,6 +10,7 @@ import org.json.simple.parser.ParseException;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -86,7 +87,7 @@ public class OrderResource {
                 }
                 catch (NumberFormatException e){
 //                    System.out.println("Invalid order id passed");
-                    InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(200,"Invalid Order Id passed please check your order id");
+                    InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Invalid Order Id passed please check your order id");
                     return invalidOrderId;
                 }
             }
@@ -95,22 +96,22 @@ public class OrderResource {
                     currentPageNum=(Integer.parseInt((String) headerParamJson.get("pageNum")));
                     offset = ((Integer.parseInt((String) headerParamJson.get("pageNum")))-1)*20;
                     if(offset<0){
-                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pageNum as a valid integer number greater then 0");
+                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pageNum as a valid integer number greater then 0");
                         return invalidPageNum;
                     }
                 }
                 catch (NumberFormatException num){
-                    InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(200,"Please enter pagenum as a valid integer number");
+                    InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pagenum as a valid integer number");
                     return invalidPageNum;
                 }
             }
             else {
-                InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(200,"Please mention pageNum in input parameter as this api can contain large ouput set");
+                InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(Response.Status.PARTIAL_CONTENT.getStatusCode(),Response.Status.PARTIAL_CONTENT.getReasonPhrase(),"Please mention pageNum in input parameter as this api can contain large ouput set");
                 return noPageNum;
             }
             Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
             if(offset>totalResultCount){
-                InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(200,"Page number exceeds limit");
+                InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Page number exceeds limit");
                 return invalidPageNumber;
             }
             List<Order> allOrderDetail=orderDao.getAllOrders(whereQuery,fromDate,toDate,statusRequired,orderId,offset);
@@ -130,22 +131,22 @@ public class OrderResource {
             else {
                 currentlyShowing = offset + " - " + (offset + 20);
             }
-            PaginationReply orderPaginationResult=new PaginationReply(200,"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
+            PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
             return orderPaginationResult;
         } catch (ParseException e) {
             e.printStackTrace();
 //            System.out.println("Exception occured while parsing json string");
-            InvalidInputReplyClass invalidJSON=new InvalidInputReplyClass(200,"Input is not valid");
+            InvalidInputReplyClass invalidJSON=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Input is not valid");
             return invalidJSON;
         }
         catch (NullPointerException npe){
             npe.printStackTrace();
-            InvalidInputReplyClass nullPointer=new InvalidInputReplyClass(200,"Some error occured");
+            InvalidInputReplyClass nullPointer=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Null Value Passed");
             return nullPointer;
         }
         catch (Exception e) {
             e.printStackTrace();
-            InvalidInputReplyClass serverError=new InvalidInputReplyClass(500,"Server error occured while serving the request");
+            InvalidInputReplyClass serverError=new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Server error occured while serving the request");
             return serverError;
         }
 
