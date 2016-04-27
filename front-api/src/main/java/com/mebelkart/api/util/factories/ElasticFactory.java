@@ -2,6 +2,7 @@ package com.mebelkart.api.util.factories;
 
 import java.net.InetAddress;
 
+import com.mebelkart.api.mkApiConfiguration;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -11,13 +12,20 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
  * Created by vinitpayal on 29/03/16.
  */
 public class ElasticFactory {
+
+    //Singleton elastic factory
+    private ElasticFactory(){};
+
     public static Client getElasticClient(){
         try {     
         	/*
         	 *	Transport client
         	 */
-        	Client client = TransportClient.builder().build()
-         	       .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("127.0.0.1"), 9300));
+            System.out.println("elastic host from config :"+mkApiConfiguration.getElasticsearchHost());
+            System.out.println("elastic cluster name :"+mkApiConfiguration.getClusterName());
+            System.out.println("elastic port "+mkApiConfiguration.getElasticPort());
+            Client client = TransportClient.builder().build()
+         	       .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(mkApiConfiguration.getElasticsearchHost()), mkApiConfiguration.getElasticPort()));
         	return client;
         }
         catch (Exception e){

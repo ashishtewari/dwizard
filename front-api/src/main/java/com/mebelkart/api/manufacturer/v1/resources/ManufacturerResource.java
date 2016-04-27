@@ -5,7 +5,9 @@ package com.mebelkart.api.manufacturer.v1.resources;
 
 import java.rmi.ConnectException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.ws.rs.GET;
@@ -16,9 +18,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.index.IndexNotFoundException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
@@ -54,18 +57,17 @@ public class ManufacturerResource {
 	JSONArray requiredFields;
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	PaginationReply sourceResult = null;
-	@SuppressWarnings("static-access")
-	Client client = new ElasticFactory().getElasticClient();
+	Client client = ElasticFactory.getElasticClient();
 	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	
 	public ManufacturerResource(ManufacturerDetailsDAO manufacturerDetailsDao){
 		this.manufacturerDetailsDao = manufacturerDetailsDao;
 	}
 	
-	@SuppressWarnings("unused")
+	
 	@GET
 	@Path("/getManufacturerDetails")
-	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int pageNumber) throws ParseException, InterruptedException, ExecutionException, ConnectException{
+	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int page) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
 			helperMethods = new ManufacturerHelperMethods(manufacturerDetailsDao);
 			if(helperMethods.isValidJson(accessParam)){
@@ -77,51 +79,110 @@ public class ManufacturerResource {
 				String endDate = headerInputJsonData.get("endDate").toString();
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
 				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
+				page = page-1;
 				if (isUserAuthorized == 1) { // validating the accesstoken given by user
 					if(helperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){
-							String nowShowing = ""+pageNumber*20+"-"+(pageNumber*20+20);
+							String nowShowing = (page*20+1)+"-"+(page*20+20);
 							/*
 							 * getting the required fields array given by consumer to append that in elastic search query
 							 */
-							String consumerRequestedFieldsArray[] = helperMethods.getRequiredDetails(requiredFields);
-							 List<Object>sourceResultList = new ArrayList<Object>();
-							 SearchResponse response = null;
+								SearchResponse response = null;
+							Map<String,Object> manufacturerResultMap = new HashMap<String,Object>();
+							List<Object> manufacturerProductsList = new ArrayList<Object>();
+							List<Object> manufacturerAddressesList = new ArrayList<Object>();
+							List<Object> manufacturerOrdersList = new ArrayList<Object>();
+							List<Object> manufacturerInfoList = new ArrayList<Object>();
+							long totalProducts = 0,totalOrders = 0,totalAddresses = 0;
 								/*
 								 * query for getting orders from start date to end date of respective
 								 * manufacturer id
 								 */
-							 
+	
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
-										//.must(QueryBuilders.matchQuery("manufacturerId", manufacturerId));
-							            .should(QueryBuilders.termsQuery("_id", manufacturerId+""));
-							            //.must(QueryBuilders.rangeQuery("manufacturerProducts.productId").from(50).to(60));
-							            
+							            .must(QueryBuilders.termQuery("_id", manufacturerId));
+								BoolQueryBuilder addressesQuery = QueryBuilders.boolQuery()
+							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId));
+								BoolQueryBuilder productsQuery = QueryBuilders.boolQuery()
+										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
+								BoolQueryBuilder ordersQuery = QueryBuilders.boolQuery()
+							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId))
+							            .must(QueryBuilders.rangeQuery("dateAdd").from(startDate).to(endDate));
 								/*
 								 * running the query with the parameters given by the user,getting
 								 * response.
 								 */
-							if(consumerRequestedFieldsArray.length != 0){
-								response = client.prepareSearch("mk")
-										   .setTypes("manufacturer")//.setExtraSource(productsMap)
-										   .setSearchType(SearchType.QUERY_AND_FETCH)
-										   .setFetchSource(consumerRequestedFieldsArray,null)
-										   .setQuery(query)//.setPostFilter(QueryBuilders.rangeQuery("manufacturerOrders.orderDetails.orderId").from(1).to(1))
-										  // .addAggregation(AggregationBuilders.terms("mk").field("manufacturerProducts.orderDetails.orderId").size(10))
-										   //.addSort(SortBuilders.fieldSort("manufacturerOrders.orderDetails.orderId").order(SortOrder.DESC))
-//										   .setFrom(0)
-//										   .setSize(2)
+							if(requiredFields.size() != 0){
+								if(requiredFields.contains("info")){
+								response = client.prepareSearch("manufacturer")
+										   .setTypes("info")
+										   .setQuery(query)									
 										   .execute()
 										   .get();	
 								 SearchHit[] searchHits = response.getHits().getHits();
-								 /*
-								  * getting source of every hit and adding to list 
-								  */
-								 for(int i=0;i<searchHits.length;i++){
-									 sourceResultList.add(searchHits[i].getSource());
-								 }
 								 
-								return new PaginationReply(200,"success",response.getHits().getTotalHits(),nowShowing,pageNumber+1,sourceResultList);
+								 for(int i=0;i<searchHits.length;i++){
+									 manufacturerInfoList.add(searchHits[i].getSource());
+								 }
+								 manufacturerResultMap.put("ManufacturerPersonalDetails",manufacturerInfoList);
+								}
+								if(requiredFields.contains("products")){
+									response = client.prepareSearch("manufacturer")
+											   .setTypes("products")
+											   .setQuery(productsQuery)									
+											   .setFrom(page*20)
+											   .setSize(20)
+											   .execute()
+											   .get();	
+									 SearchHit[] searchHits = response.getHits().getHits();
+									 
+									 for(int i=0;i<searchHits.length;i++){
+										 manufacturerProductsList.add(searchHits[i].getSource());
+									 }								
+									 totalProducts = response.getHits().getTotalHits();
+									 System.out.println("total products = " + totalProducts);
+									 manufacturerResultMap.put("ManufacturerProducts",manufacturerProductsList);
+									}
+								
+								if(requiredFields.contains("addresses")){
+									response = client.prepareSearch("manufacturer")
+											   .setTypes("addresses")
+											   .setQuery(addressesQuery)									
+											   .setFrom(page*20)
+											   .setSize(20)
+											   .execute()
+											   .get();	
+									 SearchHit[] searchHits = response.getHits().getHits();
+									 
+									 for(int i=0;i<searchHits.length;i++){
+										 manufacturerAddressesList.add(searchHits[i].getSource());
+									 }
+									 totalAddresses = response.getHits().getTotalHits();
+									 System.out.println("total addresses = " + totalAddresses);
+									 manufacturerResultMap.put("ManufacturerAddresses",manufacturerAddressesList);
+									}
+								
+								if(requiredFields.contains("orders")){
+									response = client.prepareSearch("manufacturer")
+											   .setTypes("orders")
+											   .setQuery(ordersQuery)									
+											   .setFrom(page*20)
+											   .setSize(20)
+											   .execute()
+											   .get();	
+									 SearchHit[] searchHits = response.getHits().getHits();
+									 
+									 for(int i=0;i<searchHits.length;i++){
+										 //manufacturerOrdersList.add(helperMethods.getOrderDetailsFromElastic((int) searchHits[i].getSource().get("orderId"),client));
+										 manufacturerOrdersList.add(searchHits[i].getSource());
+									 }
+									 
+									 totalOrders = response.getHits().getTotalHits();
+									 System.out.println("total orders = " + totalOrders);
+									 manufacturerResultMap.put("ManufacturerOrders",manufacturerOrdersList);
+									}
+								
+								return new PaginationReply(200,"success",totalAddresses,totalProducts,totalOrders,nowShowing,page+1,manufacturerResultMap);
 								 
 							}
 							 else {
@@ -163,10 +224,27 @@ public class ManufacturerResource {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
 		}
-		catch (Exception illegalArgument) {
-			errorLog.warn("Specify date format correctly and it should not be null");
+		catch (IndexNotFoundException indexNotFound) {
+			errorLog.warn("Index for which you are searching is not found");
+			exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+			return exception.getException("Index for which you are searching is not found",null);
+		}
+		catch (ExecutionException parse) {
+			errorLog.warn("please specify page value greater or equal to 1");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify date format correctly and it should not be null",null);
+			return exception.getException("please specify page value greater or equal to 1",null);
+		}
+		catch (Exception e) {
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify date format correctly and it should not be null");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify date format correctly and it should not be null",null);
+			} else {
+				e.printStackTrace();
+				errorLog.warn("Internal server connection error");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Internal server connection error",null);
+			}
 		}
 	}
 }
