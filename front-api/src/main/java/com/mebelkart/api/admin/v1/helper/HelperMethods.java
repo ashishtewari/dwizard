@@ -5,6 +5,9 @@ import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
@@ -103,11 +106,17 @@ public class HelperMethods {
 			return exception.getException("Json field in Permissions array doesn't contain resourceId/permission or misspelled", null);
 		} else if (status == 4) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Expected Permission array, Found Non-Array", null);
+			return exception.getException("Expected Permission/Function array, Found Non-Array", null);
 		} else if (status == 5) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("The values inside permission are not correctly spelled", null);
-		} else{
+		}  else if (status == -1) {
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("you can't give consumer access to ADMIN resource and so avoided this permission", null);
+		} else if (status == -2) {
+			exception = new HandleException(Response.Status.CREATED.getStatusCode(),Response.Status.CREATED.getReasonPhrase());
+			return exception.getException("but not given permissions to some of the resources", null);
+		}else{
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("Unknown Error in Check Status", null);
 		}
@@ -168,4 +177,11 @@ public class HelperMethods {
 	 String[] time =  new Timestamp(date.getTime()).toString().split("\\.");
 	 return time[0];
     }
+	
+	public String getYesterdayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -1);    
+        return dateFormat.format(cal.getTime());
+	}
 }

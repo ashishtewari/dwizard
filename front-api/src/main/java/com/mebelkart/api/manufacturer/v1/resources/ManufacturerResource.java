@@ -77,7 +77,7 @@ public class ManufacturerResource {
 				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
 				page = page-1;
-				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "MANUFACTURER", "GET");
+				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
 				if (isUserAuthorized == 1) { // validating the accesstoken given by user
 					if(helperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){

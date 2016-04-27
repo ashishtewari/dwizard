@@ -27,7 +27,7 @@ public class ProductDetailsResponse {
 	private String emiPrice;
 	private int rating;
 	private String attributes;
-	private Object[] productFeatures;
+	private Object productFeatures;
 	private int isSoldOut;
 	private String attributeGroups;
 	private String[] reviews;
@@ -35,9 +35,9 @@ public class ProductDetailsResponse {
 	private int totalReviewsCount;
 	
 	/**
-	 * Default Constructer
+	 * Parameterized Constructor
 	 */
-	public ProductDetailsResponse(String productId,String categoryId,String categoryName,String productName,String productDesc,String availLocation,String brandId,String brandName,String totalViews,String shippingCost,String shippingAvailable,Object[] gallery,String offerText,double mktPrice,double ourPrice,String emiPrice,int rating,String attributes,Object[] productFeatures,int isSoldOut,String attributeGroups,String[] reviews,int totalReviews,int totalReviewsCount) {
+	public ProductDetailsResponse(String productId,String categoryId,String categoryName,String productName,String productDesc,String availLocation,String brandId,String brandName,String totalViews,String shippingCost,String shippingAvailable,Object[] gallery,String offerText,double mktPrice,double ourPrice,String emiPrice,int rating,String attributes,Object productFeatures,int isSoldOut,String attributeGroups,String[] reviews,int totalReviews,int totalReviewsCount) {
 		// TODO Auto-generated constructor stub
 		this.setProductId(productId);
 		this.setCategoryId(categoryId);
@@ -63,6 +63,37 @@ public class ProductDetailsResponse {
 		this.setReviews(reviews);
 		this.setTotalReviews(totalReviews);
 		this.setTotalReviewsCount(totalReviewsCount);
+	}
+
+	/**
+	 * Default Constructer
+	 */
+	public ProductDetailsResponse() {
+		// TODO Auto-generated constructor stub
+		this.setProductId(null);
+		this.setCategoryId(null);
+		this.setCategoryName(null);
+		this.setProductName(null);
+		this.setProductDesc(null);
+		this.setAvailLocation(null);
+		this.setBrandId(null);
+		this.setBrandName(null);
+		this.setTotalViews(null);
+		this.setShippingCost(null);
+		this.setShippingAvailable(null);
+		this.setGallery(null);
+		this.setOfferText(null);
+		this.setMktPrice(0.0);
+		this.setOurPrice(0.0);
+		this.setEmiPrice(null);
+		this.setRating(0);
+		this.setAttributes(null);
+		this.setProductFeatures(null);
+		this.setIsSoldOut(0);
+		this.setAttributeGroups(null);
+		this.setReviews(null);
+		this.setTotalReviews(0);
+		this.setTotalReviewsCount(0);
 	}
 
 	public String getProductId() {
@@ -209,11 +240,11 @@ public class ProductDetailsResponse {
 		this.attributes = attributes;
 	}
 
-	public Object[] getProductFeatures() {
+	public Object getProductFeatures() {
 		return productFeatures;
 	}
 
-	public void setProductFeatures(Object[] productFeatures) {
+	public void setProductFeatures(Object productFeatures) {
 		this.productFeatures = productFeatures;
 	}
 

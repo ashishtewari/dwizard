@@ -9,6 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.elasticsearch.client.Client;
+
+import com.mebelkart.api.util.factories.ElasticFactory;
+
 
 
 /**
@@ -18,6 +22,7 @@ import java.sql.Statement;
 public class ManufacturerDao {
 
 	private Connection sqlConnection;
+	Client client = ElasticFactory.getElasticClient();
 	public Connection getSqlConnection() {
 		return sqlConnection;
 	}

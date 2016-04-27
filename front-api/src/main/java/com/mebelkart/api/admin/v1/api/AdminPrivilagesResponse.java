@@ -10,26 +10,26 @@ package com.mebelkart.api.admin.v1.api;
 public class AdminPrivilagesResponse {
 	
 	private String[] addPrivileges;
-	private String[] deletePrivileges;
 	private String[] resourcePrivileges;
+	private String[] methodPrivilages;
 	/**
 	 * Default Constructer
 	 */
 	public AdminPrivilagesResponse() {
 		// TODO Auto-generated constructor stub
 		this.setAddPrivilages(null);
-		this.setDeletePrivilages(null);
 		this.setResourcePrivilages(null);
+		this.setMethodPrivilages(null);
 	}
-	public void setSuperAdminPrivilages(){
+	public void setSuperAdminPrivilages(String[] resourcePrivilages){
 		this.setAddPrivilages(new String[] { "Admin", "Consumer" });
-		this.setDeletePrivilages(new String[] { "Admin", "Consumer" });
-		this.setResourcePrivilages(new String[] { "GET", "POST", "PUT", "DELETE" });
+		this.setResourcePrivilages(resourcePrivilages);
+		this.setMethodPrivilages(new String[] { "GET", "POST", "PUT" });
 	}
-	public void setAdminPrivilages(){
+	public void setAdminPrivilages(String[] resourcePrivilages){
 		this.setAddPrivilages(new String[] { "Consumer" });
-		this.setDeletePrivilages(new String[] { "Consumer" });
-		this.setResourcePrivilages(new String[] { "GET", "POST", "PUT" });
+		this.setResourcePrivilages(resourcePrivilages);
+		this.setMethodPrivilages(new String[] { "GET" });
 	}
 	public String[] getAddPrivilages() {
 		return addPrivileges;
@@ -37,17 +37,17 @@ public class AdminPrivilagesResponse {
 	public void setAddPrivilages(String[] addPrivilages) {
 		this.addPrivileges = addPrivilages;
 	}
-	public String[] getDeletePrivilages() {
-		return deletePrivileges;
-	}
-	public void setDeletePrivilages(String[] deletePrivilages) {
-		this.deletePrivileges = deletePrivilages;
-	}
 	public String[] getResourcePrivilages() {
 		return resourcePrivileges;
 	}
 	public void setResourcePrivilages(String[] resourcePrivilages) {
 		this.resourcePrivileges = resourcePrivilages;
+	}
+	public String[] getMethodPrivilages() {
+		return methodPrivilages;
+	}
+	public void setMethodPrivilages(String[] methodPrivilages) {
+		this.methodPrivilages = methodPrivilages;
 	}
 
 }
