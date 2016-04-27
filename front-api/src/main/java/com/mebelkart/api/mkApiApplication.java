@@ -1,5 +1,7 @@
 package com.mebelkart.api;
 
+import com.mebelkart.api.mobileapi.dao.MobileDao;
+import com.mebelkart.api.mobileapi.resources.MobileResource;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 import de.spinscale.dropwizard.jobs.JobsBundle;
@@ -62,6 +64,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
 		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
 		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
+		final MobileDao mobileDao=mebelkartProductsDatabaseConfiguration.onDemand(MobileDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -76,6 +79,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		//environment.jersey().register(new ProductResource());
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
+		environment.jersey().register(new MobileResource(mobileDao));
 	}
 
 }
