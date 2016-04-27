@@ -23,8 +23,7 @@ import com.mebelkart.api.util.factories.ElasticFactory;
 public class ManufacturerDao {
 
 	private Connection sqlConnection;
-	@SuppressWarnings("static-access")
-	Client client = new ElasticFactory().getElasticClient();
+	Client client = ElasticFactory.getElasticClient();
 	public Connection getSqlConnection() {
 		return sqlConnection;
 	}

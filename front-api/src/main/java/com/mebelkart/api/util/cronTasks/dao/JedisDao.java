@@ -34,6 +34,11 @@ public class JedisDao {
 		this.sqlConnection = sqlConnection;
 	}
 	
+	/**
+	 * It retrieves all the wanted consumer details
+	 * @return ResultSet of this query
+	 * @throws SQLException
+	 */
 	public ResultSet getConsumerDetails() throws SQLException{
 		Statement getConsumerDetails = sqlConnection.createStatement();
         String query = "SELECT id,a_user_name,a_access_token,a_count_assigned,a_is_active FROM mk_api_consumer WHERE a_redis_indexed = 0 OR a_changes_exist = 1";
@@ -42,6 +47,12 @@ public class JedisDao {
         return allNewConsumerDetailResultSet;
 	}
 
+	/**
+	 * This function retrieves all resource ids with get permissions of single consumer
+	 * @param consumerId
+	 * @return ResultSet of this query
+	 * @throws SQLException
+	 */
 	public ResultSet getResourcePermissionsDetails(int consumerId) throws SQLException {
 		Statement getResourcePermissions = sqlConnection.createStatement();
         String query = "SELECT a_resource_id,a_have_get_permission FROM mk_api_resources_consumer_permission WHERE a_consumer_id = "+consumerId;
@@ -50,8 +61,14 @@ public class JedisDao {
         return allNewResourcePermissionResultSet;
 	}
 
-	public ResultSet getFunctionPermissionsDetails(int consumerId, int resourceId) throws SQLException {
-		
+	/**
+	 * This function returns all the function names of this particular resource with respect to the consumer id provided
+	 * @param consumerId
+	 * @param resourceId
+	 * @return
+	 * @throws SQLException
+	 */
+	public ResultSet getFunctionPermissionsDetails(int consumerId, int resourceId) throws SQLException {		
 		Statement getFunctionNames = sqlConnection.createStatement();
 		String query = "SELECT mk_api_functions.a_function_name FROM mk_api_functions INNER JOIN mk_api_resources_consumer_function_permission "
 				+ "ON "
@@ -69,6 +86,12 @@ public class JedisDao {
 		return allNewFunctionPermissionResultSet;
 	}
 
+	/**
+	 * This function returns all the resource names based on resource id 
+	 * @param resourceId
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getResourceName(int resourceId) throws SQLException{
 		Statement getResourceName = sqlConnection.createStatement();
 		String query = "SELECT a_resource_name FROM mk_api_resources WHERE id = "+resourceId;
@@ -77,12 +100,22 @@ public class JedisDao {
 		return resourceName;
 	}
 
+	/**
+	 * This function updates consumer table by setting redis indexed to 1 and changes exists to 0
+	 * @param consumerId
+	 * @throws SQLException
+	 */
 	public void updateConsumerRedisIndexedStatus(int consumerId) throws SQLException {
 		Statement updateUserRedisStatus = sqlConnection.createStatement();
 		String query = "UPDATE mk_api_consumer SET a_redis_indexed = 1, a_changes_exist = 0 where id = "+consumerId;
 		updateUserRedisStatus.executeUpdate(query);
 	}
 
+	/**
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getAdminDetails() throws SQLException {
 		Statement getAdminDetails = sqlConnection.createStatement();
         String query = "SELECT id,a_user_name,a_access_token,a_is_active FROM mk_api_user_admin WHERE a_redis_indexed = 0 OR a_changes_exist = 1";
@@ -120,6 +153,16 @@ public class JedisDao {
 	public void updateAdminRedisIndexedStatus(int adminId) throws SQLException {
 		Statement updateUserRedisStatus = sqlConnection.createStatement();
 		String query = "UPDATE mk_api_user_admin SET a_redis_indexed = 1, a_changes_exist = 0 where id = "+adminId;
+		updateUserRedisStatus.executeUpdate(query);
+	}
+	
+	public void closeConnection() throws SQLException{
+		sqlConnection.close();
+	}
+
+	public void updateHitsAndDate(int consumerId,int dayCount, String previousDate) throws SQLException {
+		Statement updateUserRedisStatus = sqlConnection.createStatement();
+		String query = "INSERT INTO mk_api_statics (a_consumer_id,a_date,a_hits) VALUES ("+consumerId+",\""+previousDate+"\","+dayCount+")";
 		updateUserRedisStatus.executeUpdate(query);
 	}
 }

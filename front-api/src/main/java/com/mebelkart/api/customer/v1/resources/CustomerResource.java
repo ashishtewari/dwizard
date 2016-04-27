@@ -80,9 +80,10 @@ public class CustomerResource {
 			if(helperMethods.isValidJson(accessParam)){ // validating the input json data
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = (String) headerInputJsonData.get("apiKey");
+				String userName = (String) headerInputJsonData.get("userName");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "get","getCustomerDetails");
+				int isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "get","getCustomerDetails");
 					/*
 					 * validating the accesstoken given by user
 					 */
@@ -170,7 +171,8 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put","addNewAddress");
+			String userName = (String) bodyInputJsonData.get("userName");
+			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","addNewAddress");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
@@ -186,7 +188,7 @@ public class CustomerResource {
 							    /*
 							     * adding response info to the log file
 							     */
-							errorLog.info("New address added for customerId:"+ customerId+" by consumer:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
+							errorLog.info("New address added for customerId:"+ customerId+" by consumer:"+userName+" on "+ helperMethods.getDateTime());
 							return new Reply(201,"success","New address added succesfully to customerId " + customerId);
 							
 						} else {
@@ -238,9 +240,10 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
+			String userName = (String) bodyInputJsonData.get("userName");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-			int isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put","updateAddress");
+			int isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","updateAddress");
 				/*
 				 * validating the accesstoken given by user
 				 */
@@ -265,7 +268,7 @@ public class CustomerResource {
 									 * if the given addressId and customerId matches then query runs and return 1 else return 0.
 									 */
 								if (isAddressUpdated == 1) { 
-									errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" updated successfully by user:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
+									errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" updated successfully by user:"+userName+" on "+ helperMethods.getDateTime());
 									return new Reply(201,"success","Address of addressId "+addressId+" updated succesfully" );
 								} else {
 									exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -319,7 +322,8 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
-			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(accessToken, "customer", "put", "deleteAddress");
+			String userName = (String) bodyInputJsonData.get("userName");
+			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put", "deleteAddress");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
 				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
@@ -330,7 +334,7 @@ public class CustomerResource {
 						isAddressDeleted = customerDetailsDao.deleteAddress(addressId,customerId);
 							
 						if (isAddressDeleted == 1) { 
-							errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" deleted successfully by user:"+jedisCustomerAuthentication.getUserName(MD5Encoding.encrypt(accessToken))+" on "+ helperMethods.getDateTime());
+							errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" deleted successfully by user:"+userName+" on "+ helperMethods.getDateTime());
 							return new Reply(201,"success","Address of addressId "+addressId+" deleted succesfully" );
 							
 						} else { // return customerId and addressId not matched exception

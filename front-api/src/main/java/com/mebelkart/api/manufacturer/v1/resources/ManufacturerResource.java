@@ -71,11 +71,12 @@ public class ManufacturerResource {
 			if(helperMethods.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = (String) headerInputJsonData.get("apiKey");
+				String userName = (String) headerInputJsonData.get("userName");
 				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				String startDate = headerInputJsonData.get("startDate").toString();
 				String endDate = headerInputJsonData.get("endDate").toString();
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isUserAuthorized = jedisCustomerAuthentication.validate(accessToken, "manufacturer", "get", "getManufacturerDetails");
+				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
 				if (isUserAuthorized == 1) { // validating the accesstoken given by user
 					if(helperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){

@@ -33,63 +33,90 @@ public class JedisFactory {
 	}
 
 	@SuppressWarnings("static-access")
-	public int validate(String apikey, String resourceName, String method, String functionName) {
+	public int validate(String user, String apikey, String resourceName, String method, String functionName) {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
+		String userName = user;
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
-		// checks if the apikey exists in redis database or not
-		if (isValidAccessToken(apikey)) {
-			String userName = getUserName(apikey);
-			// checks whether the user is in active state or not
-			if (isActive(apikey)) {
-				// checks if he had access to that particular resource
-				if (containsResource(apikey, resourceName)) {
-					// checks if he had access to that particular method
-					if (containsMethod(apikey, resourceName, method)) {
-						// checks if he had access to this particular function
-						if(containsFunction(apikey,method,functionName)){
-							// checks for ratelimit
-							if (isBelowRateLimit(apikey, userName)) {
-								// Api Permission Granted
-								incrementCurrentCount(userName);
-								return 1;
-							} else {
-								// User's Rate Limit has Exceeded
+		user = encode.encrypt(user);
+		// checks if the userName key exists in redis database or not
+		if (isValidUser(user)) {
+			// checks if this particular user is having valid apikey or not
+			if(isValidAccessToken(user,apikey)){
+				// checks whether the user is in active state or not
+				if (isActive(user)) {
+					// checks if he had access to that particular resource
+					if (containsResource(user, resourceName)) {
+						// checks if he had access to that particular method
+						if (containsMethod(user, resourceName, method)) {
+							// checks if he had access to this particular function
+							if(containsFunction(user,method,functionName)){
+								// checks for ratelimit
+								if (isBelowRateLimit(user, userName)) {
+									// Api Permission Granted
+									incrementCurrentCount(userName);
+									return 1;
+								} else {
+									// User's Rate Limit has Exceeded
+									return -6;
+								}
+							}else{
+								// User doesn't have access to this function
 								return -5;
 							}
-						}else{
-							// User doesn't have access to this function
+						} else {
+							// User doesn't have Access to this Method
 							return -4;
 						}
 					} else {
-						// User doesn't have Access to this Method
+						// User doesn't have Access to this Resource
 						return -3;
 					}
 				} else {
-					// User doesn't have Access to this Resource
+					// User is Not in Active State 
 					return -2;
 				}
-			} else {
-				// User is Not in Active State 
+			}else{
+				// Not a Valid Access Token
 				return -1;
 			}
 		} else {
-			// Not a Valid Access Token
+			// Not a Valid User
 			return 0;
 		}
 	}
 
-	private boolean containsFunction(String apikey, String method,String functionName) {
+	private boolean isValidUser(String userName) {
+		// get a jedis connection jedis connection pool
+		Jedis jedis = pool.getResource();
+		try {
+			return jedis.exists(userName);
+		} catch (JedisException e) {
+			// if something wrong happen, return it back to the pool
+			if (null != jedis) {
+				pool.returnBrokenResource(jedis);
+				jedis = null;
+			}
+			return false;
+		} finally {
+			// it's important to return the Jedis instance to the pool once
+			// you've finished using it
+			if (null != jedis)
+				pool.returnResource(jedis);
+		}
+	}
+
+	private boolean containsFunction(String user, String method,String functionName) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try{
 			if(method.equals("get"))
-				return jedis.hget(apikey, "getFuncions").contains(functionName);
+				return jedis.hget(user, "getFuncions").contains(functionName);
 			else if(method.equals("post"))
-				return jedis.hget(apikey, "postFuncions").contains(functionName);
+				return jedis.hget(user, "postFuncions").contains(functionName);
 			else if(method.equals("put"))
-				return jedis.hget(apikey, "putFuncions").contains(functionName);
+				return jedis.hget(user, "putFuncions").contains(functionName);
 		}catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -106,11 +133,14 @@ public class JedisFactory {
 		return false;
 	}
 
-	public boolean isValidAccessToken(String accessToken) {
+	public boolean isValidAccessToken(String userName,String accessToken) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			return jedis.exists(accessToken);
+			if(jedis.hget(userName, "accessToken").equals(accessToken))
+				return true;
+			else
+				return false;
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -126,13 +156,13 @@ public class JedisFactory {
 		}
 	}
 
-	public boolean isActive(String accessToken) {
+	public boolean isActive(String user) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			if (jedis.hget(accessToken, "isActive").equals("0")) {
+			if (jedis.hget(user, "isActive").equals("0")) {
 				return false;
-			} else if (jedis.hget(accessToken, "isActive").equals("1")) {
+			} else if (jedis.hget(user, "isActive").equals("1")) {
 				return true;
 			} else {
 				return false;
@@ -152,40 +182,40 @@ public class JedisFactory {
 		}
 	}
 
-	public String getUserName(String accessToken) {
-		// get a jedis connection jedis connection pool
-		Jedis jedis = pool.getResource();
-		try {
-			return jedis.hget(accessToken, "userName");
-		} catch (JedisException e) {
-			// if something wrong happen, return it back to the pool
-			if (null != jedis) {
-				pool.returnBrokenResource(jedis);
-				jedis = null;
-			}
-			return null;
-		} finally {
-			// /it's important to return the Jedis instance to the pool once
-			// you've finished using it
-			if (null != jedis)
-				pool.returnResource(jedis);
-		}
-	}
+//	public String getUserName(String accessToken) {
+//		// get a jedis connection jedis connection pool
+//		Jedis jedis = pool.getResource();
+//		try {
+//			return jedis.hget(accessToken, "userName");
+//		} catch (JedisException e) {
+//			// if something wrong happen, return it back to the pool
+//			if (null != jedis) {
+//				pool.returnBrokenResource(jedis);
+//				jedis = null;
+//			}
+//			return null;
+//		} finally {
+//			// /it's important to return the Jedis instance to the pool once
+//			// you've finished using it
+//			if (null != jedis)
+//				pool.returnResource(jedis);
+//		}
+//	}
 
-	public boolean isBelowRateLimit(String accessToken, String userName) {
+	public boolean isBelowRateLimit(String user, String userName) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
 			if (jedis.exists(userName+":accessCount")) {
-				if((currentCount(userName+":accessCount") < maxCount(accessToken)) && currentCount(userName+":accessCount") > -1 && maxCount(accessToken) > -1){
+				if((currentCount(userName+":accessCount") < maxCount(user)) && currentCount(userName+":accessCount") > -1 && maxCount(user) > -1){
 					return true;
 				}else{
 					return false;
 				}
 			} else {
-				// setting temporary ratelimit counter based on userName for 1 hour 
-				// i.e.,3600 seconds and it expires after every 3600 seconds 
-				jedis.setex(userName+":accessCount", 3600, "0");
+				// setting temporary ratelimit counter based on userName for 1 day 10 min
+				// i.e.,87000 seconds and it expires after every 87000 seconds or when ever the redis is re-indexed after 24 hours i.e.,86400 seconds 
+				jedis.setex(userName+":accessCount", 87000, "0");
 				return true;
 			}
 		} catch (JedisException e) {
@@ -262,11 +292,11 @@ public class JedisFactory {
 		}
 	}
 
-	public boolean containsResource(String accessToken, String resourceName) {
+	public boolean containsResource(String user, String resourceName) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			return jedis.hexists(accessToken, resourceName);
+			return jedis.hexists(user, resourceName);
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -282,11 +312,11 @@ public class JedisFactory {
 		}
 	}
 
-	public boolean containsMethod(String accessToken, String resourceName, String method) {
+	public boolean containsMethod(String user, String resourceName, String method) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			return jedis.hget(accessToken, resourceName).contains(method);
+			return jedis.hget(user, resourceName).contains(method);
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
