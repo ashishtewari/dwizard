@@ -7,6 +7,7 @@ public class ManufacturerAddresses {
 	private Integer addressId;
 	private boolean isDefault;
 	private boolean active;
+	private Integer manufacturerId;
 	private Integer countryId;
 	private Integer stateId;
 	private Integer supplierId;
@@ -25,7 +26,7 @@ public class ManufacturerAddresses {
 	
 	
 	public ManufacturerAddresses(Integer addressId, boolean isDefault,
-			boolean active, Integer countryId, Integer stateId,
+			boolean active,Integer manufacturerId, Integer countryId, Integer stateId,
 			Integer supplierId, String alias, String firstName,
 			String lastName, String address1, String address2, String postCode,
 			String city, String other, String phone, String mobile,
@@ -33,6 +34,7 @@ public class ManufacturerAddresses {
 		this.addressId = addressId;
 		this.isDefault = isDefault;
 		this.active = active;
+		this.manufacturerId = manufacturerId;
 		this.countryId = countryId;
 		this.stateId = stateId;
 		this.supplierId = supplierId;
@@ -192,6 +194,14 @@ public class ManufacturerAddresses {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+
+	public Integer getManufacturerId() {
+		return manufacturerId;
+	}
+
+	public void setManufacturerId(Integer manufacturerId) {
+		this.manufacturerId = manufacturerId;
 	}
 
 }

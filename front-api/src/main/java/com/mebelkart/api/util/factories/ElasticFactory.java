@@ -35,7 +35,7 @@ public class ElasticFactory {
         }
 
     }
-    public static Client getRemoteElasticClient(){
+    public static Client getProductsElasticClient(){
         try {       	
         	/*
         	 *	Transport client
