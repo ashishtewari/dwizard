@@ -86,7 +86,6 @@ public class ProductResource {
 	
 	@SuppressWarnings("unchecked")
 	private Object getProductFeatures(Map<String, Object> source) {
-		// TODO Auto-generated method stub
 		List<Map<String,Object>> featuresInfo = (List<Map<String, Object>>) source.get("features");
 		Map<Object,Object> features = new HashMap<Object,Object>();
 		for(int i = 0; i < featuresInfo.size(); i++){
@@ -97,7 +96,6 @@ public class ProductResource {
 
 	@SuppressWarnings("unchecked")
 	private Object[] getGallery(Map<String, Object> source) {
-		// TODO Auto-generated method stub
 		List<Map<String,Object>> imagesInfo = (List<Map<String, Object>>) source.get("images");
 		List<JSONObject> gallery = new ArrayList<JSONObject>();
 		String imageName = (String)((Map<String, Object>)source.get("info")).get("link_rewrite");

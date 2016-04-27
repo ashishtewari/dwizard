@@ -23,6 +23,7 @@ public class OrderDetailMapper implements ResultSetMapper<OrderDetail> {
          ,resultSet.getInt("delivered_from_date"),resultSet.getInt("delivered_to_date"),resultSet.getString("product_ean13")
          ,resultSet.getString("product_upc"),resultSet.getString("product_reference"),resultSet.getString("product_supplier_reference")
          ,resultSet.getFloat("product_weight"),resultSet.getString("tax_name"),resultSet.getFloat("tax_rate"),resultSet.getFloat("ecotax"),resultSet.getFloat("ecotax_tax_rate")
-         ,resultSet.getBoolean("discount_quantity_applied"),resultSet.getString("download_hash"),resultSet.getInt("download_nb"),resultSet.getString("download_deadline"));
+         ,resultSet.getBoolean("discount_quantity_applied"),resultSet.getString("download_hash"),resultSet.getInt("download_nb"),resultSet.getString("download_deadline")
+         ,resultSet.getString("odss.status_name"),resultSet.getInt("odvs.id_current_status"));
     }
 }

@@ -15,7 +15,7 @@ import java.sql.SQLException;
 public class OrderMapper implements ResultSetMapper<Order> {
     @Override
     public Order map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
-
+    //id_gender
         Customer customer=new Customer(resultSet.getInt("id_customer"),resultSet.getInt("id_gender"), resultSet.getInt("id_default_group"),resultSet.getString("firstname")
                 , resultSet.getString("lastname"), resultSet.getString("email"),resultSet.getString("birthday"), resultSet.getBoolean("newsletter"), resultSet.getBoolean("is_guest"), resultSet.getBoolean("deleted")
                 , resultSet.getString("date_add"), resultSet.getString("date_upd"));
