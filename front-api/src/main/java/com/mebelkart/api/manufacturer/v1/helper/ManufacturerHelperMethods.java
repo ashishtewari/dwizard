@@ -79,7 +79,6 @@ public class ManufacturerHelperMethods {
 	 * @param client 
 	 */
 	public Map<String, Object> getOrderDetailsFromElastic(int orderId, Client client) {
-		System.out.println("orderId in helper method = " + orderId);
 			SearchResponse response = client.prepareSearch("mk").setTypes("order")
 										.setQuery(QueryBuilders.termQuery("_id", orderId))
 										.execute()

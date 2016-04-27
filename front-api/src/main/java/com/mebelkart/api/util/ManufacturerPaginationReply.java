@@ -4,27 +4,47 @@
 package com.mebelkart.api.util;
 
 /**
- * @author Nikky-Akky
+ * @author Nikhil
  *
  */
-public class PaginationReply {
+public class ManufacturerPaginationReply {
+	
 	private int statusCode;
 	private String message;
-	private long totalCount;
+	private long totalAddresses;
+	private long totalProducts;
+	private long totalOrders;
 	private String currentShowing;
 	private long currentPage;
 	private Object source;
 	
-	
-	public PaginationReply(int statusCode,String message,long totalCount, String currentShowing,long currentPage, Object source) {
+	public ManufacturerPaginationReply(int statusCode,String message,long totalAddresses,long totalProducts,long totalOrders, String currentShowing,long currentPage, Object source) {
 		this.statusCode = statusCode;
 		this.message = message;
-		this.totalCount = totalCount;
+		this.totalAddresses = totalAddresses;
+		this.totalProducts = totalProducts;
+		this.totalOrders = totalOrders;
 		this.currentShowing = currentShowing;
 		this.currentPage = currentPage;
 		this.source = source;
 	}
 	
+	public long getTotalProducts() {
+		return totalProducts;
+	}
+
+	public void setTotalProducts(long totalProducts) {
+		this.totalProducts = totalProducts;
+	}
+
+	public long getTotalOrders() {
+		return totalOrders;
+	}
+
+	public void setTotalOrders(long totalOrders) {
+		this.totalOrders = totalOrders;
+	}
+
 	public int getStatusCode() {
 		return statusCode;
 	}
@@ -41,12 +61,12 @@ public class PaginationReply {
 		this.message = message;
 	}
 
-	public long getTotalCount() {
-		return totalCount;
+	public long getTotalAddresses() {
+		return totalAddresses;
 	}
 
-	public void setTotalCount(long totalCount) {
-		this.totalCount = totalCount;
+	public void setTotalAddresses(long totalCount) {
+		this.totalAddresses = totalCount;
 	}
 
 	public String getCurrentShowing() {
