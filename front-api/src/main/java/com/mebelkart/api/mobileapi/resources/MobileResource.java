@@ -2,6 +2,7 @@ package com.mebelkart.api.mobileapi.resources;
 
 import com.mebelkart.api.mobileapi.api.CategoryFeatured;
 import com.mebelkart.api.mobileapi.dao.MobileDao;
+import com.mebelkart.api.util.Reply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import org.elasticsearch.action.get.GetResponse;
@@ -62,7 +63,9 @@ public class MobileResource {
 
             }
 
-            return categoryList;
+            Reply featuredReply=new Reply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),categoryList);
+
+            return featuredReply;
 
         } catch (Exception e) {
             InvalidInputReplyClass errorOccured=new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Some error occured while serving request");
