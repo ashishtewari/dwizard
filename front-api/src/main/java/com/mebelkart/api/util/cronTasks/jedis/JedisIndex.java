@@ -70,9 +70,10 @@ public class JedisIndex extends Job {
 					if(jedis.exists(MD5Encoding.encrypt(customerName))){
 						// getting previous day count
 						int dayCount = 0;
-						if(jedis.exists(customerName+":accessCount"))
+						if(jedis.exists(customerName+":accessCount")){
 							dayCount = Integer.parseInt(jedis.get(customerName+":accessCount"));
-						else
+							jedis.del(customerName+":accessCount");
+						}else
 							dayCount = 0;
 						// getting previous days date and time
 						String previousDate = new HelperMethods().getYesterdayDateString();
@@ -179,17 +180,6 @@ public class JedisIndex extends Job {
 				Jedis jedis = pool.getResource();
 				try {
 					if(jedis.exists(MD5Encoding.encrypt(adminName))){
-//						// getting previous day count
-//						int dayCount = 0;
-//						if(jedis.exists(adminName+":accessCount"))
-//							dayCount = Integer.parseInt(jedis.get(adminName+":accessCount"));
-//						else
-//							dayCount = 0;
-//						// getting previous days date and time
-//						String previousDate = new HelperMethods().getYesterdayDateString();
-//						// updating this details in mk_api_statics table
-//						jedisDaoObject.updateHitsAndDate(adminId,dayCount,previousDate);
-						// removing that key and its all related fields and values form redis
 						jedis.del(MD5Encoding.encrypt(adminName));
 					}
 					// save to redis
@@ -235,6 +225,9 @@ public class JedisIndex extends Job {
 			e.printStackTrace();
 		} catch (NullPointerException e) {
 			System.out.println("----------NullPointerException in JedisIndex---------");
+		} catch (ClassNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 	}
 }

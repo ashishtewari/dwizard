@@ -17,20 +17,9 @@ public class JedisDao {
 
 	private Connection sqlConnection;
 
-	public JedisDao()  {
-		
-		System.out.println("In Constructor");
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mk_api", "root", "root");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		System.out.println("After Constructor");
-		
-		
+	public JedisDao() throws ClassNotFoundException, SQLException  {		
+		Class.forName("com.mysql.jdbc.Driver");
+		sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mk_api", "root", "root");		
 	}
 
 	public Connection getSqlConnection() {
