@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.mkApiApplication;
-import com.mebelkart.api.util.Reply;
+import com.mebelkart.api.util.classes.Reply;
 
 /**
  * @author Nikky-Akky

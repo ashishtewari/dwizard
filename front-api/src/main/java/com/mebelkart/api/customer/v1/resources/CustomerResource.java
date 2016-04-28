@@ -39,7 +39,7 @@ import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.JedisFactory;
-import com.mebelkart.api.util.Reply;
+import com.mebelkart.api.util.classes.Reply;
 
 /**
  * @author Nikky-Akky

@@ -1,7 +1,6 @@
 package com.mebelkart.api;
 
 import com.mebelkart.api.product.v1.dao.ProductDao;
-import com.mebelkart.api.mobileapi.resources.MobileResource;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 

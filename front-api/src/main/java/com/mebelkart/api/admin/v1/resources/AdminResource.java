@@ -27,7 +27,7 @@ import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
 import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.api.ConsumerResponse;
 import com.mebelkart.api.admin.v1.api.UserPrivilagesResponse;
-import com.mebelkart.api.util.Reply;
+import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.Privilages;
 import com.mebelkart.api.admin.v1.core.UserStatus;

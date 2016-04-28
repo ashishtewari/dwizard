@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
 import com.mebelkart.api.util.helpers.Helper;
-import com.mebelkart.api.util.ManufacturerPaginationReply;
+import com.mebelkart.api.util.classes.ManufacturerPaginationReply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;

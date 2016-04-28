@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.product.v1.api.ProductDetailsResponse;
-import com.mebelkart.api.util.Reply;
+import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
