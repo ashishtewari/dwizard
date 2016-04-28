@@ -3,6 +3,10 @@
  */
 package com.mebelkart.api.product.v1.api;
 
+import java.util.List;
+
+import org.json.simple.JSONObject;
+
 /**
  * @author Tinku
  *
@@ -29,7 +33,7 @@ public class ProductDetailsResponse {
 	private String attributes;
 	private Object productFeatures;
 	private int isSoldOut;
-	private String attributeGroups;
+	private Object attributeGroups;
 	private String[] reviews;
 	private int totalReviews;
 	private int totalReviewsCount;
@@ -37,7 +41,7 @@ public class ProductDetailsResponse {
 	/**
 	 * Parameterized Constructor
 	 */
-	public ProductDetailsResponse(String productId,String categoryId,String categoryName,String productName,String productDesc,String availLocation,String brandId,String brandName,String totalViews,String shippingCost,String shippingAvailable,Object[] gallery,String offerText,double mktPrice,double ourPrice,String emiPrice,int rating,String attributes,Object productFeatures,int isSoldOut,String attributeGroups,String[] reviews,int totalReviews,int totalReviewsCount) {
+	public ProductDetailsResponse(String productId,String categoryId,String categoryName,String productName,String productDesc,String availLocation,String brandId,String brandName,String totalViews,String shippingCost,String shippingAvailable,Object[] gallery,String offerText,double mktPrice,double ourPrice,String emiPrice,int rating,String attributes,Object productFeatures,int isSoldOut,Object attributeGroups,String[] reviews,int totalReviews,int totalReviewsCount) {
 		// TODO Auto-generated constructor stub
 		this.setProductId(productId);
 		this.setCategoryId(categoryId);
@@ -256,11 +260,11 @@ public class ProductDetailsResponse {
 		this.isSoldOut = isSoldOut;
 	}
 
-	public String getAttributeGroups() {
+	public Object getAttributeGroups() {
 		return attributeGroups;
 	}
 
-	public void setAttributeGroups(String attributeGroups) {
+	public void setAttributeGroups(Object attributeGroups) {
 		this.attributeGroups = attributeGroups;
 	}
 

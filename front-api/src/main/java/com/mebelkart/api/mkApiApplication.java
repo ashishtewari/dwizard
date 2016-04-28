@@ -77,7 +77,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
-		//environment.jersey().register(new ProductResource());
+		environment.jersey().register(new ProductResource());
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 		environment.jersey().register(new MobileResource(mobileDao));

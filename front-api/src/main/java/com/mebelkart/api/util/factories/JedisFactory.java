@@ -112,11 +112,11 @@ public class JedisFactory {
 		Jedis jedis = pool.getResource();
 		try{
 			if(method.equals("get"))
-				return jedis.hget(user, "getFuncions").contains(functionName);
+				return jedis.hget(user, "getFunctions").contains(functionName);
 			else if(method.equals("post"))
-				return jedis.hget(user, "postFuncions").contains(functionName);
+				return jedis.hget(user, "postFunctions").contains(functionName);
 			else if(method.equals("put"))
-				return jedis.hget(user, "putFuncions").contains(functionName);
+				return jedis.hget(user, "putFunctions").contains(functionName);
 		}catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
