@@ -4,11 +4,21 @@
 package com.mebelkart.api.category.v1.resources;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.IndexNotFoundException;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -24,6 +34,8 @@ import com.mebelkart.api.util.factories.JedisFactory;
  * @author Nikhil
  *
  */
+@Path("/v1.0/category")
+@Produces({MediaType.APPLICATION_JSON})
 public class CategoryResource {
 	
 	JSONObject headerInputJsonData = null;
@@ -32,29 +44,53 @@ public class CategoryResource {
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
 	HandleException exception = null;
 	JSONParser parser = new JSONParser();
-	Client client = ElasticFactory.getElasticClient();
+	Client client = ElasticFactory.getProductsElasticClient();
 	
+	@Path("/getCategoryDetails")
 	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam){
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
 			String accessToken = headerInputJsonData.get("apiKey").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 			long categoryId = (long) headerInputJsonData.get("categoryId");
-			
-			int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
-			if (isUserAuthorized == 1) { // validating the accesstoken given by user
+				/*
+				 * validating the accesstoken given by user
+				 */
+			//int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+			//if (isUserAuthorized == 1) {
+				/*
+				 * checking whether given categoryId is valid or not
+				 */
 				if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
 					
+					List<Object> categoryList = new ArrayList<Object>();
+					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+				            .must(QueryBuilders.termQuery("_id", categoryId));
+					
+					SearchResponse response = client.prepareSearch("categories-1.12.6")
+							   .setTypes("category")
+							   .setQuery(categoryQuery)									
+//							   .setFrom(page*paginationLimit)
+//							   .setSize(paginationLimit)
+							   .execute()
+							   .get();	
+					 SearchHit[] searchHits = response.getHits().getHits();
+					 
+					 for(int i=0;i<searchHits.length;i++){
+						 categoryList.add(searchHits[i].getSource());
+					 }
+				
 					return accessParam;
+					
 				} else {
 					errorLog.warn("categoryId you mentioned was invalid");
 					exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 					return exception.getException("categoryId "+ categoryId+" you mentioned was invalid",null);
 				}
-			} else {
-				exception = new HandleException();
-				return exception.accessTokenException(isUserAuthorized);
-			}
+//			} else {
+//				exception = new HandleException();
+//				return exception.accessTokenException(isUserAuthorized);
+//			}
 		}
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");

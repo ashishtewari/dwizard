@@ -80,7 +80,13 @@ public class ManufacturerResource {
 				 */
 				page = page-1;
 				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
-				if (isUserAuthorized == 1) { // validating the accesstoken given by user
+					/*
+					 * validating the accesstoken given by user
+					 */
+				if (isUserAuthorized == 1) { 
+						/*
+						 * checking whether given manufacturerId is valid or not
+						 */
 					if(manufacturerHelperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){
 							String nowShowing = (page*paginationLimit+1)+"-"+(page*paginationLimit+paginationLimit);

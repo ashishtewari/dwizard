@@ -10,6 +10,7 @@ import com.github.rkmk.container.FoldingListContainerFactory;
 import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.mebelkart.api.category.v1.resources.CategoryResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
@@ -78,6 +79,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new ProductResource(productDao));
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
+		environment.jersey().register(new CategoryResource());
 //		environment.jersey().register(new MobileResource(productDao));
 	}
 
