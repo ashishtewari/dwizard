@@ -21,7 +21,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
@@ -60,7 +59,7 @@ public class AdminResource {
 	/**
 	 * Get actual class name to be printed on
 	 */
-	static Logger log = LoggerFactory.getLogger(mkApiApplication.class);
+	static Logger log = LoggerFactory.getLogger(AdminResource.class);
 	
 	/**
 	 * @param auth
@@ -108,7 +107,7 @@ public class AdminResource {
 							else{
 								log.warn("Unauthorized data in login function");
 								exception = new HandleException(Response.Status.UNAUTHORIZED.getStatusCode(),Response.Status.UNAUTHORIZED.getReasonPhrase());
-								return exception.getException("your admin credentials are not acceptable", null);
+								return exception.getException("your admin level is not valid", null);
 							}
 						}
 					}
