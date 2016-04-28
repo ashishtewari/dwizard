@@ -32,12 +32,17 @@ public class ManufacturerDao {
 	}
 	
 	public ManufacturerDao() throws SQLException{
-		sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mebelkart_prod", "root", "root");
+		 try {
+			Class.forName("com.mysql.jdbc.Driver");
+			sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mebelkart_prod", "root", "root");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public ResultSet getManufacturerDetails() throws SQLException{
 		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
-		String query = "select * from ps_manufacturer where id_manufacturer>0 AND id_manufacturer<50";
+		String query = "select * from ps_manufacturer";
 		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
 		return manufacturerDetailsResultSet;
 		
@@ -61,7 +66,7 @@ public class ManufacturerDao {
 		
 	}
 	
-	public ResultSet getManufacturerProductId(Integer manufacturerId) throws SQLException{
+	public ResultSet getManufacturerProductDetails(Integer manufacturerId) throws SQLException{
 		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
 		String query = "select ps_product.id_product,ps_product.id_category_default,ps_product.price,ps_product_lang.name,ps_product.id_manufacturer "
 				+ "from ps_product JOIN ps_product_lang ON ps_product_lang.id_product=ps_product.id_product "
