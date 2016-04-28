@@ -1,16 +1,18 @@
 package com.mebelkart.api.util.cronTasks.dao;
 
+import com.mebelkart.api.mkApiConfiguration;
+
 import java.sql.*;
 
 /**
  * Created by vinitpayal on 29/03/16.
  */
-public class OrderDao {
+public class OrderIndexDao {
 
     private Connection sqlConnection;
-    public OrderDao() throws SQLException {
-
-            sqlConnection=DriverManager.getConnection("jdbc:mysql://localhost:3306/mebelkart_prod", "root", "root");
+    public OrderIndexDao() throws SQLException, ClassNotFoundException {
+            Class.forName("com.mysql.jdbc.Driver");
+            sqlConnection=DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
     }
 
     public Connection getSqlConnection() {

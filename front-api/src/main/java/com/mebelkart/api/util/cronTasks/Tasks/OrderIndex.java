@@ -2,10 +2,9 @@ package com.mebelkart.api.util.cronTasks.Tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mebelkart.api.util.cronTasks.classes.*;
-import com.mebelkart.api.util.cronTasks.dao.OrderDao;
+import com.mebelkart.api.util.cronTasks.dao.OrderIndexDao;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import de.spinscale.dropwizard.jobs.Job;
-import de.spinscale.dropwizard.jobs.annotations.Every;
 import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -32,12 +31,12 @@ public class OrderIndex extends Job{
          */
         try {
 
-            OrderDao orderDaoObject=new OrderDao();
+            OrderIndexDao orderIndexDaoObject =new OrderIndexDao();
 
             /**
              * getting all new orders from mysql which are updated or created after last indexing
              */
-            ResultSet ordersResultSet = orderDaoObject.getNewOrders();
+            ResultSet ordersResultSet = orderIndexDaoObject.getNewOrders();
 
             ObjectMapper pojoToJsonMapper = new ObjectMapper();
 
@@ -63,7 +62,7 @@ public class OrderIndex extends Job{
                  * converting order class to json object which can be indexed in elastic
                  */
 
-                ResultSet orderDetails=orderDaoObject.getOrderDetails(orderId);//orderDetail resultset will contain all suborders of an order and status of all suborders
+                ResultSet orderDetails= orderIndexDaoObject.getOrderDetails(orderId);//orderDetail resultset will contain all suborders of an order and status of all suborders
                 while(orderDetails.next()){
 
                     /**
@@ -129,7 +128,7 @@ public class OrderIndex extends Job{
                     /**
                      * will contain logistic details for current suborderId
                      */
-                    ResultSet logisticDetailsResultSet=orderDaoObject.getLogisticDetailsForASuborder(subOrderId);
+                    ResultSet logisticDetailsResultSet= orderIndexDaoObject.getLogisticDetailsForASuborder(subOrderId);
                     //System.out.println("logistic resultset "+logisticDetailsResultSet.getMetaData());
                     System.out.println("--------------------------------------------");
                     System.out.println("Order Id :"+orderId+" suborderId :"+subOrderId);
@@ -170,7 +169,7 @@ public class OrderIndex extends Job{
                      * populating order shipment details after fetching from orderDao class
                      */
                     OrderDetailShipments orderDetailShipments=null;
-                    ResultSet subOrderShipmentDetailResultSet=orderDaoObject.getSuborderShipmentDetails(subOrderId);
+                    ResultSet subOrderShipmentDetailResultSet= orderIndexDaoObject.getSuborderShipmentDetails(subOrderId);
 
                     /**
                      * checking if resultset is not empty
@@ -199,7 +198,7 @@ public class OrderIndex extends Job{
 
                     OrderDetailAssignToOtherVendor orderDetailAssignToOtherVendor=null;
 
-                    ResultSet orderDetailAssingedToOtherVendorResultSet=orderDaoObject.getIfSuborderIsAssignedToOtherVendor(subOrderId);
+                    ResultSet orderDetailAssingedToOtherVendorResultSet= orderIndexDaoObject.getIfSuborderIsAssignedToOtherVendor(subOrderId);
                     /**
                      * Checking if resultset is containing any value if containing then create an object otherwise null will be indexed
                      */
@@ -213,7 +212,7 @@ public class OrderIndex extends Job{
 
                     OrderDetailPaymentInfo orderDetailPaymentInfo=null;
 
-                    ResultSet orderDetailPaymentInfoResultSet=orderDaoObject.getPaymentInfoForSubOrder(subOrderId);
+                    ResultSet orderDetailPaymentInfoResultSet= orderIndexDaoObject.getPaymentInfoForSubOrder(subOrderId);
                     if(orderDetailPaymentInfoResultSet.first()){
                          Integer transactionId=orderDetailPaymentInfoResultSet.getInt("id_transaction");
                          Integer orderDetailId=orderDetailPaymentInfoResultSet.getInt("id_order_detail");
