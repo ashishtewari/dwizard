@@ -18,7 +18,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.IndexNotFoundException;
@@ -32,10 +31,10 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
-import com.mebelkart.api.util.PaginationReply;
+import com.mebelkart.api.util.helpers.Helper;
+import com.mebelkart.api.util.classes.ManufacturerPaginationReply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
@@ -50,15 +49,15 @@ import com.mebelkart.api.util.factories.JedisFactory;
 public class ManufacturerResource {
 	
 	ManufacturerDetailsDAO manufacturerDetailsDao;
-	ManufacturerHelperMethods helperMethods = null;
+	ManufacturerHelperMethods manufacturerHelperMethods = new ManufacturerHelperMethods();
+	Helper utilHelper = new Helper();
 	HandleException exception = null;
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null;
 	JSONArray requiredFields;
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
-	PaginationReply sourceResult = null;
 	Client client = ElasticFactory.getElasticClient();
-	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
+	static Logger errorLog = LoggerFactory.getLogger(ManufacturerResource.class);
 	
 	public ManufacturerResource(ManufacturerDetailsDAO manufacturerDetailsDao){
 		this.manufacturerDetailsDao = manufacturerDetailsDao;
@@ -67,23 +66,24 @@ public class ManufacturerResource {
 	
 	@GET
 	@Path("/getManufacturerDetails")
-	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int page) throws ParseException, InterruptedException, ExecutionException, ConnectException{
+	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int page,@QueryParam("limit")int paginationLimit) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
-			helperMethods = new ManufacturerHelperMethods(manufacturerDetailsDao);
-			if(helperMethods.isValidJson(accessParam)){
+			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = (String) headerInputJsonData.get("apiKey");
-				String userName = (String) headerInputJsonData.get("userName");
+				String accessToken = headerInputJsonData.get("apiKey").toString();
+				String userName = headerInputJsonData.get("userName").toString();
 				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
-				String startDate = headerInputJsonData.get("startDate").toString();
-				String endDate = headerInputJsonData.get("endDate").toString();
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
+				/*
+				 * Reducing the page number by one because of user will give page number from 1 but we will
+				 * get results from page zero.
+				 */
 				page = page-1;
+				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
 				if (isUserAuthorized == 1) { // validating the accesstoken given by user
-					if(helperMethods.isManufacturerIdValid(manufacturerId,client)){
+					if(manufacturerHelperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){
-							String nowShowing = (page*20+1)+"-"+(page*20+20);
+							String nowShowing = (page*paginationLimit+1)+"-"+(page*paginationLimit+paginationLimit);
 							/*
 							 * getting the required fields array given by consumer to append that in elastic search query
 							 */
@@ -95,25 +95,17 @@ public class ManufacturerResource {
 							List<Object> manufacturerInfoList = new ArrayList<Object>();
 							long totalProducts = 0,totalOrders = 0,totalAddresses = 0;
 								/*
-								 * query for getting orders from start date to end date of respective
-								 * manufacturer id
-								 */
-	
-								BoolQueryBuilder query = QueryBuilders.boolQuery()
-							            .must(QueryBuilders.termQuery("_id", manufacturerId));
-								BoolQueryBuilder addressesQuery = QueryBuilders.boolQuery()
-							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId));
-								BoolQueryBuilder productsQuery = QueryBuilders.boolQuery()
-										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
-								BoolQueryBuilder ordersQuery = QueryBuilders.boolQuery()
-							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId))
-							            .must(QueryBuilders.rangeQuery("dateAdd").from(startDate).to(endDate));
-								/*
 								 * running the query with the parameters given by the user,getting
 								 * response.
 								 */
 							if(requiredFields.size() != 0){
 								if(requiredFields.contains("info")){
+									/*
+									 * query for getting info of respective manufacturer id
+									 */
+									BoolQueryBuilder query = QueryBuilders.boolQuery()
+								            .must(QueryBuilders.termQuery("_id", manufacturerId));
+									
 								response = client.prepareSearch("manufacturer")
 										   .setTypes("info")
 										   .setQuery(query)									
@@ -127,11 +119,17 @@ public class ManufacturerResource {
 								 manufacturerResultMap.put("ManufacturerPersonalDetails",manufacturerInfoList);
 								}
 								if(requiredFields.contains("products")){
+									/*
+									 * query for getting products of respective manufacturer id
+									 */
+									BoolQueryBuilder productsQuery = QueryBuilders.boolQuery()
+											.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
+									
 									response = client.prepareSearch("manufacturer")
 											   .setTypes("products")
 											   .setQuery(productsQuery)									
-											   .setFrom(page*20)
-											   .setSize(20)
+											   .setFrom(page*paginationLimit)
+											   .setSize(paginationLimit)
 											   .execute()
 											   .get();	
 									 SearchHit[] searchHits = response.getHits().getHits();
@@ -140,16 +138,21 @@ public class ManufacturerResource {
 										 manufacturerProductsList.add(searchHits[i].getSource());
 									 }								
 									 totalProducts = response.getHits().getTotalHits();
-									 System.out.println("total products = " + totalProducts);
 									 manufacturerResultMap.put("ManufacturerProducts",manufacturerProductsList);
 									}
 								
 								if(requiredFields.contains("addresses")){
+									/*
+									 * query for getting addresses of respective manufacturer id
+									 */
+									BoolQueryBuilder addressesQuery = QueryBuilders.boolQuery()
+								            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId));
+									
 									response = client.prepareSearch("manufacturer")
 											   .setTypes("addresses")
 											   .setQuery(addressesQuery)									
-											   .setFrom(page*20)
-											   .setSize(20)
+											   .setFrom(page*paginationLimit)
+											   .setSize(paginationLimit)
 											   .execute()
 											   .get();	
 									 SearchHit[] searchHits = response.getHits().getHits();
@@ -158,31 +161,37 @@ public class ManufacturerResource {
 										 manufacturerAddressesList.add(searchHits[i].getSource());
 									 }
 									 totalAddresses = response.getHits().getTotalHits();
-									 System.out.println("total addresses = " + totalAddresses);
 									 manufacturerResultMap.put("ManufacturerAddresses",manufacturerAddressesList);
 									}
 								
 								if(requiredFields.contains("orders")){
+									/*
+									 * query for getting orders from start date to end date of respective
+									 * manufacturer id
+									 */
+									String startDate = headerInputJsonData.get("startDate").toString();
+									String endDate = headerInputJsonData.get("endDate").toString();
+									BoolQueryBuilder ordersQuery = QueryBuilders.boolQuery()
+								            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId))
+								            .must(QueryBuilders.rangeQuery("dateAdd").from(startDate).to(endDate));
+									
 									response = client.prepareSearch("manufacturer")
 											   .setTypes("orders")
 											   .setQuery(ordersQuery)									
-											   .setFrom(page*20)
-											   .setSize(20)
+											   .setFrom(page*paginationLimit)
+											   .setSize(paginationLimit)
 											   .execute()
 											   .get();	
 									 SearchHit[] searchHits = response.getHits().getHits();
 									 
 									 for(int i=0;i<searchHits.length;i++){
-										 //manufacturerOrdersList.add(helperMethods.getOrderDetailsFromElastic((int) searchHits[i].getSource().get("orderId"),client));
-										 manufacturerOrdersList.add(searchHits[i].getSource());
+										 manufacturerOrdersList.add(manufacturerHelperMethods.getOrderDetailsFromElastic((int) searchHits[i].getSource().get("orderId"),client));
 									 }
-									 
 									 totalOrders = response.getHits().getTotalHits();
-									 System.out.println("total orders = " + totalOrders);
 									 manufacturerResultMap.put("ManufacturerOrders",manufacturerOrdersList);
 									}
 								
-								return new PaginationReply(200,"success",totalAddresses,totalProducts,totalOrders,nowShowing,page+1,manufacturerResultMap);
+								return new ManufacturerPaginationReply(200,"success",totalAddresses,totalProducts,totalOrders,nowShowing,page+1,manufacturerResultMap);
 								 
 							}
 							 else {
@@ -217,7 +226,7 @@ public class ManufacturerResource {
 		catch (ParseException parse) {
 			errorLog.warn("Specify your requirement in requiredFeilds as array of string");
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+			return exception.getException("Specify your requirement in requiredFeilds as array of string",null);
 		}
 		catch (ClassCastException classCast) {
 			errorLog.warn("Please check the values data types");
@@ -242,7 +251,7 @@ public class ManufacturerResource {
 			} else {
 				e.printStackTrace();
 				errorLog.warn("Internal server connection error");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server connection error",null);
 			}
 		}

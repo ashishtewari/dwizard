@@ -124,7 +124,7 @@ public class ManufacturerIndex extends Job{
 	        			 * Indexing product details into manufacturer index of type manufacturerProducts
 	        			 */
 	                    System.out.println("Manufacturer products indexing started for manufacturerId "+manufacturerId);
-	        			ResultSet productDetailsResultSet = manufacturerDao.getManufacturerProductId(manufacturerId);
+	        			ResultSet productDetailsResultSet = manufacturerDao.getManufacturerProductDetails(manufacturerId);
 	        			ManufacturerProducts manufacturerProducts = null;
 	        			while(productDetailsResultSet.next()){
 	        				Integer productId = productDetailsResultSet.getInt("id_product");

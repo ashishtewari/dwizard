@@ -1,8 +1,8 @@
 package com.mebelkart.api;
 
+import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
-import de.spinscale.dropwizard.jobs.JobsBundle;
 
 import org.skife.jdbi.v2.DBI;
 
@@ -39,8 +39,8 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			/**
 			 *  Registering jobs bundle to run all cron jobs
 			 */
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
+			//bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
+			//bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Not Done ...........");
@@ -63,6 +63,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final AdminDAO adminDao = apiAuthenticationDatabaseConfiguration.onDemand(AdminDAO.class);
 		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
 		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
+		final ProductDao productDao =mebelkartProductsDatabaseConfiguration.onDemand(ProductDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -74,9 +75,10 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new AdminResource(adminDao));
 		environment.jersey().register(new CustomerResource(customerDao));
 		environment.jersey().register(new ManufacturerResource(ManufacturerDao));
-		environment.jersey().register(new ProductResource());
+		environment.jersey().register(new ProductResource(productDao));
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
+//		environment.jersey().register(new MobileResource(productDao));
 	}
 
 }

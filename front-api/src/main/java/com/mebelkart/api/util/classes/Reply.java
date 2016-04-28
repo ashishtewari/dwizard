@@ -1,4 +1,4 @@
-package com.mebelkart.api.util;
+package com.mebelkart.api.util.classes;
 
 /**
  * @author Tinku
