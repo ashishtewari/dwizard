@@ -270,9 +270,9 @@ public class OrderIndex extends Job{
                  * Indexing order json in elastic if order is already existing then
                  * we will update indexed document
                  */
-                IndexRequest indexRequest = new IndexRequest("mk", "order", String.valueOf(ordersResultSet.getInt("id_order")))
+                IndexRequest indexRequest = new IndexRequest("mk1", "new_order", String.valueOf(ordersResultSet.getInt("id_order")))
                         .source(orderJson);
-                UpdateRequest updateRequest = new UpdateRequest("mk", "order",String.valueOf(ordersResultSet.getInt("id_order")))
+                UpdateRequest updateRequest = new UpdateRequest("mk1", "new_order",String.valueOf(ordersResultSet.getInt("id_order")))
                         .doc(orderJson)
                         .upsert(indexRequest);
 
