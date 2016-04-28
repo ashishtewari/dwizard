@@ -17,10 +17,17 @@ public class JedisDao {
 
 	private Connection sqlConnection;
 
-	public JedisDao() throws SQLException  {
+	public JedisDao()  {
 		
 		System.out.println("In Constructor");
-		sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mk_api", "root", "root");
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mk_api", "root", "root");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 		System.out.println("After Constructor");
 		
 		
