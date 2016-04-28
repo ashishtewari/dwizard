@@ -1,4 +1,4 @@
-package com.mebelkart.api.mobileapi.api;
+package com.mebelkart.api.product.v1.api;
 
 /**
  * Created by vinitpayal on 27/04/16.

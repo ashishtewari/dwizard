@@ -1,4 +1,4 @@
-package com.mebelkart.api.mobileapi.dao;
+package com.mebelkart.api.product.v1.dao;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
@@ -6,7 +6,7 @@ import org.skife.jdbi.v2.sqlobject.SqlQuery;
 /**
  * Created by vinitpayal on 27/04/16.
  */
-public interface MobileDao {
+public interface ProductDao {
 
     @SqlQuery("select value from ps_configuration where name= :configVarName")
     public String getConfigVarValue(@Bind("configVarName") String configVarName);

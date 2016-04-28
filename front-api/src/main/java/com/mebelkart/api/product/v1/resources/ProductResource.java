@@ -13,6 +13,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.mebelkart.api.product.v1.api.CategoryFeatured;
+import com.mebelkart.api.product.v1.dao.ProductDao;
+import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.client.Client;
 import org.json.simple.JSONObject;
@@ -33,6 +36,12 @@ import com.mebelkart.api.util.factories.JedisFactory;
 @Produces({MediaType.APPLICATION_JSON})
 public class ProductResource {
 
+	ProductDao productDao;
+
+	public ProductResource(ProductDao productDao) {
+		this.productDao = productDao;
+	}
+
 	/**
 	 * Getting products elastic client connection
 	 */
@@ -49,9 +58,6 @@ public class ProductResource {
 	 * Getting 
 	 */
 	JedisFactory jedisAuthentication = new JedisFactory();
-	
-	public ProductResource() {
-	}
 	
 	/**
 	 * @return will return json of all live products in pagination format
@@ -232,4 +238,55 @@ public class ProductResource {
 		
 		return null;
 	}
+
+	@GET
+	@Path("/featured")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Object getFeaturedProduct() {
+		try {
+			String configVarName = "HOME_SUB_CATEGORY_IDS";
+			String categoryIds = productDao.getConfigVarValue(configVarName);
+			List<CategoryFeatured> categoryList=new ArrayList<>();
+
+			for (String catId : categoryIds.split(",")) {
+				GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
+						.execute()
+						.actionGet();
+				String catName=productDao.getNameOfCategory(catId);
+
+				Map<String,Object> source = response.getSource();
+
+				List<Object> listOfProducts=(List<Object>) source.get("products");
+				for(Object product:listOfProducts){
+					HashMap<String,Object> product1=(HashMap<String,Object>) product;
+					String imageUrl="https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg";
+
+					HashMap<String,String> image=new HashMap<>();
+					image.put("appImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg");
+					image.put("webImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-large/"+product1.get("link_rewrite")+".jpg");
+					product1.put("image",image);
+					product1.put("type","product");
+					product=product1;
+				}
+
+				CategoryFeatured categoryReply=new CategoryFeatured("category","",Integer.valueOf(catId),catName,listOfProducts);
+				categoryList.add(categoryReply);
+
+			}
+
+			Reply featuredReply=new Reply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),categoryList);
+
+			return featuredReply;
+
+		} catch (Exception e) {
+			InvalidInputReplyClass errorOccured=new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Some error occured while serving request");
+			e.printStackTrace();
+			return errorOccured;
+
+		}
+
+	}
+
+
+
 }
