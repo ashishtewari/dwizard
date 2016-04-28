@@ -1,4 +1,4 @@
-package com.mebelkart.api.mobileapi.api;
+package com.mebelkart.api.util.classes;
 
 /**
  * Created by vinitpayal on 20/04/16.
