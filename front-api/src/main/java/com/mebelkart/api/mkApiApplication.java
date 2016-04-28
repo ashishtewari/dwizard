@@ -4,6 +4,7 @@ import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 
+import de.spinscale.dropwizard.jobs.JobsBundle;
 import org.skife.jdbi.v2.DBI;
 
 import com.github.rkmk.container.FoldingListContainerFactory;

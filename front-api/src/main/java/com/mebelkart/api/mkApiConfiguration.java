@@ -27,6 +27,34 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private static Integer elasticPort;
 
+	private static String mkProdUrl;
+	private static String mkProdUserName;
+	private static String mkProdPassword;
+
+	public static String getMkProdDriverClass() {
+		return mkProdUrl;
+	}
+
+	public static void setMkProdDriverClass(String mkProdDriverClass) {
+		mkApiConfiguration.mkProdUrl = mkProdDriverClass;
+	}
+
+	public static String getMkProdUserName() {
+		return mkProdUserName;
+	}
+
+	public static void setMkProdUserName(String mkProdUserName) {
+		mkApiConfiguration.mkProdUserName = mkProdUserName;
+	}
+
+	public static String getMkProdPassword() {
+		return mkProdPassword;
+	}
+
+	public static void setMkProdPassword(String mkProdPassword) {
+		mkApiConfiguration.mkProdPassword = mkProdPassword;
+	}
+
 	public static Integer getElasticPort() {
 		return elasticPort;
 	}
@@ -38,9 +66,11 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private static String clusterName;
 
-
 	@JsonProperty
 	public void setElasticsearchHost(String elasticsearchHost) {
+//		System.out.println("mebelkart database user name "+mebelkartProductsDatabase.getUser());
+//		System.out.println("mebelkart database user PASS "+mebelkartProductsDatabase.getPassword());
+//		System.out.println("mebelkart db driver class "+mebelkartProductsDatabase.getDriverClass());
 		mkApiConfiguration.elasticsearchHost = elasticsearchHost;
 	}
 
@@ -69,6 +99,12 @@ public class mkApiConfiguration extends Configuration {
 	}
 	@JsonProperty("mebelkartProductsDatabase")
 	public DataSourceFactory getMebelkartProductsDatabase() {
+		mkApiConfiguration.mkProdUrl=mebelkartProductsDatabase.getUrl();
+		mkApiConfiguration.mkProdUserName=mebelkartProductsDatabase.getUser();
+		mkApiConfiguration.mkProdPassword=mebelkartProductsDatabase.getPassword();
+		System.out.println("mebelkart database user name "+mkProdUrl);
+		System.out.println("mebelkart database user PASS "+mkProdUserName);
+		System.out.println("mebelkart db driver class "+mkProdPassword);
 		return mebelkartProductsDatabase;
 	}
 	@JsonProperty("mebelkartProductsDatabase")

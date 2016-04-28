@@ -40,6 +40,7 @@ public class ProductResource {
 	public ProductResource(ProductDao productDao) {
 		this.productDao = productDao;
 	}
+
 	/**
 	 * Getting products elastic client connection
 	 */
