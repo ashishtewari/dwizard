@@ -5,7 +5,9 @@ package com.mebelkart.api.util.cronTasks.jedis;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import redis.clients.jedis.Jedis;
@@ -34,10 +36,33 @@ public class JedisIndex extends Job {
 		try {
 			JedisDao jedisDaoObject = new JedisDao();
 			/**
+			 * getting all consumer names from db and checking whether they are redis indexed
+			 * If it is so then we are getting the currentCount of the user and
+			 * updating it in mk_api_statics table and 
+			 * then later updating the currentCount of the user to 0 in redis
+			 */			
+			ResultSet allConsumerNames = jedisDaoObject.getAllConsumerNames();
+			Jedis tempJedis = pool.getResource();
+			while(allConsumerNames.next()){
+				int customerId = allConsumerNames.getInt("id");
+				String customerName = allConsumerNames.getString("a_user_name");
+				if(tempJedis.exists(MD5Encoding.encrypt(customerName))){
+					// getting previous day count
+					int dayCount = Integer.parseInt(tempJedis.hget(customerName,"currentCount"));
+					// getting previous days date and time
+					String previousDate = new HelperMethods().getYesterdayDateString();
+					// updating this details in mk_api_statics table
+					jedisDaoObject.updateHitsAndDate(customerId,dayCount,previousDate);
+					// updating currentCount of this user to 0
+					tempJedis.hset(MD5Encoding.encrypt(customerName), "currentCount","0");
+				}
+			}
+			/**
 			 * getting new consumer details from mk_api which are not
 			 * redisIndexed or may be changed after last indexing
 			 */
 			ResultSet unIndexedConsumerDetailsResultSet = jedisDaoObject.getConsumerDetails();
+			List<String> indexedUserNames = new ArrayList<String>();
 			while (unIndexedConsumerDetailsResultSet.next()) {
 				int consumerId = unIndexedConsumerDetailsResultSet.getInt("id");
 				String customerName = unIndexedConsumerDetailsResultSet.getString("a_user_name");
@@ -68,24 +93,14 @@ public class JedisIndex extends Job {
 				Jedis jedis = pool.getResource();
 				try {
 					if(jedis.exists(MD5Encoding.encrypt(customerName))){
-						// getting previous day count
-						int dayCount = 0;
-						if(jedis.exists(customerName+":accessCount")){
-							dayCount = Integer.parseInt(jedis.get(customerName+":accessCount"));
-							jedis.del(customerName+":accessCount");
-						}else
-							dayCount = 0;
-						// getting previous days date and time
-						String previousDate = new HelperMethods().getYesterdayDateString();
-						// updating this details in mk_api_statics table
-						jedisDaoObject.updateHitsAndDate(consumerId,dayCount,previousDate);
 						// removing that key and its all related fields and values form redis
 						jedis.del(MD5Encoding.encrypt(customerName));
 					}
 					// save to redis
+					String userName = customerName; // Here it is not encoded 
 					String encryptedAccessToken = MD5Encoding
 							.encrypt(unIndexedConsumerDetailsResultSet.getString("a_access_token"));
-					customerName = MD5Encoding.encrypt(customerName);
+					customerName = MD5Encoding.encrypt(customerName); // Here it is encoded
 					Set<String> resourceKeys = resourcePermissions.keySet();
 					if (getFunctionNames.length() > 0) {
 						jedis.hset(customerName, "accessToken",encryptedAccessToken);
@@ -96,9 +111,14 @@ public class JedisIndex extends Job {
 								getFunctionNames.substring(0, getFunctionNames.length()-1));
 						jedis.hset(customerName, "maxCount",
 								unIndexedConsumerDetailsResultSet.getInt("a_count_assigned")+"");
-						jedis.hset(customerName, "isActive", 
+						jedis.hset(customerName, "currentCount","0");
+						jedis.hset(customerName, "isActive",
 								unIndexedConsumerDetailsResultSet.getInt("a_is_active")+"");
+//						// setting temporary ratelimit counter based on userName for 1 day 10 min
+//						// i.e.,87000 seconds and it expires after every 87000 seconds or when ever the redis is re-indexed after 24 hours i.e.,86400 seconds
+//						jedis.setex(userName+":accessCount", 87000, "0");
 						jedisDaoObject.updateConsumerRedisIndexedStatus(consumerId);
+						indexedUserNames.add(userName);
 					}
 				} catch (JedisException e) {
 					// if something wrong happen, return it back to the pool
@@ -114,7 +134,10 @@ public class JedisIndex extends Job {
 				}
 			}
 			
-
+			/**
+			 * getting new admin details from mk_api which are not
+			 * redisIndexed or may be changed after last indexing
+			 */
 			ResultSet unIndexedAdminDetailsResultSet = jedisDaoObject.getAdminDetails();
 			while (unIndexedAdminDetailsResultSet.next()) {
 				int adminId = unIndexedAdminDetailsResultSet.getInt("id");
@@ -203,6 +226,7 @@ public class JedisIndex extends Job {
 								putFunctions.substring(0, putFunctions.length()-1));
 						// we are setting 1 lakh hits per hour for admin
 						jedis.hset(adminName, "maxCount","100000");
+						jedis.hset(adminName, "currentCount","0");
 						jedis.hset(adminName, "isActive",
 								unIndexedAdminDetailsResultSet.getInt("a_is_active")+"");
 						jedisDaoObject.updateAdminRedisIndexedStatus(adminId);

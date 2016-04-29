@@ -53,9 +53,9 @@ public class JedisFactory {
 							// checks if he had access to this particular function
 							if(containsFunction(user,method,functionName)){
 								// checks for ratelimit
-								if (isBelowRateLimit(user, userName)) {
+								if (isBelowRateLimit(user)) {
 									// Api Permission Granted
-									incrementCurrentCount(userName);
+									incrementCurrentCount(user);
 									return 1;
 								} else {
 									// User's Rate Limit has Exceeded
@@ -202,22 +202,15 @@ public class JedisFactory {
 //		}
 //	}
 
-	public boolean isBelowRateLimit(String user, String userName) {
+	public boolean isBelowRateLimit(String user) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			if (jedis.exists(userName+":accessCount")) {
-				if((currentCount(userName+":accessCount") < maxCount(user)) && currentCount(userName+":accessCount") > -1 && maxCount(user) > -1){
-					return true;
-				}else{
-					return false;
-				}
-			} else {
-				// setting temporary ratelimit counter based on userName for 1 day 10 min
-				// i.e.,87000 seconds and it expires after every 87000 seconds or when ever the redis is re-indexed after 24 hours i.e.,86400 seconds 
-				jedis.setex(userName+":accessCount", 87000, "0");
+			if((currentCount(user) < maxCount(user)) && currentCount(user) > -1 && maxCount(user) > -1){
 				return true;
-			}
+			}else{
+				return false;
+			}			
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -237,7 +230,9 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			jedis.incrBy(userName+":accessCount", 1);
+			int currentCount = currentCount(userName);
+			currentCount++;
+			jedis.hset(userName, "currentCount" ,currentCount+"");
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -256,7 +251,7 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			return Integer.parseInt(jedis.get(userName));
+			return Integer.parseInt(jedis.hget(userName,"currentCount"));
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {

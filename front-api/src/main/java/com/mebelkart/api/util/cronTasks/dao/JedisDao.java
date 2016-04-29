@@ -120,6 +120,11 @@ public class JedisDao {
         return allNewAdminDetailResultSet;
 	}
 
+	/**
+	 * @param adminId
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getResourcePermissionsDetailsOfAdmin(int adminId) throws SQLException {
 		Statement getResourcePermissions = sqlConnection.createStatement();
         String query = "SELECT a_resource_id,a_have_get_permission,a_have_post_permission,a_have_put_permission FROM mk_api_resources_admin_permission WHERE a_admin_id = "+adminId;
@@ -128,6 +133,13 @@ public class JedisDao {
         return allNewResourcePermissionResultSet;
 	}
 
+	/**
+	 * @param adminId
+	 * @param resourceId
+	 * @param methodName
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet getFunctionPermissionsDetailsOfAdmin(int adminId,int resourceId, String methodName) throws SQLException {
 		Statement getFunctionNames = sqlConnection.createStatement();
 		String query = "SELECT mk_api_functions.a_function_name FROM mk_api_functions INNER JOIN mk_api_resources_admin_function_permission "
@@ -146,19 +158,44 @@ public class JedisDao {
 		return allNewFunctionPermissionResultSet;
 	}
 
+	/**
+	 * @param adminId
+	 * @throws SQLException
+	 */
 	public void updateAdminRedisIndexedStatus(int adminId) throws SQLException {
 		Statement updateUserRedisStatus = sqlConnection.createStatement();
 		String query = "UPDATE mk_api_user_admin SET a_redis_indexed = 1, a_changes_exist = 0 where id = "+adminId;
 		updateUserRedisStatus.executeUpdate(query);
 	}
 	
+	/**
+	 * @throws SQLException
+	 */
 	public void closeConnection() throws SQLException{
 		sqlConnection.close();
 	}
 
+	/**
+	 * @param consumerId
+	 * @param dayCount
+	 * @param previousDate
+	 * @throws SQLException
+	 */
 	public void updateHitsAndDate(int consumerId,int dayCount, String previousDate) throws SQLException {
 		Statement updateUserRedisStatus = sqlConnection.createStatement();
 		String query = "INSERT INTO mk_api_statics (a_consumer_id,a_date,a_hits) VALUES ("+consumerId+",\""+previousDate+"\","+dayCount+")";
 		updateUserRedisStatus.executeUpdate(query);
+	}
+
+	/**
+	 * @return
+	 * @throws SQLException
+	 */
+	public ResultSet getAllConsumerNames() throws SQLException {
+		Statement getConsumerDetails = sqlConnection.createStatement();
+        String query = "SELECT id,a_user_name FROM mk_api_consumer";
+        ResultSet allConsumerDetailResultSet = getConsumerDetails.executeQuery(query);
+
+        return allConsumerDetailResultSet;
 	}
 }
