@@ -15,7 +15,7 @@ public class mkApiConfiguration extends Configuration {
 	@Valid
 	@NotNull
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
-	private DataSourceFactory mebelkartProductsDatabase = new DataSourceFactory();
+	private DataSourceFactory mebelkartProductionDatabase = new DataSourceFactory();
 
 /*
 	These variables are declared static because we will be accessing these variables in elasticFactory
@@ -26,7 +26,18 @@ public class mkApiConfiguration extends Configuration {
 	private static String elasticsearchHost;
 	@NotNull
 	private static Integer elasticPort;
-
+	@NotNull
+	private static String clusterName;
+	@NotNull
+	private static String productElasticsearchHost;
+	@NotNull
+	private static Integer productElasticPort;
+	@NotNull
+	private static String productClusterName;
+	
+	/*
+	 * local elastic getters setters
+	 */	
 	public static Integer getElasticPort() {
 		return elasticPort;
 	}
@@ -34,19 +45,10 @@ public class mkApiConfiguration extends Configuration {
 	public void setElasticPort(Integer elasticPort) {
 		mkApiConfiguration.elasticPort = elasticPort;
 	}
-
-	@NotNull
-	private static String clusterName;
-
-
+	
 	@JsonProperty
 	public void setElasticsearchHost(String elasticsearchHost) {
 		mkApiConfiguration.elasticsearchHost = elasticsearchHost;
-	}
-
-	@JsonProperty
-	public void setClusterName(String clusterName) {
-		mkApiConfiguration.clusterName = clusterName;
 	}
 
 	@JsonProperty
@@ -55,8 +57,44 @@ public class mkApiConfiguration extends Configuration {
 	}
 
 	@JsonProperty
+	public void setClusterName(String clusterName) {
+		mkApiConfiguration.clusterName = clusterName;
+	}
+
+	@JsonProperty
 	public static String getClusterName() {
 		return clusterName;
+	}
+	
+	/*
+	 * Products elastic getters setters
+	 */	
+	public static Integer getProductElasticPort() {
+		return productElasticPort;
+	}
+
+	public void setProductElasticPort(Integer productElasticsearchPort) {
+		mkApiConfiguration.productElasticPort = productElasticsearchPort;
+	}
+	
+	@JsonProperty
+	public void setProductElasticsearchHost(String productElasticSearchHost) {
+		mkApiConfiguration.productElasticsearchHost = productElasticSearchHost;
+	}
+
+	@JsonProperty
+	public static String getProductElasticsearchHost() {
+		return productElasticsearchHost;
+	}
+
+	@JsonProperty
+	public void setProductClusterName(String productElasticSearchClusterName) {
+		mkApiConfiguration.productClusterName = productElasticSearchClusterName;
+	}
+
+	@JsonProperty
+	public static String getProductClusterName() {
+		return productClusterName;
 	}
 
 	@JsonProperty("apiAuthenticationDatabase")
@@ -67,12 +105,12 @@ public class mkApiConfiguration extends Configuration {
 	public void setDatabase1(DataSourceFactory apiAuthenticationDatabase) {
 		this.apiAuthenticationDatabase = apiAuthenticationDatabase;
 	}
-	@JsonProperty("mebelkartProductsDatabase")
+	@JsonProperty("mebelkartProductionDatabase")
 	public DataSourceFactory getMebelkartProductsDatabase() {
-		return mebelkartProductsDatabase;
+		return mebelkartProductionDatabase;
 	}
-	@JsonProperty("mebelkartProductsDatabase")
-	public void setDatabase2(DataSourceFactory mebelkartProductsDatabase) {
-		this.mebelkartProductsDatabase = mebelkartProductsDatabase;
+	@JsonProperty("mebelkartProductionDatabase")
+	public void setDatabase2(DataSourceFactory mebelkartProductionDatabase) {
+		this.mebelkartProductionDatabase = mebelkartProductionDatabase;
 	}
 }

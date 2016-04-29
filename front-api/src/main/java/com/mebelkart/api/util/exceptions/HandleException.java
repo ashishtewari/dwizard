@@ -20,7 +20,7 @@ public class HandleException {
 	private int statusCode;
 	private String message;
 	HandleException exception = null;
-	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
+	static Logger errorLog = LoggerFactory.getLogger(HandleException.class);
 	
 	public HandleException() {
 		this.statusCode = 0;
