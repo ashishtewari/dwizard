@@ -39,5 +39,22 @@ public class Helper {
 		else
 			return true;
 	}
+	
+	public String accessControlResponse(int responseStatus){
+		if(responseStatus == 0)
+			return "you are not a Valid User";
+		else if(responseStatus == -1)
+			return "You don't have Valid Access Token";
+		else if(responseStatus == -2)
+			return "you are not in Active State";
+		else if(responseStatus == -3)
+			return "You don't have Access to this Resource";
+		else if(responseStatus == -4)
+			return "You don't have Access to this Method";
+		else if(responseStatus == -5)
+			return "You don't have access to this function";
+		else
+			return "Your Rate Limit Exceeded";
+	}
 
 }
