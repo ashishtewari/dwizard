@@ -22,7 +22,9 @@ import org.json.simple.parser.ParseException;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
+import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
 /**
@@ -110,7 +112,10 @@ public class HelperMethods {
 		} else if (status == 5) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("The values inside permission are not correctly spelled", null);
-		}  else if (status == -1) {
+		} else if(status == 7){
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("give valid function keys", null);
+		}else if (status == -1) {
 			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 			return exception.getException("you can't give consumer access to ADMIN resource and so avoided this permission", null);
 		} else if (status == -2) {
