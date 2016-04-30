@@ -1,7 +1,5 @@
 elasticsearchHost: 127.0.0.1
-
 elasticPort: 9300
-
 clusterName: elasticsearch
 
 apiAuthenticationDatabase:
