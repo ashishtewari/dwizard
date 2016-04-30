@@ -154,6 +154,7 @@ public class CustomerResource {
 					exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 					return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 				} else {
+					e.printStackTrace();
 					exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 					return exception.getException("Internal server error",null);
 				}
@@ -222,6 +223,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}
@@ -307,6 +309,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}
@@ -369,6 +372,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}

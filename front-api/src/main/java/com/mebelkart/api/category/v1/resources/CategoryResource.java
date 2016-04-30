@@ -6,7 +6,9 @@ package com.mebelkart.api.category.v1.resources;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -25,7 +27,11 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mebelkart.api.category.v1.CategoryHelperMethods;
+import com.github.rkmk.container.FoldingList;
+import com.mebelkart.api.category.v1.core.CategoryWrapper;
+import com.mebelkart.api.category.v1.dao.CategoryDao;
+import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
+import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
@@ -38,7 +44,8 @@ import com.mebelkart.api.util.factories.JedisFactory;
 @Produces({MediaType.APPLICATION_JSON})
 public class CategoryResource {
 	
-	JSONObject headerInputJsonData = null;
+	JSONObject headerInputJsonData = new JSONObject();
+	CategoryDao categoryDao = null;
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	CategoryHelperMethods categoryHelperMethods = new CategoryHelperMethods();
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
@@ -46,51 +53,58 @@ public class CategoryResource {
 	JSONParser parser = new JSONParser();
 	Client client = ElasticFactory.getProductsElasticClient();
 	
-	@Path("/getCategoryDetails")
-	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam){
+	/**
+	 * @param categoryDao
+	 */
+	public CategoryResource(CategoryDao categoryDao) {
+		this.categoryDao = categoryDao;
+	}	
+	
+		/*
+		 * Below method is for getting top categories 
+		 */
+	@GET
+	@Path("/getCategories")
+	public Object getCategories(@HeaderParam("accessParam")String accessParam) throws InterruptedException, ExecutionException{
+		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
 			String accessToken = headerInputJsonData.get("apiKey").toString();
 			String userName = headerInputJsonData.get("userName").toString();
-			long categoryId = (long) headerInputJsonData.get("categoryId");
 				/*
 				 * validating the accesstoken given by user
 				 */
-			//int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
-			//if (isUserAuthorized == 1) {
+			int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
+			if (isUserAuthorized == 1) {
 				/*
 				 * checking whether given categoryId is valid or not
 				 */
-				if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
-					
+					FoldingList<CategoryWrapper> categoryIdFoldingList = categoryDao.getCategoryId(1);
+					List<CategoryWrapper> categoryIdList = categoryIdFoldingList.getValues();
 					List<Object> categoryList = new ArrayList<Object>();
+					for(int i=0;i<categoryIdList.size();i++){
+						
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
-				            .must(QueryBuilders.termQuery("_id", categoryId));
+				            .must(QueryBuilders.termQuery("_id", categoryIdList.get(i).getCategoryId()));
+					
+//					GetResponse response1 = client.prepareGet("categories-1.12.6", "category", categoryIdList.get(i).getCategoryId()+"")
+//					        .execute()
+//					        .actionGet();
 					
 					SearchResponse response = client.prepareSearch("categories-1.12.6")
 							   .setTypes("category")
 							   .setQuery(categoryQuery)									
-//							   .setFrom(page*paginationLimit)
-//							   .setSize(paginationLimit)
 							   .execute()
-							   .get();	
+							   .actionGet();	
 					 SearchHit[] searchHits = response.getHits().getHits();
-					 
-					 for(int i=0;i<searchHits.length;i++){
-						 categoryList.add(searchHits[i].getSource());
-					 }
-				
-					return accessParam;
-					
-				} else {
-					errorLog.warn("categoryId you mentioned was invalid");
-					exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-					return exception.getException("categoryId "+ categoryId+" you mentioned was invalid",null);
+						 categoryList.add(searchHits[0].getSource());
 				}
-//			} else {
-//				exception = new HandleException();
-//				return exception.accessTokenException(isUserAuthorized);
-//			}
+				
+					return new Reply(200,"success",categoryList);
+			} else {
+				exception = new HandleException();
+				return exception.accessTokenException(isUserAuthorized);
+			}
 		}
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
@@ -124,6 +138,84 @@ public class CategoryResource {
 				return exception.getException("Internal server connection error",null);
 			}
 		}
+		
+	}
+	
+	
+	@GET
+	@Path("/getCategoryDetails")
+	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam){
+		
+		try {
+			headerInputJsonData = (JSONObject) parser.parse(accessParam);
+			String accessToken = headerInputJsonData.get("apiKey").toString();
+			String userName = headerInputJsonData.get("userName").toString();
+			long categoryId = (long) headerInputJsonData.get("categoryId");
+			int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+			if (isUserAuthorized == 1) {
+				if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
+					List<Object> categoryList = new ArrayList<Object>();
+					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+				            .must(QueryBuilders.termQuery("_id",categoryId));
+					
+					SearchResponse response = client.prepareSearch("categories-1.12.6")
+							   .setTypes("category")
+							   .setQuery(categoryQuery)									
+							   .execute()
+							   .actionGet();	
+					
+					 SearchHit[] searchHits = response.getHits().getHits();
+					 for(int i=0;i<searchHits.length;i++){
+						 categoryList.add(searchHits[i].getSource());
+					 }
+					 
+			return new Reply(200,"success",categoryList);
+		
+			} else {
+				errorLog.warn("categoryId you mentioned was invalid");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("categoryId "+ categoryId+" you mentioned was invalid",null);
+			}
+		} else {
+			exception = new HandleException();
+			return exception.accessTokenException(isUserAuthorized);
+		}
+		
+		} 
+		catch (NullPointerException nullPointer) {
+			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("apiKey or manufacturerId spelled Incorrectly or mention necessary fields",null);
+		}
+		catch (ParseException parse) {
+			errorLog.warn("Specify your requirement in requiredFeilds as array of string");
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Specify your requirement in requiredFeilds as array of string",null);
+		}
+		catch (ClassCastException classCast) {
+			errorLog.warn("Please check the values data types");
+			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+		}
+		catch (IndexNotFoundException indexNotFound) {
+			errorLog.warn("Index for which you are searching is not found");
+			exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
+			return exception.getException("Index for which you are searching is not found",null);
+		}
+		catch (Exception e) {
+			if(e instanceof IllegalArgumentException){
+				errorLog.warn("Specify date format correctly and it should not be null");
+				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
+				return exception.getException("Specify date format correctly and it should not be null",null);
+			} else {
+				e.printStackTrace();
+				errorLog.warn("Internal server connection error");
+				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+				return exception.getException("Internal server connection error",null);
+			}
+		} 
+		
+		
 		
 	}
 

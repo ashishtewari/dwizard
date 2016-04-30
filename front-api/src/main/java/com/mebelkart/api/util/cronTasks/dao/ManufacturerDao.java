@@ -11,6 +11,7 @@ import java.sql.Statement;
 
 import org.elasticsearch.client.Client;
 
+import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.factories.ElasticFactory;
 
 
@@ -34,7 +35,7 @@ public class ManufacturerDao {
 	public ManufacturerDao() throws SQLException{
 		 try {
 			Class.forName("com.mysql.jdbc.Driver");
-			sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mebelkart_prod", "root", "root");
+			sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -65,6 +66,31 @@ public class ManufacturerDao {
 		return manufacturerDetailsResultSet;
 		
 	}
+	
+	public ResultSet getManufacturerBankAccountInfoDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_bank_account_info where ps_manufacturer_bank_account_info.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
+	public ResultSet getManufacturerLangDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_lang where ps_manufacturer_lang.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
+	public ResultSet getManufacturerProfileDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_profile where ps_manufacturer_profile.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
 	
 	public ResultSet getManufacturerProductDetails(Integer manufacturerId) throws SQLException{
 		Statement manufacturerDetailsStatement = sqlConnection.createStatement();

@@ -5,12 +5,14 @@ import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 
 import de.spinscale.dropwizard.jobs.JobsBundle;
+
 import org.skife.jdbi.v2.DBI;
 
 import com.github.rkmk.container.FoldingListContainerFactory;
 import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.resources.CategoryResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
@@ -66,6 +68,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
 		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
 		final ProductDao productDao =mebelkartProductsDatabaseConfiguration.onDemand(ProductDao.class);
+		final CategoryDao categoryDao = mebelkartProductsDatabaseConfiguration.onDemand(CategoryDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -80,7 +83,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new ProductResource(productDao));
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
-		environment.jersey().register(new CategoryResource());
+		environment.jersey().register(new CategoryResource(categoryDao));
 //		environment.jersey().register(new MobileResource(productDao));
 	}
 

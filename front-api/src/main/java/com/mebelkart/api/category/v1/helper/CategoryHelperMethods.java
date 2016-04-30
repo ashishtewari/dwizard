@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.category.v1;
+package com.mebelkart.api.category.v1.helper;
 
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;

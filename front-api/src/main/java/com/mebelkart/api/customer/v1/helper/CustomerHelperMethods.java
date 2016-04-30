@@ -183,7 +183,7 @@ public class CustomerHelperMethods {
 					+ "LEFT JOIN ps_message ON ps_message.id_customer=ps_customer.id_customer and ps_message.id_order=ps_orders.id_order";
 			orderByQueryString = orderByQueryString+"ORDER BY ps_message.id_message DESC";
 		}
-		
+		System.out.println("selectQueryString = " + selectQueryString);
 		selectQueryString = selectQueryString.substring(0, selectQueryString.length()-1); // removing the comma at the end of the string
 		queryStrings.add(selectQueryString);
 		queryStrings.add(joinQueryString.trim());

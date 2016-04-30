@@ -12,7 +12,36 @@ public class Manufacturer {
 	private Integer isCommisionableVendor;
 	private Integer isWholesaleVendor;
 	private ManufacturerCompanyInfo manufacturerCompanyInfo;
+	private ManufacturerBankAccountInfo manufacturerBankAccountInfo;
+	private ManufacturerLang manufacturerLang;
+	private ManufacturerProfile manufacturerProfile;
 	
+	
+	public ManufacturerBankAccountInfo getManufacturerBankAccountInfo() {
+		return manufacturerBankAccountInfo;
+	}
+
+	public void setManufacturerBankAccountInfo(
+			ManufacturerBankAccountInfo manufacturerBankAccountInfo) {
+		this.manufacturerBankAccountInfo = manufacturerBankAccountInfo;
+	}
+
+	public ManufacturerLang getManufacturerLang() {
+		return manufacturerLang;
+	}
+
+	public void setManufacturerLang(ManufacturerLang manufacturerLang) {
+		this.manufacturerLang = manufacturerLang;
+	}
+
+	public ManufacturerProfile getManufacturerProfile() {
+		return manufacturerProfile;
+	}
+
+	public void setManufacturerProfile(ManufacturerProfile manufacturerProfile) {
+		this.manufacturerProfile = manufacturerProfile;
+	}
+
 	public Manufacturer(Integer manufacturerId, String name, Date dateAdd,
 			Date dateUpd, boolean active, String email,
 			Integer isCommisionableVendor, Integer isWholesaleVendor,
