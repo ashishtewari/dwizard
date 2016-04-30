@@ -36,25 +36,28 @@ public class JedisIndex extends Job {
 		try {
 			JedisDao jedisDaoObject = new JedisDao();
 			/**
-			 * getting all consumer names from db and checking whether they are redis indexed
-			 * If it is so then we are getting the currentCount of the user and
+			 * getting all redis indexed keys and then we are getting the currentCount of the user and
 			 * updating it in mk_api_statics table and 
 			 * then later updating the currentCount of the user to 0 in redis
-			 */			
-			ResultSet allConsumerNames = jedisDaoObject.getAllConsumerNames();
+			 */	
 			Jedis tempJedis = pool.getResource();
-			while(allConsumerNames.next()){
-				int customerId = allConsumerNames.getInt("id");
-				String customerName = allConsumerNames.getString("a_user_name");
-				if(tempJedis.exists(MD5Encoding.encrypt(customerName))){
+			Set<String> keys = tempJedis.keys("*");
+			for(String key: keys){
+				String customerName = tempJedis.hget(key, "userName");
+				int customerId = 0;
+				ResultSet consumerIds = jedisDaoObject.getConsumerId(customerName);
+				while(consumerIds.next()){
+					customerId = consumerIds.getInt("id");
+				}
+				if(customerId != 0){
 					// getting previous day count
-					int dayCount = Integer.parseInt(tempJedis.hget(customerName,"currentCount"));
+					int dayCount = Integer.parseInt(tempJedis.hget(key,"currentCount"));
 					// getting previous days date and time
 					String previousDate = new HelperMethods().getYesterdayDateString();
 					// updating this details in mk_api_statics table
 					jedisDaoObject.updateHitsAndDate(customerId,dayCount,previousDate);
 					// updating currentCount of this user to 0
-					tempJedis.hset(MD5Encoding.encrypt(customerName), "currentCount","0");
+					tempJedis.hset(key, "currentCount","0");
 				}
 			}
 			/**
@@ -103,6 +106,7 @@ public class JedisIndex extends Job {
 					customerName = MD5Encoding.encrypt(customerName); // Here it is encoded
 					Set<String> resourceKeys = resourcePermissions.keySet();
 					if (getFunctionNames.length() > 0) {
+						jedis.hset(customerName, "userName", userName);
 						jedis.hset(customerName, "accessToken",encryptedAccessToken);
 						for (String key : resourceKeys) {
 							jedis.hset(customerName, key,resourcePermissions.get(key));
@@ -206,11 +210,13 @@ public class JedisIndex extends Job {
 						jedis.del(MD5Encoding.encrypt(adminName));
 					}
 					// save to redis
+					String userName = adminName; // not endoded
 					String encryptedAccessToken = MD5Encoding
 							.encrypt(unIndexedAdminDetailsResultSet.getString("a_access_token"));
 					adminName = MD5Encoding.encrypt(adminName);
 					Set<String> resourceKeys = resourcePermissions.keySet();
 					if (getFunctions.length() > 0 || postFunctions.length() > 0 || putFunctions.length() > 0) {
+						jedis.hset(adminName, "userName", userName);
 						jedis.hset(adminName, "accessToken",encryptedAccessToken);
 						for (String key : resourceKeys) {
 							jedis.hset(adminName, key,

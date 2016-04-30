@@ -3,6 +3,7 @@
  */
 package com.mebelkart.api.util.factories;
 
+import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 
 import redis.clients.jedis.Jedis;
@@ -15,16 +16,12 @@ import redis.clients.jedis.exceptions.JedisException;
  */
 public class JedisFactory {
 
-	// address of your redis server
-	private static final String redisHost = "localhost";
-	private static final Integer redisPort = 6379;
-
 	// the jedis connection pool..
 	private static JedisPool pool = null;
 
 	public JedisFactory() {
 		// configure our pool connection
-		pool = new JedisPool(redisHost, redisPort);
+		pool = new JedisPool(mkApiConfiguration.getRedisHost(), mkApiConfiguration.getRedisPort());
 	}
 	
 	public JedisPool getJedisConnectionPool(){
@@ -36,7 +33,6 @@ public class JedisFactory {
 	public int validate(String user, String apikey, String resourceName, String method, String functionName) {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
-		String userName = user;
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
 		user = encode.encrypt(user);

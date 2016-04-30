@@ -11,6 +11,7 @@ import java.sql.Statement;
 
 import org.elasticsearch.client.Client;
 
+import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.factories.ElasticFactory;
 
 
@@ -34,7 +35,7 @@ public class ManufacturerDao {
 	public ManufacturerDao() throws SQLException{
 		 try {
 			Class.forName("com.mysql.jdbc.Driver");
-			sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mebelkart_prod", "root", "root");
+			sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}

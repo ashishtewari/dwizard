@@ -6,6 +6,9 @@ productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
 productClusterName: MK-FRONT-ALL
 
+redisHost: 127.0.0.1
+redisPort: 6379
+
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver

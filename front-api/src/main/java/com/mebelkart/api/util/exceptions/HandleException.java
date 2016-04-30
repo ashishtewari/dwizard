@@ -8,7 +8,6 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.util.classes.Reply;
 
 /**

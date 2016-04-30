@@ -33,6 +33,28 @@ public class mkApiConfiguration extends Configuration {
 	private static Integer productElasticPort;
 	@NotNull
 	private static String productClusterName;
+	@NotNull
+	private static String redisHost;
+	@NotNull
+	private static Integer redisPort;
+	
+	public static Integer getRedisPort() {
+		return redisPort;
+	}
+
+	public void setRedisPort(Integer redisPort) {
+		mkApiConfiguration.redisPort = redisPort;
+	}
+
+	@JsonProperty
+	public void setRedisHost(String redisHost) {
+		mkApiConfiguration.redisHost = redisHost;
+	}
+
+	@JsonProperty
+	public static String getRedisHost() {
+		return redisHost;
+	}
 
 	private static String mkProdUrl;
 	private static String mkProdUserName;
@@ -48,6 +70,22 @@ public class mkApiConfiguration extends Configuration {
 
 	public static String getMkProdPassword() {
 		return mkProdPassword;
+	}
+	
+	private static String mkAuthUrl;
+	private static String mkAuthUserName;
+	private static String mkAuthPassword;
+	
+	public static String getMkAuthDriverClass() {
+		return mkAuthUrl;
+	}
+
+	public static String getMkAuthUserName() {
+		return mkAuthUserName;
+	}
+
+	public static String getMkAuthPassword() {
+		return mkAuthPassword;
 	}
 	
 	/*
@@ -114,6 +152,12 @@ public class mkApiConfiguration extends Configuration {
 
 	@JsonProperty("apiAuthenticationDatabase")
 	public DataSourceFactory getApiAuthenticationDatabase() {
+		/*
+			Intializing prod databasae variables to access them in any other class
+		 */
+		mkApiConfiguration.mkAuthUrl = apiAuthenticationDatabase.getUrl();
+		mkApiConfiguration.mkAuthUserName = apiAuthenticationDatabase.getUser();
+		mkApiConfiguration.mkAuthPassword = apiAuthenticationDatabase.getPassword();
 		return apiAuthenticationDatabase;
 	}
 	@JsonProperty("apiAuthenticationDatabase")

@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.mebelkart.api.mkApiConfiguration;
+
 /**
  * @author Tinku
  *
@@ -19,7 +21,7 @@ public class JedisDao {
 
 	public JedisDao() throws ClassNotFoundException, SQLException  {		
 		Class.forName("com.mysql.jdbc.Driver");
-		sqlConnection = DriverManager.getConnection("jdbc:mysql://localhost:3306/mk_api", "root", "root");		
+		sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkAuthDriverClass(), mkApiConfiguration.getMkAuthUserName(), mkApiConfiguration.getMkAuthPassword());		
 	}
 
 	public Connection getSqlConnection() {
@@ -191,11 +193,11 @@ public class JedisDao {
 	 * @return
 	 * @throws SQLException
 	 */
-	public ResultSet getAllConsumerNames() throws SQLException {
-		Statement getConsumerDetails = sqlConnection.createStatement();
-        String query = "SELECT id,a_user_name FROM mk_api_consumer";
-        ResultSet allConsumerDetailResultSet = getConsumerDetails.executeQuery(query);
+	public ResultSet getConsumerId(String userName) throws SQLException {
+		Statement getConsumerId = sqlConnection.createStatement();
+        String query = "SELECT id FROM mk_api_consumer WHERE a_user_name = \""+userName+"\"";
+        ResultSet allConsumerIdsResultSet = getConsumerId.executeQuery(query);
 
-        return allConsumerDetailResultSet;
+        return allConsumerIdsResultSet;
 	}
 }

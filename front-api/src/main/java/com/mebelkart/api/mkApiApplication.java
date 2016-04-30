@@ -18,7 +18,6 @@ import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
 import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.exceptions.HandleNullRequest;
 
-import de.spinscale.dropwizard.jobs.JobsBundle;
 import io.dropwizard.Application;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
@@ -41,8 +40,8 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			/**
 			 *  Registering jobs bundle to run all cron jobs
 			 */
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Not Done ...........");
