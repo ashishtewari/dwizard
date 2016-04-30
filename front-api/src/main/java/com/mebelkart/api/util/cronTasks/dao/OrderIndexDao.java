@@ -29,11 +29,10 @@ public class OrderIndexDao {
      */
     public ResultSet getNewOrders() throws SQLException {
         Statement getOrdersStatement = sqlConnection.createStatement();;
-        String query = "SELECT * FROM ps_orders limit 50 offset 15000";
+        String query = "SELECT * FROM ps_orders as o";
         ResultSet allNewOrdersResultSet = getOrdersStatement.executeQuery(query);
 
         return allNewOrdersResultSet;
-
     }
 
     /**

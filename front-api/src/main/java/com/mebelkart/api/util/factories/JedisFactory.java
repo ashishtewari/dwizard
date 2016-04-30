@@ -3,6 +3,7 @@
  */
 package com.mebelkart.api.util.factories;
 
+import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
 
 import redis.clients.jedis.Jedis;
@@ -15,16 +16,12 @@ import redis.clients.jedis.exceptions.JedisException;
  */
 public class JedisFactory {
 
-	// address of your redis server
-	private static final String redisHost = "localhost";
-	private static final Integer redisPort = 6379;
-
 	// the jedis connection pool..
 	private static JedisPool pool = null;
 
 	public JedisFactory() {
 		// configure our pool connection
-		pool = new JedisPool(redisHost, redisPort);
+		pool = new JedisPool(mkApiConfiguration.getRedisHost(), mkApiConfiguration.getRedisPort());
 	}
 	
 	public JedisPool getJedisConnectionPool(){
@@ -36,7 +33,6 @@ public class JedisFactory {
 	public int validate(String user, String apikey, String resourceName, String method, String functionName) {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
-		String userName = user;
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
 		user = encode.encrypt(user);
@@ -53,9 +49,9 @@ public class JedisFactory {
 							// checks if he had access to this particular function
 							if(containsFunction(user,method,functionName)){
 								// checks for ratelimit
-								if (isBelowRateLimit(user, userName)) {
+								if (isBelowRateLimit(user)) {
 									// Api Permission Granted
-									incrementCurrentCount(userName);
+									incrementCurrentCount(user);
 									return 1;
 								} else {
 									// User's Rate Limit has Exceeded
@@ -202,22 +198,15 @@ public class JedisFactory {
 //		}
 //	}
 
-	public boolean isBelowRateLimit(String user, String userName) {
+	public boolean isBelowRateLimit(String user) {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			if (jedis.exists(userName+":accessCount")) {
-				if((currentCount(userName+":accessCount") < maxCount(user)) && currentCount(userName+":accessCount") > -1 && maxCount(user) > -1){
-					return true;
-				}else{
-					return false;
-				}
-			} else {
-				// setting temporary ratelimit counter based on userName for 1 day 10 min
-				// i.e.,87000 seconds and it expires after every 87000 seconds or when ever the redis is re-indexed after 24 hours i.e.,86400 seconds 
-				jedis.setex(userName+":accessCount", 87000, "0");
+			if((currentCount(user) < maxCount(user)) && currentCount(user) > -1 && maxCount(user) > -1){
 				return true;
-			}
+			}else{
+				return false;
+			}			
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -237,7 +226,9 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			jedis.incrBy(userName+":accessCount", 1);
+			int currentCount = currentCount(userName);
+			currentCount++;
+			jedis.hset(userName, "currentCount" ,currentCount+"");
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {
@@ -256,7 +247,7 @@ public class JedisFactory {
 		// get a jedis connection jedis connection pool
 		Jedis jedis = pool.getResource();
 		try {
-			return Integer.parseInt(jedis.get(userName));
+			return Integer.parseInt(jedis.hget(userName,"currentCount"));
 		} catch (JedisException e) {
 			// if something wrong happen, return it back to the pool
 			if (null != jedis) {

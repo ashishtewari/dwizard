@@ -121,7 +121,7 @@ public class OrderResource {
             for(int i=0;i<arrayLength;i++){
                 Order orderObj=allOrderDetail.get(i);
                 Integer currentOrderId=orderObj.getOrderId();
-                orderObj.setOrderDetails(orderDao.getSuborderDetail(currentOrderId));
+                 orderObj.setOrderDetails(orderDao.getSuborderDetail(currentOrderId));
             }
 
             String currentlyShowing;

@@ -8,7 +8,6 @@ import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mebelkart.api.mkApiApplication;
 import com.mebelkart.api.util.classes.Reply;
 
 /**
@@ -20,7 +19,7 @@ public class HandleException {
 	private int statusCode;
 	private String message;
 	HandleException exception = null;
-	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
+	static Logger errorLog = LoggerFactory.getLogger(HandleException.class);
 	
 	public HandleException() {
 		this.statusCode = 0;

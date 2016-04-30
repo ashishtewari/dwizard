@@ -41,10 +41,10 @@ public class ElasticFactory {
         	 *	Transport client
         	 */        	
         	Settings settings = Settings.settingsBuilder()
-        	        .put("cluster.name", "MK-FRONT-ALL")
+        	        .put("cluster.name", mkApiConfiguration.getProductClusterName())
         	        .build();
         	Client client = TransportClient.builder().settings(settings).build()
-        			.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("52.74.202.15"), 9300));
+        			.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(mkApiConfiguration.getProductElasticsearchHost()), mkApiConfiguration.getProductElasticPort()));
         	return client;
         }
         catch (Exception e){

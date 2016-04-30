@@ -26,7 +26,6 @@ import com.mebelkart.api.util.factories.ElasticFactory;
 import de.spinscale.dropwizard.jobs.Job;
 import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 
-@OnApplicationStart
 public class ManufacturerIndex extends Job{
 
 	Client elasticInstance = ElasticFactory.getElasticClient();

@@ -4,7 +4,6 @@ import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -15,7 +14,7 @@ public class mkApiConfiguration extends Configuration {
 	@Valid
 	@NotNull
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
-	private DataSourceFactory mebelkartProductsDatabase = new DataSourceFactory();
+	private DataSourceFactory mebelkartProductionDatabase = new DataSourceFactory();
 
 /*
 	These variables are declared static because we will be accessing these variables in elasticFactory
@@ -26,6 +25,36 @@ public class mkApiConfiguration extends Configuration {
 	private static String elasticsearchHost;
 	@NotNull
 	private static Integer elasticPort;
+	@NotNull
+	private static String clusterName;
+	@NotNull
+	private static String productElasticsearchHost;
+	@NotNull
+	private static Integer productElasticPort;
+	@NotNull
+	private static String productClusterName;
+	@NotNull
+	private static String redisHost;
+	@NotNull
+	private static Integer redisPort;
+	
+	public static Integer getRedisPort() {
+		return redisPort;
+	}
+
+	public void setRedisPort(Integer redisPort) {
+		mkApiConfiguration.redisPort = redisPort;
+	}
+
+	@JsonProperty
+	public void setRedisHost(String redisHost) {
+		mkApiConfiguration.redisHost = redisHost;
+	}
+
+	@JsonProperty
+	public static String getRedisHost() {
+		return redisHost;
+	}
 
 	private static String mkProdUrl;
 	private static String mkProdUserName;
@@ -35,26 +64,33 @@ public class mkApiConfiguration extends Configuration {
 		return mkProdUrl;
 	}
 
-	public static void setMkProdDriverClass(String mkProdDriverClass) {
-		mkApiConfiguration.mkProdUrl = mkProdDriverClass;
-	}
-
 	public static String getMkProdUserName() {
 		return mkProdUserName;
-	}
-
-	public static void setMkProdUserName(String mkProdUserName) {
-		mkApiConfiguration.mkProdUserName = mkProdUserName;
 	}
 
 	public static String getMkProdPassword() {
 		return mkProdPassword;
 	}
-
-	public static void setMkProdPassword(String mkProdPassword) {
-		mkApiConfiguration.mkProdPassword = mkProdPassword;
+	
+	private static String mkAuthUrl;
+	private static String mkAuthUserName;
+	private static String mkAuthPassword;
+	
+	public static String getMkAuthDriverClass() {
+		return mkAuthUrl;
 	}
 
+	public static String getMkAuthUserName() {
+		return mkAuthUserName;
+	}
+
+	public static String getMkAuthPassword() {
+		return mkAuthPassword;
+	}
+	
+	/*
+	 * local elastic getters setters
+	 */		
 	public static Integer getElasticPort() {
 		return elasticPort;
 	}
@@ -63,20 +99,9 @@ public class mkApiConfiguration extends Configuration {
 		mkApiConfiguration.elasticPort = elasticPort;
 	}
 
-	@NotNull
-	private static String clusterName;
-
 	@JsonProperty
 	public void setElasticsearchHost(String elasticsearchHost) {
-//		System.out.println("mebelkart database user name "+mebelkartProductsDatabase.getUser());
-//		System.out.println("mebelkart database user PASS "+mebelkartProductsDatabase.getPassword());
-//		System.out.println("mebelkart db driver class "+mebelkartProductsDatabase.getDriverClass());
 		mkApiConfiguration.elasticsearchHost = elasticsearchHost;
-	}
-
-	@JsonProperty
-	public void setClusterName(String clusterName) {
-		mkApiConfiguration.clusterName = clusterName;
 	}
 
 	@JsonProperty
@@ -85,30 +110,72 @@ public class mkApiConfiguration extends Configuration {
 	}
 
 	@JsonProperty
+	public void setClusterName(String clusterName) {
+		mkApiConfiguration.clusterName = clusterName;
+	}
+
+	@JsonProperty
 	public static String getClusterName() {
 		return clusterName;
+	}
+	
+	/*
+	 * Products elastic getters setters
+	 */	
+	public static Integer getProductElasticPort() {
+		return productElasticPort;
+	}
+
+	public void setProductElasticPort(Integer productElasticsearchPort) {
+		mkApiConfiguration.productElasticPort = productElasticsearchPort;
+	}
+	
+	@JsonProperty
+	public void setProductElasticsearchHost(String productElasticSearchHost) {
+		mkApiConfiguration.productElasticsearchHost = productElasticSearchHost;
+	}
+
+	@JsonProperty
+	public static String getProductElasticsearchHost() {
+		return productElasticsearchHost;
+	}
+
+	@JsonProperty
+	public void setProductClusterName(String productElasticSearchClusterName) {
+		mkApiConfiguration.productClusterName = productElasticSearchClusterName;
+	}
+
+	@JsonProperty
+	public static String getProductClusterName() {
+		return productClusterName;
 	}
 
 	@JsonProperty("apiAuthenticationDatabase")
 	public DataSourceFactory getApiAuthenticationDatabase() {
+		/*
+			Intializing prod databasae variables to access them in any other class
+		 */
+		mkApiConfiguration.mkAuthUrl = apiAuthenticationDatabase.getUrl();
+		mkApiConfiguration.mkAuthUserName = apiAuthenticationDatabase.getUser();
+		mkApiConfiguration.mkAuthPassword = apiAuthenticationDatabase.getPassword();
 		return apiAuthenticationDatabase;
 	}
 	@JsonProperty("apiAuthenticationDatabase")
 	public void setDatabase1(DataSourceFactory apiAuthenticationDatabase) {
 		this.apiAuthenticationDatabase = apiAuthenticationDatabase;
 	}
-	@JsonProperty("mebelkartProductsDatabase")
+	@JsonProperty("mebelkartProductionDatabase")
 	public DataSourceFactory getMebelkartProductsDatabase() {
-		mkApiConfiguration.mkProdUrl=mebelkartProductsDatabase.getUrl();
-		mkApiConfiguration.mkProdUserName=mebelkartProductsDatabase.getUser();
-		mkApiConfiguration.mkProdPassword=mebelkartProductsDatabase.getPassword();
-		System.out.println("mebelkart database user name "+mkProdUrl);
-		System.out.println("mebelkart database user PASS "+mkProdUserName);
-		System.out.println("mebelkart db driver class "+mkProdPassword);
-		return mebelkartProductsDatabase;
+		/*
+			Intializing prod databasae variables to access them in any other class
+		 */
+		mkApiConfiguration.mkProdUrl=mebelkartProductionDatabase.getUrl();
+		mkApiConfiguration.mkProdUserName=mebelkartProductionDatabase.getUser();
+		mkApiConfiguration.mkProdPassword=mebelkartProductionDatabase.getPassword();
+		return mebelkartProductionDatabase;
 	}
-	@JsonProperty("mebelkartProductsDatabase")
-	public void setDatabase2(DataSourceFactory mebelkartProductsDatabase) {
-		this.mebelkartProductsDatabase = mebelkartProductsDatabase;
+	@JsonProperty("mebelkartProductionDatabase")
+	public void setDatabase2(DataSourceFactory mebelkartProductionDatabase) {
+		this.mebelkartProductionDatabase = mebelkartProductionDatabase;
 	}
 }

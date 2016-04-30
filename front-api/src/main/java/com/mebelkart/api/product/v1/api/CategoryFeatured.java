@@ -57,4 +57,6 @@ public class CategoryFeatured {
     public void setChildren(Object children) {
         this.children = children;
     }
+
 }
+
