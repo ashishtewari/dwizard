@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
+
 import com.mebelkart.api.util.classes.ProductsPaginationReply;
 
 import org.elasticsearch.action.get.GetResponse;
@@ -41,6 +42,7 @@ import com.mebelkart.api.util.helpers.Helper;
 @Path("/v1.0/products")
 @Produces({MediaType.APPLICATION_JSON})
 public class ProductResource {
+
 	ProductDao productDao;
 
 	public ProductResource(ProductDao productDao) {
@@ -62,7 +64,7 @@ public class ProductResource {
 	 * Getting redis client
 	 */
 	JedisFactory jedisAuthentication = new JedisFactory();
-	
+
 	/**
 	 * Helper class from utils
 	 */
@@ -614,7 +616,4 @@ public class ProductResource {
 		}
 
 	}
-
-
-
 }

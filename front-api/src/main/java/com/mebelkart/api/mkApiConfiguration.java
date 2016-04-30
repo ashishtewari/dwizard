@@ -4,7 +4,6 @@ import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -34,10 +33,26 @@ public class mkApiConfiguration extends Configuration {
 	private static Integer productElasticPort;
 	@NotNull
 	private static String productClusterName;
+
+	private static String mkProdUrl;
+	private static String mkProdUserName;
+	private static String mkProdPassword;
+
+	public static String getMkProdDriverClass() {
+		return mkProdUrl;
+	}
+
+	public static String getMkProdUserName() {
+		return mkProdUserName;
+	}
+
+	public static String getMkProdPassword() {
+		return mkProdPassword;
+	}
 	
 	/*
 	 * local elastic getters setters
-	 */	
+	 */		
 	public static Integer getElasticPort() {
 		return elasticPort;
 	}
@@ -45,7 +60,7 @@ public class mkApiConfiguration extends Configuration {
 	public void setElasticPort(Integer elasticPort) {
 		mkApiConfiguration.elasticPort = elasticPort;
 	}
-	
+
 	@JsonProperty
 	public void setElasticsearchHost(String elasticsearchHost) {
 		mkApiConfiguration.elasticsearchHost = elasticsearchHost;
@@ -107,6 +122,12 @@ public class mkApiConfiguration extends Configuration {
 	}
 	@JsonProperty("mebelkartProductionDatabase")
 	public DataSourceFactory getMebelkartProductsDatabase() {
+		/*
+			Intializing prod databasae variables to access them in any other class
+		 */
+		mkApiConfiguration.mkProdUrl=mebelkartProductionDatabase.getUrl();
+		mkApiConfiguration.mkProdUserName=mebelkartProductionDatabase.getUser();
+		mkApiConfiguration.mkProdPassword=mebelkartProductionDatabase.getPassword();
 		return mebelkartProductionDatabase;
 	}
 	@JsonProperty("mebelkartProductionDatabase")

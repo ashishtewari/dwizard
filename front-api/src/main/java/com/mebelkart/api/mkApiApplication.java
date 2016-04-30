@@ -4,6 +4,7 @@ import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 
+import de.spinscale.dropwizard.jobs.JobsBundle;
 import org.skife.jdbi.v2.DBI;
 
 import com.github.rkmk.container.FoldingListContainerFactory;
@@ -41,7 +42,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			 *  Registering jobs bundle to run all cron jobs
 			 */
 //			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
-			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
+//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Not Done ...........");
