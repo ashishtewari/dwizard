@@ -2,6 +2,13 @@ elasticsearchHost: 127.0.0.1
 elasticPort: 9300
 clusterName: elasticsearch
 
+productElasticsearchHost: 52.74.202.15
+productElasticPort: 9300
+productClusterName: MK-FRONT-ALL
+
+redisHost: 127.0.0.1
+redisPort: 6379
+
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver
@@ -11,7 +18,7 @@ apiAuthenticationDatabase:
     password: root
     # the JDBC URL; the database is called DWGettingStarted
     url: jdbc:mysql://localhost:3306/mk_api
-mebelkartProductsDatabase:
+mebelkartProductionDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver
     # the username

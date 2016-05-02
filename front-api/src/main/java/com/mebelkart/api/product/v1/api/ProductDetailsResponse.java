@@ -3,10 +3,6 @@
  */
 package com.mebelkart.api.product.v1.api;
 
-import java.util.List;
-
-import org.json.simple.JSONObject;
-
 /**
  * @author Tinku
  *
