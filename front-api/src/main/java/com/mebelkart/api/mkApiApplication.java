@@ -1,11 +1,17 @@
 package com.mebelkart.api;
 
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
 
 import de.spinscale.dropwizard.jobs.JobsBundle;
 
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
 import com.github.rkmk.container.FoldingListContainerFactory;
@@ -55,6 +61,18 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void run(final mkApiConfiguration configuration,final Environment environment) {
+		
+		 // Enable CORS headers
+	    final FilterRegistration.Dynamic cors =
+	        environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+
+	    // Configure CORS parameters
+	    cors.setInitParameter("allowedOrigins", "*");
+	    cors.setInitParameter("allowedHeaders", "*");
+	    cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+
+	    // Add URL mapping
+	    cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 		final DBIFactory factory = new DBIFactory();
 		/*
 		 * configuring the both admin database and products database.
