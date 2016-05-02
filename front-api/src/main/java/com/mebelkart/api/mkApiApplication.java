@@ -45,7 +45,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			 */
 
 //			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Not Done ...........");
