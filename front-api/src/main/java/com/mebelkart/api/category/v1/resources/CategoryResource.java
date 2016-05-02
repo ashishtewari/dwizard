@@ -31,6 +31,7 @@ import com.github.rkmk.container.FoldingList;
 import com.mebelkart.api.category.v1.core.CategoryWrapper;
 import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
+import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
@@ -50,6 +51,7 @@ public class CategoryResource {
 	CategoryHelperMethods categoryHelperMethods = new CategoryHelperMethods();
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
 	HandleException exception = null;
+	InvalidInputReplyClass invalidRequestReply = null;
 	JSONParser parser = new JSONParser();
 	Client client = ElasticFactory.getProductsElasticClient();
 	
@@ -74,8 +76,8 @@ public class CategoryResource {
 				/*
 				 * validating the accesstoken given by user
 				 */
-			int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
-			if (isUserAuthorized == 1) {
+			try {
+				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
 				/*
 				 * checking whether given categoryId is valid or not
 				 */
@@ -101,9 +103,10 @@ public class CategoryResource {
 				}
 				
 					return new Reply(200,"success",categoryList);
-			} else {
-				exception = new HandleException();
-				return exception.accessTokenException(isUserAuthorized);
+			} catch(Exception e) {
+				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
 			}
 		}
 		catch (NullPointerException nullPointer) {
@@ -151,8 +154,8 @@ public class CategoryResource {
 			String accessToken = headerInputJsonData.get("apiKey").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 			long categoryId = (long) headerInputJsonData.get("categoryId");
-			int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
-			if (isUserAuthorized == 1) {
+			try{
+				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
 				if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
 					List<Object> categoryList = new ArrayList<Object>();
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
@@ -176,9 +179,10 @@ public class CategoryResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("categoryId "+ categoryId+" you mentioned was invalid",null);
 			}
-		} else {
-			exception = new HandleException();
-			return exception.accessTokenException(isUserAuthorized);
+		}  catch(Exception e) {
+			errorLog.info("Unautherized user "+userName+" tried to access getCategoryDetails function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+			return invalidRequestReply;
 		}
 		
 		} 
