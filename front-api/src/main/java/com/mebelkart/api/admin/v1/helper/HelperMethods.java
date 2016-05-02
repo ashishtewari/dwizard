@@ -16,15 +16,14 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.elasticsearch.common.Base64;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.exceptions.HandleException;
-import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 
 /**
@@ -188,5 +187,20 @@ public class HelperMethods {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DATE, -1);    
         return dateFormat.format(cal.getTime());
+	}
+
+	/**
+	 * @param apikey
+	 * @return
+	 */
+	public String getBase64Decoded(String apikey) {
+		byte[] valueDecoded = null;
+		try {
+			valueDecoded = Base64.decode(apikey );
+		} catch (IOException e) {
+			System.out.println("Exception occurred in base64 decoding");
+			e.printStackTrace();
+		}
+		return new String(valueDecoded);
 	}
 }
