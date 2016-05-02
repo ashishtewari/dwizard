@@ -16,7 +16,6 @@ import javax.ws.rs.core.Response;
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-
 import com.mebelkart.api.util.classes.ProductsPaginationReply;
 
 import org.elasticsearch.action.get.GetResponse;
@@ -83,8 +82,8 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllProducts");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllProducts");
 						int page  = Integer.parseInt((String) jsonData.get("page"));
 						int perPage = Integer.parseInt((String) jsonData.get("limit"));
 						int start = ((page - 1) * perPage) + 1;
@@ -121,9 +120,9 @@ public class ProductResource {
 						}
 						System.out.println("Number of hits "+searchHits.length);
 						return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -141,7 +140,8 @@ public class ProductResource {
 			log.info("Invalid pageNumber/limit given in getAllProducts functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getAllProducts function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -170,8 +170,8 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
 						int category = Integer.parseInt((String) jsonData.get("categoryId"));
 						int page  = Integer.parseInt((String) jsonData.get("page"));
 						int perPage = Integer.parseInt((String) jsonData.get("limit"));
@@ -212,9 +212,9 @@ public class ProductResource {
 						}
 						System.out.println("Number of hits "+searchHits.length);
 						return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListByCategory function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -232,7 +232,8 @@ public class ProductResource {
 			log.info("Invalid pageNumber/limit given in getProductsListByCategory functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getProductsListByCategory function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -263,8 +264,8 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductDetail");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductDetail");
 						GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 						ProductDetailsResponse prodDetails = new ProductDetailsResponse();
 						Map<String,Object> source = response.getSource();
@@ -295,9 +296,9 @@ public class ProductResource {
 						prodDetails.setTotalReviews(0);
 						prodDetails.setTotalReviewsCount(0);
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), prodDetails);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -315,7 +316,8 @@ public class ProductResource {
 			log.info("Invalid product id given in getProductDetail functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getProductDetail function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -380,8 +382,8 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getSellingPrice");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getSellingPrice");
 						GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 						Map<String,String> productsDetails = new HashMap<String,String>();
 						Map<String,Object> source = response.getSource();
@@ -390,9 +392,9 @@ public class ProductResource {
 						productsDetails.put("ourPrice",(Integer)categoryVars.get("price_tax_exc")+"");
 						productsDetails.put("emiPrice","https://www.mebelkart.com/getEMIForProduct/"+(String)categoryVars.get("id_product")+"?mode=json");
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -410,7 +412,8 @@ public class ProductResource {
 			log.info("Invalid product id given in getSellingPrice functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getSellingPrice function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -433,8 +436,8 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdDesc");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdDesc");
 						GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 						Map<String,String> productsDetails = new HashMap<String,String>();
 						Map<String,Object> source = response.getSource();
@@ -442,9 +445,9 @@ public class ProductResource {
 						productsDetails.put("productName",(String)categoryVars.get("name"));
 						productsDetails.put("productDesc",(String)categoryVars.get("description"));
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdDesc function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -461,7 +464,8 @@ public class ProductResource {
 			log.info("Invalid product id given in getProdDesc functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getProdDesc function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -484,17 +488,17 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdAttr");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdAttr");
 						GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 						Map<String,Object> productsDetails = new HashMap<String,Object>();
 						Map<String,Object> source = response.getSource();
 						productsDetails.put("attributes",(Object)source.get("attributes"));
 						productsDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdAttr function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -511,7 +515,8 @@ public class ProductResource {
 			log.info("Invalid product id given in getProdAttr functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getProdAttr function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -534,16 +539,16 @@ public class ProductResource {
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
-					int isUserAuthorized = jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFeature");
-					if(isUserAuthorized == 1){
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFeature");
 						GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 						Map<String,Object> productsDetails = new HashMap<String,Object>();
 						Map<String,Object> source = response.getSource();
 						productsDetails.put("features",(Object)source.get("features"));
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
-					}else{
+					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdFeature function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), helper.accessControlResponse(isUserAuthorized));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 				}else{
@@ -560,7 +565,8 @@ public class ProductResource {
 			log.info("Invalid product id given in getProdFeature functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
-		}catch(Exception e){
+		}
+		catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getProdFeature function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
@@ -572,42 +578,60 @@ public class ProductResource {
 	@GET
 	@Path("/featured")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Object getFeaturedProduct() {
+	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
-			String configVarName = "HOME_SUB_CATEGORY_IDS";
-			String categoryIds = productDao.getConfigVarValue(configVarName);
-			List<CategoryFeatured> categoryList=new ArrayList<>();
+			if(isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try{
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "featured");
+						String configVarName = "HOME_SUB_CATEGORY_IDS";
+						String categoryIds = productDao.getConfigVarValue(configVarName);
+						List<CategoryFeatured> categoryList=new ArrayList<>();
+						for (String catId : categoryIds.split(",")) {
+							GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
+									.execute()
+									.actionGet();
+							String catName=productDao.getNameOfCategory(catId);
 
-			for (String catId : categoryIds.split(",")) {
-				GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
-						.execute()
-						.actionGet();
-				String catName=productDao.getNameOfCategory(catId);
+							Map<String,Object> source = response.getSource();
 
-				Map<String,Object> source = response.getSource();
+							List<Object> listOfProducts=(List<Object>) source.get("products");
+							for(Object product:listOfProducts){
+								HashMap<String,Object> product1=(HashMap<String,Object>) product;
+								String imageUrl="https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg";
 
-				List<Object> listOfProducts=(List<Object>) source.get("products");
-				for(Object product:listOfProducts){
-					HashMap<String,Object> product1=(HashMap<String,Object>) product;
-					String imageUrl="https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg";
+								HashMap<String,String> image=new HashMap<>();
+								image.put("appImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg");
+								image.put("webImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-large/"+product1.get("link_rewrite")+".jpg");
+								product1.put("image",image);
+								product1.put("type","product");
+								product=product1;
+							}
 
-					HashMap<String,String> image=new HashMap<>();
-					image.put("appImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-home/"+product1.get("link_rewrite")+".jpg");
-					image.put("webImageUrl","https://cdn1.mebelkart.com/"+product1.get("id_image")+"-large/"+product1.get("link_rewrite")+".jpg");
-					product1.put("image",image);
-					product1.put("type","product");
-					product=product1;
+							CategoryFeatured categoryReply=new CategoryFeatured("category","",Integer.valueOf(catId),catName,listOfProducts);
+							categoryList.add(categoryReply);
+
+						}
+						Reply featuredReply=new Reply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),categoryList);
+						return featuredReply;
+					}catch(Exception e){
+						log.info("Unautherized user "+userName+" tried to access featured function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+				}else{
+					log.info("Invalid header keys provided to access featured function in products resource");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
 				}
-
-				CategoryFeatured categoryReply=new CategoryFeatured("category","",Integer.valueOf(catId),catName,listOfProducts);
-				categoryList.add(categoryReply);
-
+			}else{
+				log.info("Invalid header json provided to access featured function in products resource");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				return invalidRequestReply;
 			}
-
-			Reply featuredReply=new Reply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),categoryList);
-
-			return featuredReply;
-
 		} catch (Exception e) {
 			InvalidInputReplyClass errorOccured=new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Some error occured while serving request");
 			e.printStackTrace();

@@ -2,15 +2,21 @@ package com.mebelkart.api.order.v1.resources;
 
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
+import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
+import com.mebelkart.api.util.factories.JedisFactory;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -21,118 +27,135 @@ import java.util.List;
 @Path("/v1.0/order")
 public class OrderResource {
     OrderDao orderDao;
+    /**
+	 * Getting redis client
+	 */
+	JedisFactory jedisAuthentication = new JedisFactory();
+	/**
+	 * Get actual class name to be printed on log files
+	 */
+	static Logger log = LoggerFactory.getLogger(OrderResource.class);
 
     public OrderResource(OrderDao orderDao) {
         this.orderDao = orderDao;
     }
 
     @GET
-    @Path("/all")
+    @Path("/getAllOrders")
     @Produces({ MediaType.APPLICATION_JSON })
     public Object getAllOrders(@HeaderParam("filterParam") String headerParam)
     {
         try {
             JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
-            SimpleDateFormat formatter = new SimpleDateFormat("dd-M-yyyy HH:mm:SS");
-            String whereQuery="";
-            Date fromDate=null;
-            Date toDate=null;
-            Integer merchantId=null;
-            String statusRequired=null;
-            Integer orderId=null;
-            Integer offset=null;//offset is for pagination from where we have to display output
-            Integer currentPageNum=null;
+            String userName = (String) headerParamJson.get("userName");
+			String accessToken = (String) headerParamJson.get("accessToken");
+            try{
+            	jedisAuthentication.validate(userName,accessToken, "orders", "get", "getAllOrders");
+            	SimpleDateFormat formatter = new SimpleDateFormat("dd-M-yyyy HH:mm:SS");
+                String whereQuery="";
+                Date fromDate=null;
+                Date toDate=null;
+                Integer merchantId=null;
+                String statusRequired=null;
+                Integer orderId=null;
+                Integer offset=null;//offset is for pagination from where we have to display output
+                Integer currentPageNum=null;
 
-            /*
-                Will check for every key if it is present then add it to where condition otherwise not
-             */
-
-            if(headerParamJson.containsKey("from")) {
-                fromDate = formatter.parse((String) headerParamJson.get("from"));
-                whereQuery+=" o.date_add >= :fromDate";
-            }
-            if(headerParamJson.containsKey("to")){
-                toDate = formatter.parse((String) headerParamJson.get("to"));
                 /*
-                    To check whether any where query is already present if yes then append and and write new where condition
+                    Will check for every key if it is present then add it to where condition otherwise not
                  */
 
-                if(whereQuery!=""){
-                    whereQuery+=" and ";
+                if(headerParamJson.containsKey("from")) {
+                    fromDate = formatter.parse((String) headerParamJson.get("from"));
+                    whereQuery+=" o.date_add >= :fromDate";
                 }
-                whereQuery+="o.date_add <= :toDate";
-//                System.out.println("to value :"+toDate);
-            }
-            if(headerParamJson.containsKey("merchant")){
-                merchantId= (Integer) headerParamJson.get("merchant");
+                if(headerParamJson.containsKey("to")){
+                    toDate = formatter.parse((String) headerParamJson.get("to"));
+                    /*
+                        To check whether any where query is already present if yes then append and and write new where condition
+                     */
 
-            }
-            if(headerParamJson.containsKey("status")){
-                /*
-                    To perform case insensitive comparision
-                 */
-                statusRequired=((String) headerParamJson.get("status")).toLowerCase();
-                if(whereQuery!=""){
-                    whereQuery+=" and ";
-                }
-                whereQuery+="LOWER(status_name)= :statusRequired";
-            }
-            if(headerParamJson.containsKey("orderId")){
-                try {
-                    orderId = Integer.parseInt((String) headerParamJson.get("orderId"));
                     if(whereQuery!=""){
                         whereQuery+=" and ";
                     }
-                    whereQuery+=" o.id_order= :orderId ";
+                    whereQuery+="o.date_add <= :toDate";
+//                    System.out.println("to value :"+toDate);
                 }
-                catch (NumberFormatException e){
-//                    System.out.println("Invalid order id passed");
-                    InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Invalid Order Id passed please check your order id");
-                    return invalidOrderId;
+                if(headerParamJson.containsKey("merchant")){
+                    merchantId= (Integer) headerParamJson.get("merchant");
+
                 }
-            }
-            if(headerParamJson.containsKey("pageNum")){
-                try {
-                    currentPageNum=(Integer.parseInt((String) headerParamJson.get("pageNum")));
-                    offset = ((Integer.parseInt((String) headerParamJson.get("pageNum")))-1)*20;
-                    if(offset<0){
-                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pageNum as a valid integer number greater then 0");
+                if(headerParamJson.containsKey("status")){
+                    /*
+                        To perform case insensitive comparision
+                     */
+                    statusRequired=((String) headerParamJson.get("status")).toLowerCase();
+                    if(whereQuery!=""){
+                        whereQuery+=" and ";
+                    }
+                    whereQuery+="LOWER(status_name)= :statusRequired";
+                }
+                if(headerParamJson.containsKey("orderId")){
+                    try {
+                        orderId = Integer.parseInt((String) headerParamJson.get("orderId"));
+                        if(whereQuery!=""){
+                            whereQuery+=" and ";
+                        }
+                        whereQuery+=" o.id_order= :orderId ";
+                    }
+                    catch (NumberFormatException e){
+//                        System.out.println("Invalid order id passed");
+                        InvalidInputReplyClass invalidOrderId=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Invalid Order Id passed please check your order id");
+                        return invalidOrderId;
+                    }
+                }
+                if(headerParamJson.containsKey("pageNum")){
+                    try {
+                        currentPageNum=(Integer.parseInt((String) headerParamJson.get("pageNum")));
+                        offset = ((Integer.parseInt((String) headerParamJson.get("pageNum")))-1)*20;
+                        if(offset<0){
+                            InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pageNum as a valid integer number greater then 0");
+                            return invalidPageNum;
+                        }
+                    }
+                    catch (NumberFormatException num){
+                        InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pagenum as a valid integer number");
                         return invalidPageNum;
                     }
                 }
-                catch (NumberFormatException num){
-                    InvalidInputReplyClass invalidPageNum=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Please enter pagenum as a valid integer number");
-                    return invalidPageNum;
+                else {
+                    InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(Response.Status.PARTIAL_CONTENT.getStatusCode(),Response.Status.PARTIAL_CONTENT.getReasonPhrase(),"Please mention pageNum in input parameter as this api can contain large ouput set");
+                    return noPageNum;
                 }
-            }
-            else {
-                InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(Response.Status.PARTIAL_CONTENT.getStatusCode(),Response.Status.PARTIAL_CONTENT.getReasonPhrase(),"Please mention pageNum in input parameter as this api can contain large ouput set");
-                return noPageNum;
-            }
-            Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
-            if(offset>totalResultCount){
-                InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Page number exceeds limit");
-                return invalidPageNumber;
-            }
-            List<Order> allOrderDetail=orderDao.getAllOrders(whereQuery,fromDate,toDate,statusRequired,orderId,offset);
+                Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
+                if(offset>totalResultCount){
+                    InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Page number exceeds limit");
+                    return invalidPageNumber;
+                }
+                List<Order> allOrderDetail=orderDao.getAllOrders(whereQuery,fromDate,toDate,statusRequired,orderId,offset);
 
-            Integer arrayLength=allOrderDetail.size();
+                Integer arrayLength=allOrderDetail.size();
 
-            for(int i=0;i<arrayLength;i++){
-                Order orderObj=allOrderDetail.get(i);
-                Integer currentOrderId=orderObj.getOrderId();
-                 orderObj.setOrderDetails(orderDao.getSuborderDetail(currentOrderId));
-            }
+                for(int i=0;i<arrayLength;i++){
+                    Order orderObj=allOrderDetail.get(i);
+                    Integer currentOrderId=orderObj.getOrderId();
+                     orderObj.setOrderDetails(orderDao.getSuborderDetail(currentOrderId));
+                }
 
-            String currentlyShowing;
-            if(offset+20>totalResultCount) {
-                currentlyShowing=offset + " - " +totalResultCount;
+                String currentlyShowing;
+                if(offset+20>totalResultCount) {
+                    currentlyShowing=offset + " - " +totalResultCount;
+                }
+                else {
+                    currentlyShowing = offset + " - " + (offset + 20);
+                }
+                PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
+                return orderPaginationResult;
+            }catch(Exception e){
+            	log.info("Unautherized user "+userName+" tried to access getAllOrders function");
+            	InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
             }
-            else {
-                currentlyShowing = offset + " - " + (offset + 20);
-            }
-            PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
-            return orderPaginationResult;
         } catch (ParseException e) {
             e.printStackTrace();
 //            System.out.println("Exception occured while parsing json string");

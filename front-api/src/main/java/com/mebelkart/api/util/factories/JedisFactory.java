@@ -30,7 +30,7 @@ public class JedisFactory {
 	}
 
 	@SuppressWarnings("static-access")
-	public int validate(String user, String apikey, String resourceName, String method, String functionName) {
+	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
 		MD5Encoding encode = new MD5Encoding();
@@ -52,34 +52,41 @@ public class JedisFactory {
 								if (isBelowRateLimit(user)) {
 									// Api Permission Granted
 									incrementCurrentCount(user);
-									return 1;
+									//return 1;
 								} else {
 									// User's Rate Limit has Exceeded
-									return -6;
+									//return -6;
+									throw new Exception("Your Rate Limit Exceeded");
 								}
 							}else{
 								// User doesn't have access to this function
-								return -5;
+								//return -5;
+								throw new Exception("You don't have access to this function");
 							}
 						} else {
 							// User doesn't have Access to this Method
-							return -4;
+							//return -4;
+							throw new Exception("You don't have Access to this Method");
 						}
 					} else {
 						// User doesn't have Access to this Resource
-						return -3;
+						//return -3;
+						throw new Exception("You don't have Access to this Resource");
 					}
 				} else {
 					// User is Not in Active State 
-					return -2;
+					//return -2;
+					throw new Exception("you are not in Active State");
 				}
 			}else{
 				// Not a Valid Access Token
-				return -1;
+				//return -1;
+				throw new Exception("You don't have Valid Access Token");
 			}
 		} else {
 			// Not a Valid User
-			return 0;
+			//return 0;
+			throw new Exception("you are not a Valid User");
 		}
 	}
 
