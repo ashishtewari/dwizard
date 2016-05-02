@@ -39,6 +39,7 @@ import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 
 /**
@@ -52,6 +53,7 @@ public class CustomerResource {
 	
 	CustomerDetailsDAO customerDetailsDao;
 	HandleException exception = null;
+	InvalidInputReplyClass invalidRequestReply = null;
 	CustomerHelperMethods helperMethods = null;
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null,bodyInputJsonData = null;
@@ -73,7 +75,7 @@ public class CustomerResource {
 	@GET
 	@Path("/getCustomerDetails")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Reply getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
+	public Object getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
 		
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
@@ -83,11 +85,11 @@ public class CustomerResource {
 				String userName = (String) headerInputJsonData.get("userName");
 				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				int isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "get","getCustomerDetails");
-					/*
-					 * validating the accesstoken given by user
-					 */
-				if (isAccessTokenValid == 1) {
+				try {
+						/*
+						 * validating the accesstoken given by user
+						 */
+					jedisCustomerAuthentication.validate(userName,accessToken, "customer", "get","getCustomerDetails");
 					    /*
 					     * checking whether the customerId is valid or not
 					     */
@@ -123,9 +125,10 @@ public class CustomerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
-				} else {
-					exception = new HandleException();
-					return exception.accessTokenException(isAccessTokenValid);
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access getCustomerDetails function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
 				}
 			} else {
 				errorLog.warn("The parameter which you specified is not in json format");
@@ -154,6 +157,7 @@ public class CustomerResource {
 					exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 					return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 				} else {
+					e.printStackTrace();
 					exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 					return exception.getException("Internal server error",null);
 				}
@@ -166,15 +170,16 @@ public class CustomerResource {
 	@Path("/addNewAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Reply addNewAddress(@Context HttpServletRequest request) throws ParseException{
+	public Object addNewAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			String userName = (String) bodyInputJsonData.get("userName");
-			int isAddressAdded=0,isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","addNewAddress");
-			long customerId = (long) bodyInputJsonData.get("customerId");
-				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
+			int isAddressAdded=0;
+			try{
+				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","addNewAddress");
+				long customerId = (long) bodyInputJsonData.get("customerId");
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
 						String isValidInputValues = helperMethods.validateInputValues(bodyInputJsonData);
 						     /*
@@ -201,9 +206,10 @@ public class CustomerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
-				} else {
-					exception = new HandleException();
-					return exception.accessTokenException(isAccessTokenValid);
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access addNewAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
 				}
 			} 	
 		catch (NullPointerException nullPointer) {
@@ -222,6 +228,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}
@@ -232,7 +239,7 @@ public class CustomerResource {
 	@Path("/updateAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Reply updateAddress(@Context HttpServletRequest request) throws ParseException{
+	public Object updateAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
 			String getUpdateDetails = "";
 			String splitUpdateDetails[]=null;
@@ -243,11 +250,11 @@ public class CustomerResource {
 			String userName = (String) bodyInputJsonData.get("userName");
 			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
-			int isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","updateAddress");
-				/*
-				 * validating the accesstoken given by user
-				 */
-				if (isAccessTokenValid == 1) { 
+			try {
+					/*
+					 * validating the accesstoken given by user
+					 */
+				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","updateAddress");
 						/*
 						 * checking whether the customerId is valid or not
 						 */
@@ -286,10 +293,11 @@ public class CustomerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
-				} else {
-					exception = new HandleException();
-					return exception.accessTokenException(isAccessTokenValid);
-					}
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access updateAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
 				} 	
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("apiKey or customerId or addressId spelled Incorrectly");
@@ -307,6 +315,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}
@@ -317,16 +326,17 @@ public class CustomerResource {
 	@Path("/deleteAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Reply deleteAddress(@Context HttpServletRequest request) throws ParseException{
+	public Object deleteAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			String userName = (String) bodyInputJsonData.get("userName");
-			int isAddressDeleted=0,isAccessTokenValid = jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put", "deleteAddress");
-			long customerId = (long) bodyInputJsonData.get("customerId");
-			long addressId = (long)bodyInputJsonData.get("addressId");
-				if (isAccessTokenValid == 1) { // validating the accesstoken given by user
+			int isAddressDeleted=0;
+			try{
+				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put", "deleteAddress");
+				long customerId = (long) bodyInputJsonData.get("customerId");
+				long addressId = (long)bodyInputJsonData.get("addressId");
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
 						/*
 						 * Below method if given addressId and customerId matches then  query runs and return 1 else return 0.
@@ -348,9 +358,10 @@ public class CustomerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("CustomerId "+ customerId+" you mentioned was invalid",null);
 					}
-				} else {
-					exception = new HandleException();
-					return exception.accessTokenException(isAccessTokenValid);
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access deleteAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
 				}
 			} 	
 		catch (NullPointerException nullPointer) {
@@ -369,6 +380,7 @@ public class CustomerResource {
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 				return exception.getException("Specify correct keys for the values as mentioned in CustomerReadme doc",null);
 			} else {
+				e.printStackTrace();
 				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
 				return exception.getException("Internal server error",null);
 			}

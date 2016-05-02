@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
 import com.mebelkart.api.util.helpers.Helper;
+import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.ManufacturerPaginationReply;
 import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
@@ -52,6 +53,7 @@ public class ManufacturerResource {
 	ManufacturerHelperMethods manufacturerHelperMethods = new ManufacturerHelperMethods();
 	Helper utilHelper = new Helper();
 	HandleException exception = null;
+	InvalidInputReplyClass invalidRequestReply = null;
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null;
 	JSONArray requiredFields;
@@ -79,8 +81,14 @@ public class ManufacturerResource {
 				 * get results from page zero.
 				 */
 				page = page-1;
-				int isUserAuthorized = jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
-				if (isUserAuthorized == 1) { // validating the accesstoken given by user
+				try {
+						/*
+						 * validating the accesstoken given by user
+						 */
+					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
+						/*
+						 * checking whether given manufacturerId is valid or not
+						 */
 					if(manufacturerHelperMethods.isManufacturerIdValid(manufacturerId,client)){
 						if(requiredFields.size() != 0){
 							String nowShowing = (page*paginationLimit+1)+"-"+(page*paginationLimit+paginationLimit);
@@ -208,9 +216,10 @@ public class ManufacturerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("manufacturerId "+ manufacturerId+" you mentioned was invalid",null);
 					}
-				} else {
-					exception = new HandleException();
-					return exception.accessTokenException(isUserAuthorized);
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerDetails function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
 				}
 			} else {
 				errorLog.warn("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
@@ -237,11 +246,6 @@ public class ManufacturerResource {
 			errorLog.warn("Index for which you are searching is not found");
 			exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
 			return exception.getException("Index for which you are searching is not found",null);
-		}
-		catch (ExecutionException parse) {
-			errorLog.warn("please specify page value greater or equal to 1");
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("please specify page value greater or equal to 1",null);
 		}
 		catch (Exception e) {
 			if(e instanceof IllegalArgumentException){

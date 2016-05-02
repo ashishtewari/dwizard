@@ -1,5 +1,10 @@
 package com.mebelkart.api;
 
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
@@ -7,7 +12,6 @@ import static org.eclipse.jetty.servlets.CrossOriginFilter.*;
 
 
 import de.spinscale.dropwizard.jobs.JobsBundle;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -15,6 +19,8 @@ import com.github.rkmk.container.FoldingListContainerFactory;
 import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.mebelkart.api.category.v1.dao.CategoryDao;
+import com.mebelkart.api.category.v1.resources.CategoryResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
@@ -50,6 +56,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			/**
 			 *  Registering jobs bundle to run all cron jobs
 			 */
+
 //			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
 //			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
@@ -72,7 +79,6 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 		// Add URL mapping
 		cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-
 		final DBIFactory factory = new DBIFactory();
 		/*
 		 * configuring the both admin database and products database.
@@ -87,6 +93,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final OrderDao orderDaoForOrderResource= mebelkartProductsDatabaseConfiguration.onDemand(OrderDao.class);
 		final ManufacturerDetailsDAO ManufacturerDao = mebelkartProductsDatabaseConfiguration.onDemand(ManufacturerDetailsDAO.class);
 		final ProductDao productDao =mebelkartProductsDatabaseConfiguration.onDemand(ProductDao.class);
+		final CategoryDao categoryDao = mebelkartProductsDatabaseConfiguration.onDemand(CategoryDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -101,6 +108,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new ProductResource(productDao));
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
+		environment.jersey().register(new CategoryResource(categoryDao));
 	}
 
 }

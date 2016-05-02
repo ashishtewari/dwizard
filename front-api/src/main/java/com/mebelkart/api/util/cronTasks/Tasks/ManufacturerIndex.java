@@ -14,11 +14,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mebelkart.api.util.cronTasks.classes.Manufacturer;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerAddresses;
+import com.mebelkart.api.util.cronTasks.classes.ManufacturerBankAccountInfo;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerCompanyInfo;
+import com.mebelkart.api.util.cronTasks.classes.ManufacturerLang;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerOrders;
 import com.mebelkart.api.util.cronTasks.classes.ManufacturerProducts;
+import com.mebelkart.api.util.cronTasks.classes.ManufacturerProfile;
 import com.mebelkart.api.util.cronTasks.dao.ManufacturerDao;
 import com.mebelkart.api.util.factories.ElasticFactory;
+
 import de.spinscale.dropwizard.jobs.Job;
 import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 
@@ -33,9 +37,9 @@ public class ManufacturerIndex extends Job{
 			ManufacturerDao manufacturerDao = new ManufacturerDao();
 			ResultSet manufacturerResultSet = manufacturerDao.getManufacturerDetails();
 			ObjectMapper pojoToJsonMapper = new ObjectMapper();
-			/*
-			 * Indexing all the manufacturers into elastic search
-			 */
+				/*
+				 * Indexing all the manufacturers into elastic search
+				 */
 			while(manufacturerResultSet.next()){
 				int totalAddresses=0,totalProducts=0,totalOrders=0;
 				Manufacturer manufacturer = new Manufacturer();
@@ -48,9 +52,11 @@ public class ManufacturerIndex extends Job{
 				manufacturer.setDateAdd(manufacturerResultSet.getDate("date_add"));
 				manufacturer.setDateUpd(manufacturerResultSet.getDate("date_upd"));
 				System.out.println("Indexing for manufacturerId "+manufacturerId+" started");
-				/*
-				 * getting company info of a manufacturer and setting that object to manufacturer
-				 */
+				
+				
+					/*
+					 * getting company info of a manufacturer and setting that object to manufacturer
+					 */
 				ResultSet manufacturerCompanyInfoResultSet = manufacturerDao.getManufacturerCompanyInfoDetails(manufacturerId);
 				ManufacturerCompanyInfo manufacturerCompanyInfo = null;
 				while(manufacturerCompanyInfoResultSet.next()){
@@ -62,10 +68,59 @@ public class ManufacturerIndex extends Job{
 					manufacturerCompanyInfo = new ManufacturerCompanyInfo(companyName, companyDescription, displayName, companyPolicy, isActive);
 					manufacturer.setManufacturerCompanyInfo(manufacturerCompanyInfo);
 				}
+				
+					/*
+					 * getting bank account info of a manufacturer and setting that object to manufacturer
+					 */
+				System.out.println("Indexing bankAccountInfo of manufacturerId "+manufacturerId+" started");
+				ResultSet manufacturerBankAccountInfoResultSet = manufacturerDao.getManufacturerBankAccountInfoDetails(manufacturerId);
+				ManufacturerBankAccountInfo manufacturerBankAccountInfo = null;
+				while(manufacturerBankAccountInfoResultSet.next()){
+					String accountName = manufacturerBankAccountInfoResultSet.getString("account_name");
+					String bankName = manufacturerBankAccountInfoResultSet.getString("bank_name");
+					Integer accountType = manufacturerBankAccountInfoResultSet.getInt("account_type");
+					String accountNumber = manufacturerBankAccountInfoResultSet.getString("account_number");
+					String branchCity = manufacturerBankAccountInfoResultSet.getString("branch_city");
+					String branchName = manufacturerBankAccountInfoResultSet.getString("branch_name");
+					String ifscCode = manufacturerBankAccountInfoResultSet.getString("ifsc_code");
+					boolean active = manufacturerBankAccountInfoResultSet.getBoolean("active");
+					manufacturerBankAccountInfo = new ManufacturerBankAccountInfo(manufacturerId, accountName, bankName, accountType, accountNumber, branchCity, ifscCode, active);
+					manufacturer.setManufacturerBankAccountInfo(manufacturerBankAccountInfo);
+				}
+					
+					/*
+					 * getting lang info of a manufacturer and setting that object to manufacturer
+					 */
+				System.out.println("Indexing lang of manufacturerId "+manufacturerId+" started");
+				ResultSet manufacturerLangResultSet = manufacturerDao.getManufacturerLangDetails(manufacturerId);
+				ManufacturerLang manufacturerLang = null;
+				while(manufacturerLangResultSet.next()){
+					Integer langId = manufacturerLangResultSet.getInt("id_lang");
+					String description = manufacturerLangResultSet.getString("description");
+					String shortDescription = manufacturerLangResultSet.getString("short_description");
+					String metaTitle = manufacturerLangResultSet.getString("meta_title");
+					String metaKeyWords = manufacturerLangResultSet.getString("meta_keywords");
+					String metaDescription = manufacturerLangResultSet.getString("meta_description");
+					manufacturerLang = new ManufacturerLang(manufacturerId, langId, description, shortDescription, metaTitle, metaKeyWords, metaDescription);
+					manufacturer.setManufacturerLang(manufacturerLang);
+				}
+				
+					/*
+					 * getting profile info of a manufacturer and setting that object to manufacturer
+					 */
+				System.out.println("Indexing profile of manufacturerId "+manufacturerId+" started");
+				ResultSet manufacturerProfileResultSet = manufacturerDao.getManufacturerProfileDetails(manufacturerId);
+				ManufacturerProfile manufacturerProfile = null;
+				while(manufacturerProfileResultSet.next()){
+					Integer manufacturerProfileId = manufacturerProfileResultSet.getInt("id_manufacturer_profile");
+					Integer employeeId = manufacturerProfileResultSet.getInt("id_employee");
+					manufacturerProfile = new ManufacturerProfile(manufacturerProfileId, employeeId, manufacturerId);
+					manufacturer.setManufacturerProfile(manufacturerProfile);
+				}
 	
-				/*
-				 * Indexing manufacturer personal details into manufacturer index of type personalDetails
-				 */
+					/*
+					 * Indexing manufacturer personal details into manufacturer index of type personalDetails
+					 */
 				 byte[] manufacturerJson = pojoToJsonMapper.writeValueAsBytes(manufacturer);
 	                IndexRequest manufacturerPresonalIndexRequest = new IndexRequest("manufacturer", "info", String.valueOf(manufacturerId))
 	                        .source(manufacturerJson);

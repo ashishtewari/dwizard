@@ -67,6 +67,31 @@ public class ManufacturerDao {
 		
 	}
 	
+	public ResultSet getManufacturerBankAccountInfoDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_bank_account_info where ps_manufacturer_bank_account_info.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
+	public ResultSet getManufacturerLangDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_lang where ps_manufacturer_lang.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
+	public ResultSet getManufacturerProfileDetails(Integer manufacturerId) throws SQLException{
+		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
+		String query = "select * from ps_manufacturer_profile where ps_manufacturer_profile.id_manufacturer="+manufacturerId;
+		ResultSet manufacturerDetailsResultSet = manufacturerDetailsStatement.executeQuery(query);
+		return manufacturerDetailsResultSet;
+		
+	}
+	
+	
 	public ResultSet getManufacturerProductDetails(Integer manufacturerId) throws SQLException{
 		Statement manufacturerDetailsStatement = sqlConnection.createStatement();
 		String query = "select ps_product.id_product,ps_product.id_category_default,ps_product.price,ps_product_lang.name,ps_product.id_manufacturer "

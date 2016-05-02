@@ -78,11 +78,16 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object getLoginDetails(@HeaderParam("loginDetails") String userDetails,@HeaderParam("accessToken") String apikey) {
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				int accessControl = hasAccessControl(apikey,"admin","get","login");
 				if(accessControl == 1){
+					userDetails = helper.getBase64Decoded(userDetails);
 					if(helper.isUserDetailsValidJson(userDetails) && helper.isUserDetailsContainsValidKeys(userDetails)){
 						JSONObject userDetailsObj = helper.jsonParser(userDetails);
 						String username = (String) userDetailsObj.get("userName");
@@ -209,6 +214,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object registerUser(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -337,6 +346,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object updatePermissions(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -454,6 +467,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object changeUserActiveStatus(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -544,6 +561,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object changeRateLimit(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -603,6 +624,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object getUsersStatus(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails) {
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && helper.isUserDetailsValidJson(userDetails)){
@@ -674,6 +699,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object getUserPrivileges(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails){
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && helper.isUserDetailsValidJson(userDetails)){
@@ -741,6 +770,10 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewResource(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -809,6 +842,10 @@ public class AdminResource {
 	public Object addNewFunction(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
 		int errors = 0;
 		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
