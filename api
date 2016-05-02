@@ -1,2 +1,2 @@
-echo "-----------Starting api server ------------------------";
+
 mvn clean install && java -jar front-api/target/front-api-1.0.0-SNAPSHOT.jar server front-api/src/main/resources/config.yml 
