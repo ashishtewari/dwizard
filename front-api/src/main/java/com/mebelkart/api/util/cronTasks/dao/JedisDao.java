@@ -53,7 +53,7 @@ public class JedisDao {
 	 */
 	public ResultSet getResourcePermissionsDetails(int consumerId) throws SQLException {
 		Statement getResourcePermissions = sqlConnection.createStatement();
-        String query = "SELECT a_resource_id,a_have_get_permission FROM mk_api_resources_consumer_permission WHERE a_consumer_id = "+consumerId;
+        String query = "SELECT a_resource_id,a_have_get_permission,a_have_post_permission,a_have_put_permission FROM mk_api_resources_consumer_permission WHERE a_consumer_id = "+consumerId;
         ResultSet allNewResourcePermissionResultSet = getResourcePermissions.executeQuery(query);
 
         return allNewResourcePermissionResultSet;
@@ -66,7 +66,7 @@ public class JedisDao {
 	 * @return
 	 * @throws SQLException
 	 */
-	public ResultSet getFunctionPermissionsDetails(int consumerId, int resourceId) throws SQLException {		
+	public ResultSet getFunctionPermissionsDetails(int consumerId, int resourceId, String method) throws SQLException {		
 		Statement getFunctionNames = sqlConnection.createStatement();
 		String query = "SELECT mk_api_functions.a_function_name FROM mk_api_functions INNER JOIN mk_api_resources_consumer_function_permission "
 				+ "ON "
@@ -74,7 +74,7 @@ public class JedisDao {
 				+ "WHERE "
 				+ "mk_api_resources_consumer_function_permission.a_consumer_id = "+consumerId+" "
 				+ "AND "
-				+ "mk_api_functions.a_type = \"get\" "
+				+ "mk_api_functions.a_type = \""+method+"\" "
 				+ "AND "
 				+ "mk_api_resources_consumer_function_permission.a_is_active = 1 "
 				+ "AND "

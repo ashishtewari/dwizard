@@ -65,14 +65,16 @@ public class JedisIndex extends Job {
 			 * redisIndexed or may be changed after last indexing
 			 */
 			ResultSet unIndexedConsumerDetailsResultSet = jedisDaoObject.getConsumerDetails();
-			List<String> indexedUserNames = new ArrayList<String>();
 			while (unIndexedConsumerDetailsResultSet.next()) {
 				int consumerId = unIndexedConsumerDetailsResultSet.getInt("id");
 				String customerName = unIndexedConsumerDetailsResultSet.getString("a_user_name");
+				System.out.println(customerName+" is unindexed");
 				// It returns the resource permissions result set of a single
 				// user based on consumer Id
 				ResultSet resourcePermissionsResultSet = jedisDaoObject.getResourcePermissionsDetails(consumerId);
-				String getFunctionNames = "";
+				String getFunctions = "";
+				String postFunctions = "";
+				String putFunctions = "";
 				HashMap<String, String> resourcePermissions = new HashMap<String, String>();
 				while (resourcePermissionsResultSet.next()) {
 					// It returns the unique resource id of specific user based on consumer Id
@@ -84,13 +86,45 @@ public class JedisIndex extends Job {
 						resourceName = resourceNameResultSet.getString("a_resource_name");
 					}
 					int haveGetPermission = resourcePermissionsResultSet.getInt("a_have_get_permission");
+					int havePostPermission = resourcePermissionsResultSet.getInt("a_have_post_permission");
+					int havePutPermission = resourcePermissionsResultSet.getInt("a_have_put_permission");
 					// if this resource having get permission is equal to 1 then we get all get function names
 					if (haveGetPermission == 1) {
-						resourcePermissions.put(resourceName, "get");
-						ResultSet functionPermssionsResultSet = jedisDaoObject.getFunctionPermissionsDetails(consumerId,resourceId);
+						if(resourcePermissions.containsKey(resourceName)){
+							String methodName = resourcePermissions.get(resourceName);
+							resourcePermissions.put(resourceName, methodName+",get");
+						}else
+							resourcePermissions.put(resourceName, "get");
+						ResultSet functionPermssionsResultSet = jedisDaoObject.getFunctionPermissionsDetails(consumerId,resourceId,"get");
 						while (functionPermssionsResultSet.next()) {
-							getFunctionNames = getFunctionNames + functionPermssionsResultSet.getString("a_function_name") + ",";
+							getFunctions = getFunctions + functionPermssionsResultSet.getString("a_function_name") + ",";
 						}
+					}
+					// if this resource having post permission is equal to 1 then we get all get function names
+					if (havePostPermission == 1) {
+						if(resourcePermissions.containsKey(resourceName)){
+							String methodName = resourcePermissions.get(resourceName);
+							resourcePermissions.put(resourceName, methodName+",post");
+						}else
+							resourcePermissions.put(resourceName, "post");
+						ResultSet functionPermssionsResultSet = jedisDaoObject.getFunctionPermissionsDetails(consumerId,resourceId,"post");
+						while (functionPermssionsResultSet.next()) {
+							postFunctions = postFunctions + functionPermssionsResultSet.getString("a_function_name")+ ",";
+						}
+						functionPermssionsResultSet.close();
+					}
+					// if this resource having put permission is equal to 1 then we get all get function names
+					if (havePutPermission == 1) {
+						if(resourcePermissions.containsKey(resourceName)){
+							String methodName = resourcePermissions.get(resourceName);
+							resourcePermissions.put(resourceName, methodName+",put");
+						}else
+							resourcePermissions.put(resourceName, "put");
+						ResultSet functionPermssionsResultSet = jedisDaoObject.getFunctionPermissionsDetails(consumerId,resourceId,"put");
+						while (functionPermssionsResultSet.next()) {
+							putFunctions = putFunctions + functionPermssionsResultSet.getString("a_function_name")+ ",";
+						}
+						functionPermssionsResultSet.close();
 					}
 				}
 				Jedis jedis = pool.getResource();
@@ -105,24 +139,27 @@ public class JedisIndex extends Job {
 							.encrypt(unIndexedConsumerDetailsResultSet.getString("a_access_token"));
 					customerName = MD5Encoding.encrypt(customerName); // Here it is encoded
 					Set<String> resourceKeys = resourcePermissions.keySet();
-					if (getFunctionNames.length() > 0) {
+					if (getFunctions.length() > 0 || postFunctions.length() > 0 || putFunctions.length() > 0) {
 						jedis.hset(customerName, "userName", userName);
 						jedis.hset(customerName, "accessToken",encryptedAccessToken);
 						for (String key : resourceKeys) {
 							jedis.hset(customerName, key,resourcePermissions.get(key));
 						}
-						jedis.hset(customerName, "getFunctions",
-								getFunctionNames.substring(0, getFunctionNames.length()-1));
+						if(getFunctions.length() > 0)
+							jedis.hset(customerName, "getFunctions",
+									getFunctions.substring(0, getFunctions.length()-1));
+						if(postFunctions.length() > 0)
+							jedis.hset(customerName, "postFunctions",
+									postFunctions.substring(0, postFunctions.length()-1));
+						if(putFunctions.length() > 0)
+							jedis.hset(customerName, "putFunctions",
+										putFunctions.substring(0, putFunctions.length()-1));
 						jedis.hset(customerName, "maxCount",
 								unIndexedConsumerDetailsResultSet.getInt("a_count_assigned")+"");
 						jedis.hset(customerName, "currentCount","0");
 						jedis.hset(customerName, "isActive",
 								unIndexedConsumerDetailsResultSet.getInt("a_is_active")+"");
-//						// setting temporary ratelimit counter based on userName for 1 day 10 min
-//						// i.e.,87000 seconds and it expires after every 87000 seconds or when ever the redis is re-indexed after 24 hours i.e.,86400 seconds
-//						jedis.setex(userName+":accessCount", 87000, "0");
 						jedisDaoObject.updateConsumerRedisIndexedStatus(consumerId);
-						indexedUserNames.add(userName);
 					}
 				} catch (JedisException e) {
 					// if something wrong happen, return it back to the pool
@@ -146,6 +183,7 @@ public class JedisIndex extends Job {
 			while (unIndexedAdminDetailsResultSet.next()) {
 				int adminId = unIndexedAdminDetailsResultSet.getInt("id");
 				String adminName = unIndexedAdminDetailsResultSet.getString("a_user_name");
+				System.out.println(adminName+" is unindexed");
 				// It returns the resource permissions result set of a single
 				// user based on admin Id
 				ResultSet resourcePermissionsResultSet = jedisDaoObject.getResourcePermissionsDetailsOfAdmin(adminId);
@@ -177,7 +215,7 @@ public class JedisIndex extends Job {
 							getFunctions = getFunctions + functionPermssionsResultSet.getString("a_function_name")+ ",";
 						}
 					}
-					// if this resource having get permission is equal to 1 then we get all get function names
+					// if this resource having post permission is equal to 1 then we get all get function names
 					if (havePostPermission == 1) {
 						if(resourcePermissions.containsKey(resourceName)){
 							String methodName = resourcePermissions.get(resourceName);
@@ -190,7 +228,7 @@ public class JedisIndex extends Job {
 						}
 						functionPermssionsResultSet.close();
 					}
-					// if this resource having get permission is equal to 1 then we get all get function names
+					// if this resource having put permission is equal to 1 then we get all get function names
 					if (havePutPermission == 1) {
 						if(resourcePermissions.containsKey(resourceName)){
 							String methodName = resourcePermissions.get(resourceName);
@@ -222,14 +260,15 @@ public class JedisIndex extends Job {
 							jedis.hset(adminName, key,
 									resourcePermissions.get(key));
 						}
-						jedis.hset(adminName, "getFunctions",
-								getFunctions.substring(0, getFunctions.length()-1));
-						
-						jedis.hset(adminName, "postFunctions",
-								postFunctions.substring(0, postFunctions.length()-1));
-						
-						jedis.hset(adminName, "putFunctions",
-								putFunctions.substring(0, putFunctions.length()-1));
+						if(getFunctions.length() > 0)
+							jedis.hset(adminName, "getFunctions",
+									getFunctions.substring(0, getFunctions.length()-1));
+						if(postFunctions.length() > 0)
+							jedis.hset(adminName, "postFunctions",
+									postFunctions.substring(0, postFunctions.length()-1));
+						if(putFunctions.length() > 0)
+							jedis.hset(adminName, "putFunctions",
+									putFunctions.substring(0, putFunctions.length()-1));
 						// we are setting 1 lakh hits per hour for admin
 						jedis.hset(adminName, "maxCount","100000");
 						jedis.hset(adminName, "currentCount","0");
@@ -256,7 +295,6 @@ public class JedisIndex extends Job {
 		} catch (NullPointerException e) {
 			System.out.println("----------NullPointerException in JedisIndex---------");
 		} catch (ClassNotFoundException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
