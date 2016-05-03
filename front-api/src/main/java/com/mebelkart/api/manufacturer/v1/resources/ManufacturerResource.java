@@ -86,6 +86,12 @@ public class ManufacturerResource {
 						 * validating the accesstoken given by user
 						 */
 					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerDetails");
+				} catch(Exception e) {
+					e.printStackTrace();
+					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerDetails function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
 						/*
 						 * checking whether given manufacturerId is valid or not
 						 */
@@ -216,11 +222,7 @@ public class ManufacturerResource {
 						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
 						return exception.getException("manufacturerId "+ manufacturerId+" you mentioned was invalid",null);
 					}
-				} catch(Exception e) {
-					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerDetails function");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-					return invalidRequestReply;
-				}
+				
 			} else {
 				errorLog.warn("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
 				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());

@@ -3,7 +3,6 @@
  */
 package com.mebelkart.api.util.cronTasks.classes;
 
-import java.util.Date;
 
 /**
  * @author Nikhil
@@ -12,10 +11,10 @@ import java.util.Date;
 public class ManufacturerOrders {
 	private Integer orderId;
 	private Integer manufacturerId;
-	private Date dateAdd;
+	private String dateAdd;
 	
 
-	public ManufacturerOrders(Integer orderId, Integer manufacturerId,Date dateAdd) {
+	public ManufacturerOrders(Integer orderId, Integer manufacturerId,String dateAdd) {
 		this.orderId = orderId;
 		this.manufacturerId = manufacturerId;
 		this.dateAdd = dateAdd;
@@ -37,11 +36,11 @@ public class ManufacturerOrders {
 		this.manufacturerId = manufacturerId;
 	}
 
-	public Date getDateAdd() {
+	public String getDateAdd() {
 		return dateAdd;
 	}
 
-	public void setDateAdd(Date dateAdd) {
+	public void setDateAdd(String dateAdd) {
 		this.dateAdd = dateAdd;
 	}
 

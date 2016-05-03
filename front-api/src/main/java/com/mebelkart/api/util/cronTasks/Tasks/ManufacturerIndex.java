@@ -2,7 +2,6 @@ package com.mebelkart.api.util.cronTasks.Tasks;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Date;
 import java.util.concurrent.ExecutionException;
 
 import org.elasticsearch.action.index.IndexRequest;
@@ -26,6 +25,7 @@ import com.mebelkart.api.util.factories.ElasticFactory;
 import de.spinscale.dropwizard.jobs.Job;
 import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
 
+@OnApplicationStart
 public class ManufacturerIndex extends Job{
 
 	Client elasticInstance = ElasticFactory.getElasticClient();
@@ -49,8 +49,8 @@ public class ManufacturerIndex extends Job{
 				manufacturer.setEmail(manufacturerResultSet.getString("email"));
 				manufacturer.setIsCommisionableVendor(manufacturerResultSet.getInt("is_commissionable_vendor"));
 				manufacturer.setIsWholesaleVendor(manufacturerResultSet.getInt("is_wholesale_vendor"));
-				manufacturer.setDateAdd(manufacturerResultSet.getDate("date_add"));
-				manufacturer.setDateUpd(manufacturerResultSet.getDate("date_upd"));
+				manufacturer.setDateAdd(manufacturerResultSet.getString("date_add"));
+				manufacturer.setDateUpd(manufacturerResultSet.getString("date_upd"));
 				System.out.println("Indexing for manufacturerId "+manufacturerId+" started");
 				
 				
@@ -122,9 +122,9 @@ public class ManufacturerIndex extends Job{
 					 * Indexing manufacturer personal details into manufacturer index of type personalDetails
 					 */
 				 byte[] manufacturerJson = pojoToJsonMapper.writeValueAsBytes(manufacturer);
-	                IndexRequest manufacturerPresonalIndexRequest = new IndexRequest("manufacturer", "info", String.valueOf(manufacturerId))
+	                IndexRequest manufacturerPresonalIndexRequest = new IndexRequest("manufacturer", "manufacturerInfo", String.valueOf(manufacturerId))
 	                        .source(manufacturerJson);
-	                UpdateRequest manufacturerPersonalUpdateRequest = new UpdateRequest("manufacturer", "info",String.valueOf(manufacturerId))
+	                UpdateRequest manufacturerPersonalUpdateRequest = new UpdateRequest("manufacturer", "manufacturerInfo",String.valueOf(manufacturerId))
 	                        .doc(manufacturerJson)
 	                        .upsert(manufacturerPresonalIndexRequest);
 
@@ -155,15 +155,15 @@ public class ManufacturerIndex extends Job{
 	    				String other = manufacturerAddressResultSet.getString("other");
 	    				String phone = manufacturerAddressResultSet.getString("phone");
 	    				String mobile = manufacturerAddressResultSet.getString("phone_mobile");
-	    				Date dateAdded = manufacturerAddressResultSet.getDate("date_add");
-	    				Date dateUpdated = manufacturerAddressResultSet.getDate("date_upd");
+	    				String dateAdded = manufacturerAddressResultSet.getString("date_add");
+	    				String dateUpdated = manufacturerAddressResultSet.getString("date_upd");
 	    			manufacturerAddresses = new ManufacturerAddresses(addressId,isDefault,active,manufacturerId,countryId,stateId,supplierId
 	    					,alias,firstName,lastName,address1,address2,postCode,city,other,phone,mobile,dateAdded,dateUpdated);
 	    			
 	    			 byte[] manufacturerAddressesJson = pojoToJsonMapper.writeValueAsBytes(manufacturerAddresses);
-	                 IndexRequest manufacturerAddressesIndexRequest = new IndexRequest("manufacturer", "addresses", String.valueOf(addressId))
+	                 IndexRequest manufacturerAddressesIndexRequest = new IndexRequest("manufacturer", "manufacturerAddresses", String.valueOf(addressId))
 	                         .source(manufacturerAddressesJson);
-	                 UpdateRequest manufacturerAddressesUpdateRequest = new UpdateRequest("manufacturer", "addresses",String.valueOf(addressId))
+	                 UpdateRequest manufacturerAddressesUpdateRequest = new UpdateRequest("manufacturer", "manufacturerAddresses",String.valueOf(addressId))
 	                         .doc(manufacturerAddressesJson)
 	                         .upsert(manufacturerAddressesIndexRequest);
 
@@ -188,9 +188,9 @@ public class ManufacturerIndex extends Job{
 	        				manufacturerProducts = new ManufacturerProducts(productId,categoryId,price,productName,manufacturerId);
 	        				
 	        				 byte[] manufacturerProductsJson = pojoToJsonMapper.writeValueAsBytes(manufacturerProducts);
-	        	                IndexRequest manufacturerProductsIndexRequest = new IndexRequest("manufacturer", "products", String.valueOf(productId))
+	        	                IndexRequest manufacturerProductsIndexRequest = new IndexRequest("manufacturer", "manufacturerProducts", String.valueOf(productId))
 	        	                        .source(manufacturerProductsJson);
-	        	                UpdateRequest manufacturerProductsUpdateRequest = new UpdateRequest("manufacturer", "products",String.valueOf(productId))
+	        	                UpdateRequest manufacturerProductsUpdateRequest = new UpdateRequest("manufacturer", "manufacturerProducts",String.valueOf(productId))
 	        	                        .doc(manufacturerProductsJson)
 	        	                        .upsert(manufacturerProductsIndexRequest);
 
@@ -210,13 +210,13 @@ public class ManufacturerIndex extends Job{
         				ManufacturerOrders manufacturerOrders = null;
         				while(orderDetailsResultSet.next()){
         					Integer orderId = orderDetailsResultSet.getInt("id_order");
-        					Date dateAdd = orderDetailsResultSet.getDate("date_add");
+        					String dateAdd = orderDetailsResultSet.getString("date_add");
         					manufacturerOrders = new ManufacturerOrders(orderId,manufacturerId,dateAdd);
         					
         				 byte[] manufacturerOrdersJson = pojoToJsonMapper.writeValueAsBytes(manufacturerOrders);
-        	             IndexRequest manufacturerOrdersIndexRequest = new IndexRequest("manufacturer", "orders", String.valueOf(orderId))
+        	             IndexRequest manufacturerOrdersIndexRequest = new IndexRequest("manufacturer", "manufacturerOrders", String.valueOf(orderId))
         	                     .source(manufacturerOrdersJson);
-        	             UpdateRequest manufacturerOrdersUpdateRequest = new UpdateRequest("manufacturer", "orders",String.valueOf(orderId))
+        	             UpdateRequest manufacturerOrdersUpdateRequest = new UpdateRequest("manufacturer", "manufacturerOrders",String.valueOf(orderId))
         	                     .doc(manufacturerOrdersJson)
         	                     .upsert(manufacturerOrdersIndexRequest);
 

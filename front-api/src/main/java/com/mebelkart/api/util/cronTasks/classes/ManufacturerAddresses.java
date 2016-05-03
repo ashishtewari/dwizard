@@ -1,6 +1,5 @@
 package com.mebelkart.api.util.cronTasks.classes;
 
-import java.util.Date;
 
 public class ManufacturerAddresses {
 
@@ -21,8 +20,8 @@ public class ManufacturerAddresses {
 	private String other;
 	private String phone;
 	private String mobile;
-	private Date dateAdded;
-	private Date dateUpdated;
+	private String dateAdded;
+	private String dateUpdated;
 	
 	
 	public ManufacturerAddresses(Integer addressId, boolean isDefault,
@@ -30,7 +29,7 @@ public class ManufacturerAddresses {
 			Integer supplierId, String alias, String firstName,
 			String lastName, String address1, String address2, String postCode,
 			String city, String other, String phone, String mobile,
-			Date dateAdded, Date dateUpdated) {
+			String dateAdded, String dateUpdated) {
 		this.addressId = addressId;
 		this.isDefault = isDefault;
 		this.active = active;
@@ -156,19 +155,19 @@ public class ManufacturerAddresses {
 		this.mobile = mobile;
 	}
 
-	public Date getDateAdded() {
+	public String getDateAdded() {
 		return dateAdded;
 	}
 
-	public void setDateAdded(Date dateAdded) {
+	public void setDateAdded(String dateAdded) {
 		this.dateAdded = dateAdded;
 	}
 
-	public Date getDateUpdated() {
+	public String getDateUpdated() {
 		return dateUpdated;
 	}
 
-	public void setDateUpdated(Date dateUpdated) {
+	public void setDateUpdated(String dateUpdated) {
 		this.dateUpdated = dateUpdated;
 	}
 
