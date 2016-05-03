@@ -10,7 +10,6 @@ import javax.validation.constraints.NotNull;
 
 public class mkApiConfiguration extends Configuration {
 
-
 	@Valid
 	@NotNull
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();

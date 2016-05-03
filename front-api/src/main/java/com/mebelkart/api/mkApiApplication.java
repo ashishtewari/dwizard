@@ -8,9 +8,10 @@ import javax.servlet.FilterRegistration;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
+import static org.eclipse.jetty.servlets.CrossOriginFilter.*;
+
 
 import de.spinscale.dropwizard.jobs.JobsBundle;
-
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -32,7 +33,13 @@ import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import java.util.EnumSet;
+
 public class mkApiApplication extends Application<mkApiConfiguration> {
+	private static final String GOOD_ORIGIN = "allowed_host";
+	private static final String BAD_ORIGIN = "denied_host";
 
 	public static void main(final String[] args) throws Exception {
 		new mkApiApplication().run(args);
@@ -50,7 +57,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			 *  Registering jobs bundle to run all cron jobs
 			 */
 
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
 //			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
 		}
 		catch (Exception e){
@@ -61,18 +68,17 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void run(final mkApiConfiguration configuration,final Environment environment) {
-		
-		 // Enable CORS headers
-	    final FilterRegistration.Dynamic cors =
-	        environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
-	    // Configure CORS parameters
-	    cors.setInitParameter("allowedOrigins", "*");
-	    cors.setInitParameter("allowedHeaders", "*");
-	    cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+//		// Enable CORS headers
+		final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
-	    // Add URL mapping
-	    cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+		// Configure CORS parameters
+		cors.setInitParameter("allowedOrigins", "*");
+		cors.setInitParameter("allowedHeaders", "*");
+		cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+
+		// Add URL mapping
+		cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
 		final DBIFactory factory = new DBIFactory();
 		/*
 		 * configuring the both admin database and products database.
@@ -103,7 +109,6 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 		environment.jersey().register(new CategoryResource(categoryDao));
-//		environment.jersey().register(new MobileResource(productDao));
 	}
 
 }

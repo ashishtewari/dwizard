@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<name>MebelKart Parent api</name>
@@ -20,6 +20,7 @@
 		<jedis.version>2.4.2</jedis.version>
 		<gson.version>2.2.4</gson.version>
 		<es.version>2.2.0</es.version>
+		<jetty.version>8.1.10.v20130312</jetty.version>
 
 	</properties>
 
@@ -29,7 +30,11 @@
 	<version>${parent.version}</version>
 
 	<dependencies>
-
+		<!--<dependency>-->
+			<!--<groupId>org.eclipse.jetty</groupId>-->
+			<!--<artifactId>jetty-servlets</artifactId>-->
+			<!--<version>${jetty.version}</version>-->
+		<!--</dependency>-->
 
 		<dependency>
 			<groupId>org.elasticsearch</groupId>
@@ -37,47 +42,54 @@
 			<version>${es.version}</version>
 		</dependency>
 
-
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-core</artifactId>
 			<version>${dropwizard.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
 			<version>${mysql.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-db</artifactId>
 			<version>${dropwizard.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>io.dropwizard</groupId>
 			<artifactId>dropwizard-jdbi</artifactId>
 			<version>${dropwizard.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.github.rkmk</groupId>
 			<artifactId>jdbi-folder</artifactId>
 			<version>${rkmk.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
 			<version>${json-simple.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>${commons-io.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>io.dropwizard.modules</groupId>
 			<artifactId>dropwizard-elasticsearch</artifactId>
 			<version>0.9.1-1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
