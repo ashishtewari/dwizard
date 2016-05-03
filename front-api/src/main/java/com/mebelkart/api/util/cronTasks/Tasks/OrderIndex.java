@@ -47,7 +47,8 @@ public class OrderIndex extends Job{
             System.out.println("total order rows :"+ordersResultSet.getFetchSize()+"!!!!!");
             while (ordersResultSet.next()) {
                 try {
-                    TimeUnit.MILLISECONDS.sleep(250);
+                    System.gc();
+                    TimeUnit.MILLISECONDS.sleep(150);
                     List<OrderDetail> subOrderDetails = new ArrayList<OrderDetail>();
 
                     Order order = new Order();
@@ -273,9 +274,9 @@ public class OrderIndex extends Job{
                      * Indexing order json in elastic if order is already existing then
                      * we will update indexed document
                      */
-                    IndexRequest indexRequest = new IndexRequest("mk1", "new_order", String.valueOf(ordersResultSet.getInt("id_order")))
+                    IndexRequest indexRequest = new IndexRequest("new_mk", "order", String.valueOf(ordersResultSet.getInt("id_order")))
                             .source(orderJson);
-                    UpdateRequest updateRequest = new UpdateRequest("mk1", "new_order", String.valueOf(ordersResultSet.getInt("id_order")))
+                    UpdateRequest updateRequest = new UpdateRequest("new_mk", "order", String.valueOf(ordersResultSet.getInt("id_order")))
                             .doc(orderJson)
                             .upsert(indexRequest);
 
