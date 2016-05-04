@@ -1,6 +1,7 @@
 package com.mebelkart.api.util.cronTasks.dao;
 
 import com.mebelkart.api.mkApiConfiguration;
+import com.mebelkart.api.util.factories.JDBCFactory;
 
 import java.sql.*;
 
@@ -9,27 +10,17 @@ import java.sql.*;
  */
 public class OrderIndexDao {
 
-    private Connection sqlConnection;
+    private Connection sqlConnection=null;
     public OrderIndexDao() throws SQLException, ClassNotFoundException {
-            Class.forName("com.mysql.jdbc.Driver");
-            sqlConnection=DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
-    }
-
-    public Connection getSqlConnection() {
-        return sqlConnection;
-    }
-
-    public void setSqlConnection(Connection sqlConnection) {
-        this.sqlConnection = sqlConnection;
-    }
-
+            sqlConnection = JDBCFactory.getJDBCInstance();
+        }
     /**
      * This function will fetch all new order created in last 24 hours
      * @return Resultset containing all orders or null if any SqlException occurs
      */
     public ResultSet getNewOrders() throws SQLException {
         Statement getOrdersStatement = sqlConnection.createStatement();;
-        String query = "SELECT * FROM ps_orders as o";
+        String query = "SELECT * FROM ps_orders as o limit 10";
         ResultSet allNewOrdersResultSet = getOrdersStatement.executeQuery(query);
 
         return allNewOrdersResultSet;
