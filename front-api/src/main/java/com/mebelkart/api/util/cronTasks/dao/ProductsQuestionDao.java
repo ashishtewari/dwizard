@@ -18,8 +18,6 @@ public class ProductsQuestionDao {
         Statement getProductQueStatement = sqlConnection.createStatement();;
         String query = "SELECT * FROM ps_qna";
         ResultSet allProductQue=getProductQueStatement.executeQuery(query);
-        return allProductQue;
-    }
-
-
+        return allProductQue;        
+    }   
 }

@@ -888,7 +888,6 @@ public class ProductResource {
 	 * @param accessParam
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/getTopProducts")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -951,5 +950,65 @@ public class ProductResource {
 			return true;
 		else
 			return false;
+	}
+	
+	
+	/**
+	 * This function returns the FAQ's of the product id 
+	 * @param accessParam
+	 * @param id
+	 * @return
+	 */
+	@GET
+	@Path("/product/getProdFaq/{productId}")
+	public Object getProdFaq(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
+		try{
+			if(isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
+					int productId = Integer.parseInt(id);
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFaq");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access getProdFaq function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					Client localClient = ElasticFactory.getElasticClient();
+					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+							.must(QueryBuilders.matchQuery("idProduct",productId));
+					SearchResponse response = localClient.prepareSearch("product")
+							.setTypes("faq")
+					        .setQuery(categoryQuery)
+					        .execute().actionGet();
+					SearchHit[] searchHits = response.getHits().getHits();
+					if(searchHits.length > 0)
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), searchHits[0].getSource());
+					else
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), "No Results");
+				}else{
+					log.info("Invalid header keys provided to access getProdFaq function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access getProdFaq function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				return invalidRequestReply;
+			}
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+			log.info("Invalid product id given in getProdFaq functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
+			return invalidRequestReply;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in getProdFaq function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
 	}
 }
