@@ -1,8 +1,5 @@
 package com.mebelkart.api.product.v1.core;
 
-import com.github.rkmk.annotations.ColumnName;
-import com.github.rkmk.annotations.PrimaryKey;
-
 public class TopProductsWrapper {
 	
 	private int productId;
