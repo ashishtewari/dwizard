@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by vinitpayal on 29/03/16.
  */
-@OnApplicationStart
 public class OrderIndex extends Job{
 
     Client elasticInstance= ElasticFactory.getElasticClient();
