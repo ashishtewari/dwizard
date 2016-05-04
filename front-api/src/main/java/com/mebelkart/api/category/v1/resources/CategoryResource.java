@@ -78,6 +78,11 @@ public class CategoryResource {
 				 */
 			try {
 				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
+			} catch(Exception e) {
+				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+			}
 				/*
 				 * checking whether given categoryId is valid or not
 				 */
@@ -93,7 +98,7 @@ public class CategoryResource {
 //					        .execute()
 //					        .actionGet();
 					
-					SearchResponse response = client.prepareSearch("categories-1.12.6")
+					SearchResponse response = client.prepareSearch("mkcategories")
 							   .setTypes("category")
 							   .setQuery(categoryQuery)									
 							   .execute()
@@ -103,11 +108,6 @@ public class CategoryResource {
 				}
 				
 					return new Reply(200,"success",categoryList);
-			} catch(Exception e) {
-				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-				return invalidRequestReply;
-			}
 		}
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
@@ -161,7 +161,7 @@ public class CategoryResource {
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
 				            .must(QueryBuilders.termQuery("_id",categoryId));
 					
-					SearchResponse response = client.prepareSearch("categories-1.12.6")
+					SearchResponse response = client.prepareSearch("mkcategories")
 							   .setTypes("category")
 							   .setQuery(categoryQuery)									
 							   .execute()
