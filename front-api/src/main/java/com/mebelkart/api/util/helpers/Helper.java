@@ -3,6 +3,8 @@
  */
 package com.mebelkart.api.util.helpers;
 
+import java.text.SimpleDateFormat;
+
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -56,5 +58,37 @@ public class Helper {
 		else
 			return "Your Rate Limit Exceeded";
 	}
-
+    /**
+     * Core Function for validation check.
+     * @param dateValue
+     * @return true/false
+     */
+    public boolean isDateValid(String dateValue)
+    {
+        boolean returnVal = false;
+        /*
+         * Set the permissible formats.
+         * A better approach here would be to define all formats in a .properties file
+         * and load the file during execution.
+         */
+        String[] permissFormats = new String[]{"yyyy/MM/dd","yyyy-MM-dd","yyyy/MM/dd hh:mm:ss","yyyy-MM-dd hh:mm:ss"};
+        /*
+         * Loop through array of formats and validate using JAVA API.
+         */
+        for (int i = 0; i < permissFormats.length; i++) 
+        {
+        	try 
+        	{
+                SimpleDateFormat sdfObj = new SimpleDateFormat(permissFormats[i]);
+                sdfObj.setLenient(false);
+                sdfObj.parse(dateValue);
+                returnVal = true;
+                System.out.println("Looks like a valid date for Date Value :"+dateValue+": For Format:"+permissFormats[i]);
+                break;
+        	} catch (java.text.ParseException e) {
+                System.out.println("Parse Exception Occured for Date Value :"+dateValue+":And Format:"+permissFormats[i]);
+			}           
+        }
+        return returnVal;
+    }
 }
