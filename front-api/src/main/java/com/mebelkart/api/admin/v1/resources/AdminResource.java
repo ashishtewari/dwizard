@@ -107,7 +107,7 @@ public class AdminResource {
 			userDetails = helper.getBase64Decoded(userDetails);
 			int accessLevel = this.auth.validate(apikey);			
 			//Here 1 is Super Admin and 2 is Secondary Admin and this is the accessToken which is passed through interface while logging
-			if(accessLevel == 1 || accessLevel == 2 || apikey.equalsIgnoreCase("7tt5thpv560gku0quv5sj5tel8")){
+			if(accessLevel == 1 || accessLevel == 2){
 				if(utilHelper.isValidJson(userDetails) && helper.isUserDetailsContainsValidKeys(userDetails)){
 					JSONObject userDetailsObj = utilHelper.jsonParser(userDetails);
 					String username = (String) userDetailsObj.get("userName");
@@ -117,47 +117,31 @@ public class AdminResource {
 						log.warn("Invalid username or password");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "Invalid username or password");
 						return invalidRequestReply;
-					} else {
-						// Here we are not checking ACL if we are accessing this API through Admin Interface
-						if(!apikey.equalsIgnoreCase("7tt5thpv560gku0quv5sj5tel8")){
-							try {
-								jedisAuthentication.validate(username,apikey, "admin", "get", "login");
-							} catch (Exception e) {							
-								log.info("Unautherized user "+username+" tried to access admin function");
-								invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-								return invalidRequestReply;
-							}
-						}
+					} else {												
+						try {
+							jedisAuthentication.validate(username,apikey, "admin", "get", "login");
+						} catch (Exception e) {							
+							log.info("Unautherized user "+username+" tried to access admin function");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+							return invalidRequestReply;
+						}						
 						AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
 						if(adminDetails.get(0).getAdminLevel() == 1){
 							// Here parameter null means I need all the resource names 
 							List<String> resourcePrivilages = this.auth.getResourceNames("null");
 							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
-							// Here we are returning sessionId if we hit this API through interface 
-							if(apikey.equalsIgnoreCase("7tt5thpv560gku0quv5sj5tel8")){
-								String sessionId = helper.generateSessionId();
-								String accessToken = this.auth.getAccessTokenOfUser(username);
-								privilages.setSessionId(sessionId);
-								privilages.setAccessToken(accessToken);
-								Jedis jedis = pool.getResource();
-								jedis.setex(sessionId, 86400, accessToken);
-
-							}
+							String sessionId = helper.generateSessionId();
+							privilages.setSessionId(sessionId);
+							privilages.setUserLevel("1");
 							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), privilages);
 						}
 						else if(adminDetails.get(0).getAdminLevel() == 2){
 							// Here parameter admin means I need all the resource names except admin
 							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
 							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
-							// Here we are returning sessionId if we hit this API through interface
-							if(apikey.equalsIgnoreCase("7tt5thpv560gku0quv5sj5tel8")){
-								String sessionId = helper.generateSessionId();
-								String accessToken = this.auth.getAccessTokenOfUser(username);
-								privilages.setSessionId(sessionId);
-								privilages.setAccessToken(accessToken);
-								Jedis jedis = pool.getResource();
-								jedis.setex(sessionId, 86400, accessToken);
-							}
+							String sessionId = helper.generateSessionId();
+							privilages.setSessionId(sessionId);
+							privilages.setUserLevel("2");
 							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), privilages);
 						}
 						else{

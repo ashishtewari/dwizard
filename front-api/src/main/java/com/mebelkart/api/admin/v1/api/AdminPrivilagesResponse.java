@@ -17,7 +17,7 @@ public class AdminPrivilagesResponse {
 	private String[] addPrivileges;
 	private String[] resourcePrivileges;
 	private String[] methodPrivilages;
-	private String accessToken;
+	private String userLevel;
 	/**
 	 * Default Constructer
 	 */
@@ -27,7 +27,7 @@ public class AdminPrivilagesResponse {
 		this.setResourcePrivilages(null);
 		this.setMethodPrivilages(null);
 		this.setSessionId(null);
-		this.setAccessToken(null);
+		this.setUserLevel(null);
 	}
 	public void setSuperAdminPrivilages(String[] resourcePrivilages){
 		this.setAddPrivilages(new String[] { "Admin", "Consumer" });
@@ -63,10 +63,10 @@ public class AdminPrivilagesResponse {
 	public void setSessionId(String sessionId) {
 		this.sessionId = sessionId;
 	}
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
+	public void setUserLevel(String userLevel) {
+		this.userLevel = userLevel;
 	}
-	public String getAccessToken(){
-		return accessToken;
+	public String getUserLevel(){
+		return userLevel;
 	}
 }
