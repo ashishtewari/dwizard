@@ -8,10 +8,8 @@ import javax.servlet.FilterRegistration;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.resources.OrderResource;
-import static org.eclipse.jetty.servlets.CrossOriginFilter.*;
 
 
-import de.spinscale.dropwizard.jobs.JobsBundle;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -32,10 +30,6 @@ import io.dropwizard.Application;
 import io.dropwizard.jdbi.DBIFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-import java.util.EnumSet;
 
 public class mkApiApplication extends Application<mkApiConfiguration> {
 

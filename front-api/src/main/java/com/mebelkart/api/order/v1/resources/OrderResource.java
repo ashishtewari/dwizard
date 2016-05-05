@@ -2,7 +2,6 @@ package com.mebelkart.api.order.v1.resources;
 
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
-import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.factories.JedisFactory;
