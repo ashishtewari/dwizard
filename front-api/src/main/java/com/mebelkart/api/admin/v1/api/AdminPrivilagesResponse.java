@@ -3,15 +3,21 @@
  */
 package com.mebelkart.api.admin.v1.api;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @author Tinku
  *
  */
+@JsonInclude(Include.NON_NULL)
 public class AdminPrivilagesResponse {
 	
+	private String sessionId; 
 	private String[] addPrivileges;
 	private String[] resourcePrivileges;
 	private String[] methodPrivilages;
+	private String accessToken;
 	/**
 	 * Default Constructer
 	 */
@@ -20,6 +26,8 @@ public class AdminPrivilagesResponse {
 		this.setAddPrivilages(null);
 		this.setResourcePrivilages(null);
 		this.setMethodPrivilages(null);
+		this.setSessionId(null);
+		this.setAccessToken(null);
 	}
 	public void setSuperAdminPrivilages(String[] resourcePrivilages){
 		this.setAddPrivilages(new String[] { "Admin", "Consumer" });
@@ -49,5 +57,16 @@ public class AdminPrivilagesResponse {
 	public void setMethodPrivilages(String[] methodPrivilages) {
 		this.methodPrivilages = methodPrivilages;
 	}
-
+	public String getSessionId() {
+		return sessionId;
+	}
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+	public void setAccessToken(String accessToken) {
+		this.accessToken = accessToken;
+	}
+	public String getAccessToken(){
+		return accessToken;
+	}
 }

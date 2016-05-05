@@ -12,6 +12,9 @@ public class OrderIndexDao {
 
     private Connection sqlConnection=null;
     public OrderIndexDao() throws SQLException, ClassNotFoundException {
+        System.out.println("----------------------");
+        System.out.println("calling jdbc factory from  orderdao");
+        System.out.println("----------------------");
             sqlConnection = JDBCFactory.getJDBCInstance();
         }
     /**

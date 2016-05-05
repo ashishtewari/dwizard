@@ -12,11 +12,12 @@ import java.sql.Statement;
 public class ProductsQuestionDao {
     private Connection sqlConnection;
     public ProductsQuestionDao() throws SQLException, ClassNotFoundException {
+        System.out.println();
         sqlConnection= JDBCFactory.getJDBCInstance();
     }
     public ResultSet getProductsQuestion() throws SQLException {
         Statement getProductQueStatement = sqlConnection.createStatement();;
-        String query = "SELECT * FROM ps_qna";
+        String query = "SELECT * FROM ps_qna limit 10";
         ResultSet allProductQue=getProductQueStatement.executeQuery(query);
         return allProductQue;        
     }   

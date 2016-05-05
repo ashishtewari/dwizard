@@ -8,17 +8,17 @@ public class Admin {
 	/**
      * a_user_name.
      */    
-    private String a_user_name;
+    private String userName;
     
     /**
      * a_password.
      */    
-    private String a_password;
+    private String password;
     
     /**
      * a_admin_level.
      */
-    private int a_admin_level;
+    private int adminLevel;
     
     /**
      *   A default constructor to create Admin.
@@ -32,52 +32,27 @@ public class Admin {
      * @param a_password
      * @param a_admin_level
      */
-    public Admin(String a_user_name, String a_password, int a_admin_level) {
-    	this.setA_user_name(a_user_name);
-    	this.setA_password(a_password);
-    	this.setA_admin_level(a_admin_level);        
+    public Admin(String userName, String password, int adminLevel) {
+    	this.setUserName(userName);
+    	this.setPassword(password);
+    	this.setAdminLevel(adminLevel);     
     }
-    /**
-	 * 
-	 * @return
-	 */
-	public String getA_user_name() {
-		return a_user_name;
+	public String getUserName() {
+		return userName;
 	}
-	/**
-	 * 
-	 * @param a_user_name
-	 */
-	public void setA_user_name(String a_user_name) {
-		this.a_user_name = a_user_name;
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
-	/**
-	 * 
-	 * @return
-	 */
-	public String getA_password() {
-		return a_password;
+	public String getPassword() {
+		return password;
 	}
-	/**
-	 * 
-	 * @param a_password
-	 */
-	public void setA_password(String a_password) {
-		this.a_password = a_password;
+	public void setPassword(String password) {
+		this.password = password;
 	}
-	/**
-	 * 
-	 * @return
-	 */
-	public int getA_admin_level() {
-		return a_admin_level;
+	public int getAdminLevel() {
+		return adminLevel;
 	}
-	/**
-	 * 
-	 * @param a_admin_level
-	 */
-	public void setA_admin_level(int a_admin_level) {
-		this.a_admin_level = a_admin_level;
+	public void setAdminLevel(int adminLevel) {
+		this.adminLevel = adminLevel;
 	}
-	
 }
