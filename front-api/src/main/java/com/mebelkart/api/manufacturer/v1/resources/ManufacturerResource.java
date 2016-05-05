@@ -209,56 +209,58 @@ public class ManufacturerResource {
 								 
 							}
 							 else {
-								exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-								return exception.getException("Specify your requirement in requiredFields field correctly",null);
+								 errorLog.warn("Specify your requirement in requiredFields field correctly");
+								 invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify your requirement in requiredFields field correctly");
+								 return invalidRequestReply;
 							}
 							
 						} else {
-							exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-							return exception.getException("requiredFields should not be null",null);
+							errorLog.warn("requiredFields should not be null");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "requiredFields should not be null");
+							return invalidRequestReply;
 						}
 					} else {
-						errorLog.warn("manufacturerId you mentioned was invalid");
-						exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-						return exception.getException("manufacturerId "+ manufacturerId+" you mentioned was invalid",null);
+						errorLog.warn("manufacturerId "+ manufacturerId+" you mentioned was invalid");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "manufacturerId "+ manufacturerId+" you mentioned was invalid");
+						return invalidRequestReply;
 					}
 				
 			} else {
 				errorLog.warn("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly",null);
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
+				return invalidRequestReply;
 			}
 		}
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("apiKey or manufacturerId spelled Incorrectly or mention necessary fields",null);
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+			return invalidRequestReply;
 		}
 		catch (ParseException parse) {
 			errorLog.warn("Specify your requirement in requiredFeilds as array of string");
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify your requirement in requiredFeilds as array of string",null);
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify your requirement in requiredFeilds as array of string");
+			return invalidRequestReply;
 		}
 		catch (ClassCastException classCast) {
 			errorLog.warn("Please check the values data types");
-			exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-			return exception.getException("Specify correct data type for the values as mentioned in instructions",null);
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please check the values data types");
+			return invalidRequestReply;
 		}
 		catch (IndexNotFoundException indexNotFound) {
 			errorLog.warn("Index for which you are searching is not found");
-			exception = new HandleException(Response.Status.NOT_FOUND.getStatusCode(),Response.Status.NOT_FOUND.getReasonPhrase());
-			return exception.getException("Index for which you are searching is not found",null);
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Index for which you are searching is not found");
+			return invalidRequestReply;
 		}
 		catch (Exception e) {
 			if(e instanceof IllegalArgumentException){
 				errorLog.warn("Specify date format correctly and it should not be null");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("Specify date format correctly and it should not be null",null);
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify date format correctly and it should not be null");
+				return invalidRequestReply;
 			} else {
 				e.printStackTrace();
 				errorLog.warn("Internal server connection error");
-				exception = new HandleException(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-				return exception.getException("Internal server connection error",null);
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server connection error");
+				return invalidRequestReply;
 			}
 		}
 	}
