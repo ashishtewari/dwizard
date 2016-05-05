@@ -4,7 +4,7 @@
 package com.mebelkart.api.util.factories;
 
 import com.mebelkart.api.mkApiConfiguration;
-import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
+import com.mebelkart.api.util.crypting.MD5Encoding;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;

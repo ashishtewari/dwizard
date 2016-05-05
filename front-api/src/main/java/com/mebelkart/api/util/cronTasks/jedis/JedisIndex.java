@@ -5,17 +5,15 @@ package com.mebelkart.api.util.cronTasks.jedis;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisException;
 
-import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
-import com.mebelkart.api.admin.v1.helper.HelperMethods;
+import com.mebelkart.api.util.crypting.MD5Encoding;
+import com.mebelkart.api.util.helpers.Helper;
 import com.mebelkart.api.util.cronTasks.dao.JedisDao;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -53,7 +51,7 @@ public class JedisIndex extends Job {
 					// getting previous day count
 					int dayCount = Integer.parseInt(tempJedis.hget(key,"currentCount"));
 					// getting previous days date and time
-					String previousDate = new HelperMethods().getYesterdayDateString();
+					String previousDate = new Helper().getYesterdayDateString();
 					// updating this details in mk_api_statics table
 					jedisDaoObject.updateHitsAndDate(customerId,dayCount,previousDate);
 					// updating currentCount of this user to 0

@@ -69,7 +69,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 	@Override
 	public void run(final mkApiConfiguration configuration,final Environment environment) {
 
-//		// Enable CORS headers
+		// Enable CORS headers
 		final FilterRegistration.Dynamic cors = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
 
 		// Configure CORS parameters

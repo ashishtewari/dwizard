@@ -3,8 +3,15 @@
  */
 package com.mebelkart.api.util.helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.io.IOUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -42,22 +49,23 @@ public class Helper {
 			return true;
 	}
 	
-	public String accessControlResponse(int responseStatus){
-		if(responseStatus == 0)
-			return "you are not a Valid User";
-		else if(responseStatus == -1)
-			return "You don't have Valid Access Token";
-		else if(responseStatus == -2)
-			return "you are not in Active State";
-		else if(responseStatus == -3)
-			return "You don't have Access to this Resource";
-		else if(responseStatus == -4)
-			return "You don't have Access to this Method";
-		else if(responseStatus == -5)
-			return "You don't have access to this function";
-		else
-			return "Your Rate Limit Exceeded";
+	/**
+	 * It converts servlet request of type Json to JsonString
+	 * @param request consists of body data of type raw json data
+	 * @return JSONObject
+	 */
+	public JSONObject contextRequestParser(HttpServletRequest request) {
+		InputStream inputStream = null;
+		String jsonString = null;
+		try {
+			inputStream = request.getInputStream();
+			jsonString = IOUtils.toString(inputStream, "UTF-8");
+		} catch (IOException e) {
+			//e.printStackTrace();
+		}
+		return new Helper().jsonParser(jsonString);
 	}
+	
     /**
      * Core Function for validation check.
      * @param dateValue
@@ -91,4 +99,14 @@ public class Helper {
         }
         return returnVal;
     }
+    
+    /**
+     * @return the previous days date 
+     */
+    public String getYesterdayDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -1);    
+        return dateFormat.format(cal.getTime());
+	}
 }
