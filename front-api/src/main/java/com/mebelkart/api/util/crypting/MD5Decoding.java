@@ -1,4 +1,4 @@
-package com.mebelkart.api.admin.v1.crypting;
+package com.mebelkart.api.util.crypting;
 
 /**
  * @author Tinku
