@@ -38,8 +38,6 @@ import javax.servlet.FilterRegistration;
 import java.util.EnumSet;
 
 public class mkApiApplication extends Application<mkApiConfiguration> {
-	private static final String GOOD_ORIGIN = "allowed_host";
-	private static final String BAD_ORIGIN = "denied_host";
 
 	public static void main(final String[] args) throws Exception {
 		new mkApiApplication().run(args);
@@ -52,18 +50,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 
 	@Override
 	public void initialize(final Bootstrap<mkApiConfiguration> bootstrap) {
-		try {
-			/**
-			 *  Registering jobs bundle to run all cron jobs
-			 */
 
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.Tasks"));
-//			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.cronTasks.jedis"));
-		}
-		catch (Exception e){
-			System.out.println("Initialization Not Done ...........");
-			e.printStackTrace();
-		}
 	}
 
 	@Override
