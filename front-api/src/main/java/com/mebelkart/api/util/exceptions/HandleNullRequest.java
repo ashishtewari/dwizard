@@ -25,12 +25,12 @@ public class HandleNullRequest implements ExceptionMapper<WebApplicationExceptio
 	@Override
 	public Response toResponse(WebApplicationException e) {
 		int status = e.getResponse() == null ? 404 : e.getResponse().getStatus();
-		final String status_code = e.getResponse().getStatus()+"";
+		final String statusCode = e.getResponse().getStatus()+"";
 		final String message = e.getMessage();
         return Response.status(status)
                 .type(MediaType.APPLICATION_JSON_TYPE)
                 .entity(new HashMap<String, String>() { {             	
-                    put("statusCode", status_code); 
+                    put("status", statusCode); 
                     put("message",message ); 
                 } }).build();
 	}
