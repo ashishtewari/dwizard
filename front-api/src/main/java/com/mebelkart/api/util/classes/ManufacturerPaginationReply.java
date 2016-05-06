@@ -9,7 +9,7 @@ package com.mebelkart.api.util.classes;
  */
 public class ManufacturerPaginationReply {
 	
-	private int statusCode;
+	private int status;
 	private String message;
 	private long totalAddresses;
 	private long totalProducts;
@@ -18,8 +18,8 @@ public class ManufacturerPaginationReply {
 	private long currentPage;
 	private Object source;
 	
-	public ManufacturerPaginationReply(int statusCode,String message,long totalAddresses,long totalProducts,long totalOrders, String currentShowing,long currentPage, Object source) {
-		this.statusCode = statusCode;
+	public ManufacturerPaginationReply(int status,String message,long totalAddresses,long totalProducts,long totalOrders, String currentShowing,long currentPage, Object source) {
+		this.status = status;
 		this.message = message;
 		this.totalAddresses = totalAddresses;
 		this.totalProducts = totalProducts;
@@ -45,12 +45,12 @@ public class ManufacturerPaginationReply {
 		this.totalOrders = totalOrders;
 	}
 
-	public int getStatusCode() {
-		return statusCode;
+	public int getStatus() {
+		return status;
 	}
 
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 	public String getMessage() {
