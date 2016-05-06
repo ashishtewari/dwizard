@@ -37,7 +37,6 @@ import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
-import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.JedisFactory;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
@@ -52,7 +51,6 @@ import com.mebelkart.api.util.classes.Reply;
 public class CustomerResource {
 	
 	CustomerDetailsDAO customerDetailsDao;
-	HandleException exception = null;
 	InvalidInputReplyClass invalidRequestReply = null;
 	CustomerHelperMethods helperMethods = null;
 	JSONParser parser = new JSONParser();

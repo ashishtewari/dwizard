@@ -33,7 +33,6 @@ import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
-import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -50,7 +49,6 @@ public class CategoryResource {
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	CategoryHelperMethods categoryHelperMethods = new CategoryHelperMethods();
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
-	HandleException exception = null;
 	InvalidInputReplyClass invalidRequestReply = null;
 	JSONParser parser = new JSONParser();
 	Client client = ElasticFactory.getProductsElasticClient();
@@ -170,9 +168,9 @@ public class CategoryResource {
 			return new Reply(200,"success",categoryList);
 		
 			} else {
-				errorLog.warn("categoryId you mentioned was invalid");
-				exception = new HandleException(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase());
-				return exception.getException("categoryId "+ categoryId+" you mentioned was invalid",null);
+				errorLog.info("categoryId "+ categoryId+" you mentioned was invalid");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "categoryId "+ categoryId+" you mentioned was invalid");
+				return invalidRequestReply;
 			}
 		
 		} 

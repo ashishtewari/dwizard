@@ -148,7 +148,8 @@ public class OrderResource {
                 else {
                     currentlyShowing = offset + " - " + (offset + 20);
                 }
-                PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),"Success",totalResultCount,currentlyShowing,currentPageNum,allOrderDetail);
+                int totalPages = totalResultCount/20;
+                PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),totalResultCount,totalPages,currentPageNum,currentlyShowing,allOrderDetail);
                 return orderPaginationResult;
             }catch(Exception e){
             	log.info("Unautherized user "+userName+" tried to access getAllOrders function");

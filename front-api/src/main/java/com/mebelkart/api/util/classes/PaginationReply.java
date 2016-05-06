@@ -11,18 +11,28 @@ public class PaginationReply {
 	private int status;
 	private String message;
 	private long totalCount;
+	private long totalPages;
 	private String currentShowing;
 	private long currentPage;
 	private Object source;
 	
 	
-	public PaginationReply(int status,String message,long totalCount, String currentShowing,long currentPage, Object source) {
+	public PaginationReply(int status,String message,long totalCount, long totalPages, long currentPage,String currentShowing, Object source) {
 		this.status = status;
 		this.message = message;
 		this.totalCount = totalCount;
 		this.currentShowing = currentShowing;
 		this.currentPage = currentPage;
 		this.source = source;
+		this.totalPages = totalPages;
+	}
+	
+	public long getTotalPages() {
+		return totalPages;
+	}
+
+	public void setTotalPages(long totalPages) {
+		this.totalPages = totalPages;
 	}
 	
 	public int getStatus() {

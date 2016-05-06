@@ -35,9 +35,8 @@ import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
 import com.mebelkart.api.util.helpers.Helper;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-import com.mebelkart.api.util.classes.ManufacturerPaginationReply;
+import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.Reply;
-import com.mebelkart.api.util.exceptions.HandleException;
 import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -53,7 +52,6 @@ public class ManufacturerResource {
 	ManufacturerDetailsDAO manufacturerDetailsDao;
 	ManufacturerHelperMethods manufacturerHelperMethods = new ManufacturerHelperMethods();
 	Helper utilHelper = new Helper();
-	HandleException exception = null;
 	InvalidInputReplyClass invalidRequestReply = null;
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null;
@@ -192,7 +190,7 @@ public class ManufacturerResource {
 						Map<String,Object> manufacturerResultMap = new HashMap<String,Object>();
 						List<Object> manufacturerProductsList = new ArrayList<Object>();
 						List<Object> manufacturerInfoList = new ArrayList<Object>();
-						long totalProducts = 0,totalOrders = 0,totalAddresses = 0;
+						long totalProducts = 0,totalPages=0;
 						
 								/*
 								 * query for getting info of respective manufacturer id
@@ -228,9 +226,10 @@ public class ManufacturerResource {
 									 manufacturerProductsList.add(productsSearchHits[i].getSource());
 								 }								
 								 totalProducts = response.getHits().getTotalHits();
+								 totalPages = totalProducts/paginationLimit;
 								 manufacturerResultMap.put("ManufacturerProducts",manufacturerProductsList);
 							
-							return new ManufacturerPaginationReply(200,"success",totalAddresses,totalProducts,totalOrders,nowShowing,page+1,manufacturerResultMap);
+							return new PaginationReply(200,"success",totalProducts,totalPages,page+1,nowShowing,manufacturerResultMap);
 							
 						} else {
 							errorLog.warn("manufacturerId "+ manufacturerId+" you mentioned was invalid");
@@ -419,7 +418,7 @@ public class ManufacturerResource {
 						Map<String,Object> manufacturerResultMap = new HashMap<String,Object>();
 						List<Object> manufacturerOrdersList = new ArrayList<Object>();
 						List<Object> manufacturerInfoList = new ArrayList<Object>();
-						long totalProducts = 0,totalOrders = 0,totalAddresses = 0;
+						long totalOrders = 0,totalPages = 0;
 						
 								/*
 								 * query for getting info of respective manufacturer id
@@ -459,8 +458,9 @@ public class ManufacturerResource {
 									 manufacturerOrdersList.add(manufacturerHelperMethods.getOrderDetailsFromElastic((int) ordersSearchHits[i].getSource().get("orderId"),client));
 								 }
 								 totalOrders = response.getHits().getTotalHits();
+								 totalPages = totalOrders/paginationLimit;
 								 manufacturerResultMap.put("ManufacturerOrders",manufacturerOrdersList);
-							return new ManufacturerPaginationReply(200,"success",totalAddresses,totalProducts,totalOrders,nowShowing,page+1,manufacturerResultMap);
+							return new PaginationReply(200,"success",totalOrders,totalPages,page+1,nowShowing,manufacturerResultMap);
 							
 						} else {
 							errorLog.warn("manufacturerId "+ manufacturerId+" you mentioned was invalid");
