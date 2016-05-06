@@ -21,7 +21,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
@@ -117,9 +116,10 @@ public class AdminResource {
 						log.warn("Invalid username or password");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "Invalid username or password");
 						return invalidRequestReply;
-					} else {												
+					} else {
+						String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 						try {
-							jedisAuthentication.validate(username,apikey, "admin", "get", "login");
+							jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "login");
 						} catch (Exception e) {							
 							log.info("Unautherized user "+username+" tried to access admin function");
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -759,7 +759,7 @@ public class AdminResource {
 			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
-			if(accessLevel == 1 || accessLevel == 2){
+			if(accessLevel == 1){
 					JSONObject rawData = utilHelper.contextRequestParser(request);
 					String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 					try {
@@ -794,7 +794,7 @@ public class AdminResource {
 					}
 			} else {
 				log.warn("Unauthorized data in addNewResource function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your access token is not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken/adminLevel is not acceptable");
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
@@ -830,7 +830,7 @@ public class AdminResource {
 			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
-			if(accessLevel == 1 || accessLevel == 2){
+			if(accessLevel == 1){
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
@@ -904,8 +904,8 @@ public class AdminResource {
 					return invalidRequestReply;
 				}	
 			} else {
-				log.warn("Unauthorized data in addNewFunction function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your access token is not acceptable");
+				log.warn("Unauthorized user tried to access addNewFunction function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken/adminLevel is not acceptable");
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
