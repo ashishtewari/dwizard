@@ -17,7 +17,9 @@ import com.mebelkart.api.product.v1.api.CategoryFeatured;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-import com.mebelkart.api.util.classes.ProductsPaginationReply;
+//import com.mebelkart.api.util.classes.ProductsPaginationReply;
+
+import com.mebelkart.api.util.classes.PaginationReply;
 
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -127,7 +129,7 @@ public class ProductResource {
 						productsList.add(productsDetails);
 					}
 					System.out.println("Number of hits "+searchHits.length);
-					return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					return new PaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
 				}else{
 					log.info("Invalid header keys provided to access getProductDetail function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
@@ -244,7 +246,8 @@ public class ProductResource {
 						productsList.add(productsDetails);
 					}
 					System.out.println("Number of hits "+searchHits.length);
-					return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					return new PaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					//return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
 				}else{
 					log.info("Invalid header keys provided to access getProductsListByCategory function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
@@ -765,7 +768,8 @@ public class ProductResource {
 						productsList.add(productsDetails);
 					}
 					System.out.println("Number of hits "+searchHits.length);
-					return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					return new PaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					//return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
 				}else{
 					log.info("Invalid header keys provided to access getProductsListBySeller function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
@@ -858,7 +862,8 @@ public class ProductResource {
 						productsList.add(productsDetails);
 					}
 					System.out.println("Number of hits "+searchHits.length);
-					return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+					return new PaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
+//					return new ProductsPaginationReply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),totalProducts,totalPages,page,currentShowing,productsList);
 				}else{
 					log.info("Invalid header keys provided to access getAllOutOfStock function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
