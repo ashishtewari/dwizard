@@ -1,7 +1,7 @@
 package com.mebelkart.api.util.classes;
 
 public class ProductsPaginationReply {
-	private int statusCode;
+	private int status;
 	private String message;
 	private long totalProducts;
 	private long totalPages;
@@ -9,8 +9,8 @@ public class ProductsPaginationReply {
 	private String currentShowing;
 	private Object source;
 
-	public ProductsPaginationReply(int statusCode,String message,long totalProducts,long totalPages,int currentPage,String currentShowing,Object source) {
-		this.setStatusCode(statusCode);
+	public ProductsPaginationReply(int status,String message,long totalProducts,long totalPages,int currentPage,String currentShowing,Object source) {
+		this.setStatus(status);
 		this.setMessage(message);
 		this.setTotalProducts(totalProducts);
 		this.setTotalPages(totalPages);
@@ -19,12 +19,12 @@ public class ProductsPaginationReply {
 		this.setSource(source);
 	}
 
-	public int getStatusCode() {
-		return statusCode;
+	public int getStatus() {
+		return status;
 	}
 
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 	public String getMessage() {

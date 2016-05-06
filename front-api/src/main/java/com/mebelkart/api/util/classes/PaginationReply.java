@@ -8,7 +8,7 @@ package com.mebelkart.api.util.classes;
  *
  */
 public class PaginationReply {
-	private int statusCode;
+	private int status;
 	private String message;
 	private long totalCount;
 	private String currentShowing;
@@ -16,8 +16,8 @@ public class PaginationReply {
 	private Object source;
 	
 	
-	public PaginationReply(int statusCode,String message,long totalCount, String currentShowing,long currentPage, Object source) {
-		this.statusCode = statusCode;
+	public PaginationReply(int status,String message,long totalCount, String currentShowing,long currentPage, Object source) {
+		this.status = status;
 		this.message = message;
 		this.totalCount = totalCount;
 		this.currentShowing = currentShowing;
@@ -25,12 +25,12 @@ public class PaginationReply {
 		this.source = source;
 	}
 	
-	public int getStatusCode() {
-		return statusCode;
+	public int getStatus() {
+		return status;
 	}
 
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 	public String getMessage() {

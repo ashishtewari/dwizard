@@ -8,7 +8,7 @@ public class Reply {
 	/**
 	 * status_code
 	 */
-	public int statusCode;
+	public int status;
 	/**
 	 * message
 	 */
@@ -24,7 +24,7 @@ public class Reply {
      */
     public Reply(int code,String msg,Object objToDisplay)
     {
-    	this.statusCode = code;
+    	this.status = code;
         this.message=msg;
         this.source=objToDisplay;
     }
