@@ -352,6 +352,10 @@ public class AdminResource {
 					log.warn("Trying to update super admin permissions in updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin permissions");
 					return invalidRequestReply;
+				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+					log.warn("Trying to update interfcae user permissions in updatePermissions function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user permissions");
+					return invalidRequestReply;
 				}else if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 ) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						int rowId = this.auth.getUserId((String) rawData.get("userName"),"mk_api_user_admin");
@@ -427,6 +431,13 @@ public class AdminResource {
 		}			
 	}
 	
+	private boolean isUserInterfaceUser(String userName) {
+		if(this.auth.isUserInterfaceUser(userName) == 0)
+			return true;
+		else
+			return false;
+	}
+
 	/**
 	 * This method checks whether the user we want to edit/change/update is super admin or not
 	 * @param userName
@@ -471,6 +482,10 @@ public class AdminResource {
 				if(isUserSuperAdmin(((String) rawData.get("userName")))){
 					log.warn("Trying to update super admin active status in changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin active status");
+					return invalidRequestReply;
+				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+					log.warn("Trying to update interfcae user active status in changeUserActiveStatus function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user active status");
 					return invalidRequestReply;
 				}else if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
