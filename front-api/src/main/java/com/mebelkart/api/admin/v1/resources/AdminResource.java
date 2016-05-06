@@ -792,9 +792,13 @@ public class AdminResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 						return invalidRequestReply;
 					}
+			} else if(accessLevel == 2){
+				log.warn("Unauthorized user tried to access addNewResource function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your adminLevel doesn't provide access to this function");
+				return invalidRequestReply;
 			} else {
 				log.warn("Unauthorized data in addNewResource function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken/adminLevel is not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken is not acceptable");
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
@@ -903,9 +907,13 @@ public class AdminResource {
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 					return invalidRequestReply;
 				}	
+			} else if(accessLevel == 2){
+				log.warn("Unauthorized user tried to access addNewFunction function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your adminLevel doesn't provide access to this function");
+				return invalidRequestReply;
 			} else {
 				log.warn("Unauthorized user tried to access addNewFunction function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken/adminLevel is not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"your accessToken is not acceptable");
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
