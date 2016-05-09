@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Created by vinitpayal on 12/04/16.
  */
-@Path("/v1.0/order")
+@Path("/v1.0")
 public class OrderResource {
     OrderDao orderDao;
     /**
@@ -40,7 +40,7 @@ public class OrderResource {
     }
 
     @GET
-    @Path("/getAllOrders")
+    @Path("/orders")
     @Produces({ MediaType.APPLICATION_JSON })
     public Object getAllOrders(@HeaderParam("filterParam") String headerParam)
     {
