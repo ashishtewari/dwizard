@@ -642,7 +642,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
-	@Path("/featured")
+	@Path("/products/featured")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
