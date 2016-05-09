@@ -60,6 +60,7 @@ public class ManufacturerResource {
 	JSONArray requiredFields;
 	JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	Client client = ElasticFactory.getElasticClient();
+	Client productsClient = ElasticFactory.getProductsElasticClient();
 	static Logger errorLog = LoggerFactory.getLogger(ManufacturerResource.class);
 	
 	public ManufacturerResource(ManufacturerDetailsDAO manufacturerDetailsDao){
@@ -211,10 +212,10 @@ public class ManufacturerResource {
 								 * query for getting products of respective manufacturer id
 								 */
 								BoolQueryBuilder productsQuery = QueryBuilders.boolQuery()
-										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
+										.must(QueryBuilders.matchQuery("info.id_manufacturer",manufacturerId));
 								
-								response = client.prepareSearch("mkmanufacturer")
-										   .setTypes("manufacturerProducts")
+								response = productsClient.prepareSearch("mkproducts")
+										   .setTypes("product")
 										   .setQuery(productsQuery)									
 										   .setFrom(page*paginationLimit)
 										   .setSize(paginationLimit)
