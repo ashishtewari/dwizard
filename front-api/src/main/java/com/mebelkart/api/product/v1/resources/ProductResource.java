@@ -42,7 +42,7 @@ import com.mebelkart.api.util.helpers.Helper;
  * @author Tinku
  *
  */
-@Path("/v1.0/products")
+@Path("/v1.0")
 @Produces({MediaType.APPLICATION_JSON})
 public class ProductResource {
 
@@ -79,7 +79,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings("unchecked")
 	@GET
-	@Path("/getAllProducts")
+	@Path("/products")
 	public Object getAllProducts(@HeaderParam("accessParam") String accessParam){		
 		try{
 			if(isValidJson(accessParam)){
@@ -169,7 +169,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@GET
-	@Path("/getProductsListByCategory/{categoryId}")
+	@Path("/products/category/{categoryId}")
 	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId){		
 		try{
 			if(isValidJson(accessParam)){
@@ -287,7 +287,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
-	@Path("/product/getProductDetail/{productId}")
+	@Path("/product/{productId}")
 	public Object getProductDetail(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -311,19 +311,19 @@ public class ProductResource {
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
 					if(jsonData.containsKey("filters")){
 						int i;
-						JSONArray required = (JSONArray) jsonData.get("req");
+						JSONArray required = (JSONArray) jsonData.get("filters");
 						for(i = 0 ; i < required.size(); i++){
-							if(((String)required.get(i)).equalsIgnoreCase("sellingprice")){
+							if(((String)required.get(i)).equalsIgnoreCase("price")){
 								prodFilteredDetails.put("mktPrice",(Integer)categoryVars.get("price_without_reduction")+"");
 								prodFilteredDetails.put("ourPrice",(Integer)categoryVars.get("price_tax_exc")+"");
 								prodFilteredDetails.put("emiPrice","https://www.mebelkart.com/getEMIForProduct/"+(String)categoryVars.get("id_product")+"?mode=json");
-							} else if(((String)required.get(i)).equalsIgnoreCase("proddesc") || ((String)required.get(i)).equalsIgnoreCase("productdescription")){
+							} else if(((String)required.get(i)).equalsIgnoreCase("desc") || ((String)required.get(i)).equalsIgnoreCase("description")){
 								prodFilteredDetails.put("productName",(String)categoryVars.get("name"));
 								prodFilteredDetails.put("productDesc",(String)categoryVars.get("description"));
-							} else if(((String)required.get(i)).equalsIgnoreCase("prodattr") || ((String)required.get(i)).equalsIgnoreCase("productattribute")){
+							} else if(((String)required.get(i)).equalsIgnoreCase("attr") || ((String)required.get(i)).equalsIgnoreCase("attributes")){
 								prodFilteredDetails.put("attributes",(Object)source.get("attributes"));
 								prodFilteredDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
-							} else if(((String)required.get(i)).equalsIgnoreCase("prodfeature") || ((String)required.get(i)).equalsIgnoreCase("productfeature")){
+							} else if(((String)required.get(i)).equalsIgnoreCase("feature") ){
 								prodFilteredDetails.put("features",getProductFeatures(source));
 							}								
 						}
@@ -431,7 +431,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
-	@Path("/product/getSellingPrice/{productId}")
+	@Path("/product/{productId}/price")
 	public Object getSellingPrice(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -486,7 +486,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
-	@Path("/product/getProdDesc/{productId}")
+	@Path("/product/{productId}/description")
 	public Object getProdDesc(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -539,7 +539,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unused" })
 	@GET
-	@Path("/product/getProdAttr/{productId}")
+	@Path("/product/{productId}/attributes")
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -591,7 +591,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings("unused")
 	@GET
-	@Path("/product/getProdFeature/{productId}")
+	@Path("/product/{productId}/feature")
 	public Object getProdFeature(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -642,7 +642,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
-	@Path("/featured")
+	@Path("/products/featured")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
@@ -714,7 +714,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@GET
-	@Path("/getProductsListBySeller/{manufacturerId}")
+	@Path("/products/seller/{manufacturerId}")
 	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId){		
 		try{
 			if(isValidJson(accessParam)){
@@ -809,7 +809,7 @@ public class ProductResource {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	@GET
-	@Path("/getAllOutOfStock")
+	@Path("/products/outofstock")
 	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam){		
 		try{
 			if(isValidJson(accessParam)){
@@ -894,7 +894,7 @@ public class ProductResource {
 	 * @return
 	 */
 	@GET
-	@Path("/getTopProducts")
+	@Path("/products/top")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Object getTopProducts(@HeaderParam("accessParam") String accessParam) {
 		try {
@@ -965,7 +965,7 @@ public class ProductResource {
 	 * @return
 	 */
 	@GET
-	@Path("/product/getProdFaq/{productId}")
+	@Path("/product/{productId}/faq")
 	public Object getProdFaq(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
