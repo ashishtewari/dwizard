@@ -13,11 +13,13 @@ import java.util.concurrent.ExecutionException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.IndexNotFoundException;
@@ -66,14 +68,13 @@ public class ManufacturerResource {
 	
 	
 	@GET
-	@Path("/getManufacturerInfo")
-	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, InterruptedException, ExecutionException, ConnectException{
+	@Path("/{id}")
+	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long manufacturerId) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = headerInputJsonData.get("apiKey").toString();
 				String userName = headerInputJsonData.get("userName").toString();
-				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				try {
 						/*
 						 * validating the accesstoken given by user
@@ -100,8 +101,8 @@ public class ManufacturerResource {
 									BoolQueryBuilder query = QueryBuilders.boolQuery()
 								            .must(QueryBuilders.termQuery("_id", manufacturerId));
 									
-								response = client.prepareSearch("manufacturer")
-										   .setTypes("info")
+								response = client.prepareSearch("mkmanufacturer")
+										   .setTypes("manufacturerInfo")
 										   .setQuery(query)									
 										   .execute()
 										   .get();	
@@ -153,14 +154,13 @@ public class ManufacturerResource {
 	
 	
 	@GET
-	@Path("/getManufacturerProducts")
-	public Object getManufacturerProducts(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int page,@QueryParam("limit")int paginationLimit){
+	@Path("/products/{id}")
+	public Object getManufacturerProducts(@HeaderParam("accessParam")String accessParam,@PathParam("id")long manufacturerId,@QueryParam("page")int page,@QueryParam("limit")int paginationLimit){
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = headerInputJsonData.get("apiKey").toString();
 				String userName = headerInputJsonData.get("userName").toString();
-				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				try {
 						/*
 						 * validating the accesstoken given by user
@@ -198,8 +198,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
 							            .must(QueryBuilders.termQuery("_id", manufacturerId));
 								
-							response = client.prepareSearch("manufacturer")
-									   .setTypes("info")
+							response = client.prepareSearch("mkmanufacturer")
+									   .setTypes("manufacturerInfo")
 									   .setQuery(query)									
 									   .execute()
 									   .get();	
@@ -213,8 +213,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder productsQuery = QueryBuilders.boolQuery()
 										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
 								
-								response = client.prepareSearch("manufacturer")
-										   .setTypes("products")
+								response = client.prepareSearch("mkmanufacturer")
+										   .setTypes("manufacturerProducts")
 										   .setQuery(productsQuery)									
 										   .setFrom(page*paginationLimit)
 										   .setSize(paginationLimit)
@@ -279,14 +279,13 @@ public class ManufacturerResource {
 	
 	
 	@GET
-	@Path("/getManufacturerAddresses")
-	public Object getManufacturerAddresses(@HeaderParam("accessParam")String accessParam){
+	@Path("/addresses/{id}")
+	public Object getManufacturerAddresses(@HeaderParam("accessParam")String accessParam,@PathParam("id")long manufacturerId){
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = headerInputJsonData.get("apiKey").toString();
 				String userName = headerInputJsonData.get("userName").toString();
-				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				try {
 						/*
 						 * validating the accesstoken given by user
@@ -315,8 +314,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
 							            .must(QueryBuilders.termQuery("_id", manufacturerId));
 								
-							response = client.prepareSearch("manufacturer")
-									   .setTypes("info")
+							response = client.prepareSearch("mkmanufacturer")
+									   .setTypes("manufacturerInfo")
 									   .setQuery(query)									
 									   .execute()
 									   .get();	
@@ -330,8 +329,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder addressQuery = QueryBuilders.boolQuery()
 										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
 								
-								response = client.prepareSearch("manufacturer")
-										   .setTypes("addresses")
+								response = client.prepareSearch("mkmanufacturer")
+										   .setTypes("manufacturerAddresses")
 										   .setQuery(addressQuery)									
 										   .execute()
 										   .get();	
@@ -381,14 +380,13 @@ public class ManufacturerResource {
 	
 	
 	@GET
-	@Path("/getManufacturerOrders")
-	public Object getManufacturerOrders(@HeaderParam("accessParam")String accessParam,@QueryParam("page")int page,@QueryParam("limit")int paginationLimit){
+	@Path("/orders/{id}")
+	public Object getManufacturerOrders(@HeaderParam("accessParam")String accessParam,@PathParam("id")long manufacturerId,@QueryParam("page")int page,@QueryParam("limit")int paginationLimit){
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = headerInputJsonData.get("apiKey").toString();
 				String userName = headerInputJsonData.get("userName").toString();
-				long manufacturerId = (long) headerInputJsonData.get("manufacturerId");
 				try {
 						/*
 						 * validating the accesstoken given by user
@@ -423,19 +421,25 @@ public class ManufacturerResource {
 								/*
 								 * query for getting info of respective manufacturer id
 								 */
-								BoolQueryBuilder query = QueryBuilders.boolQuery()
-							            .must(QueryBuilders.termQuery("_id", manufacturerId));
+//								BoolQueryBuilder query = QueryBuilders.boolQuery()
+//							            .must(QueryBuilders.termQuery("_id", manufacturerId));
 								
-							response = client.prepareSearch("manufacturer")
-									   .setTypes("info")
-									   .setQuery(query)									
-									   .execute()
-									   .get();	
-							 SearchHit[] searchHits = response.getHits().getHits();
-								 manufacturerInfoList.add(searchHits[0].getSource());
+//							response = client.prepareSearch("mkmanufacturer")
+//									   .setTypes("manufactuerAddresses")
+//									   .setQuery(query)									
+//									   .execute()
+//									   .get();
+							GetResponse getResponse = client.prepareGet("mkmanufacturer","manufacturerInfo",manufacturerId+"")
+									.execute().actionGet();
+							 //SearchHit[] manufacturerInfoSearchHits = response.getHits().getHits();
+//							 System.out.println("hits = " + response.getHits().getTotalHits());
+//							 System.out.println("size = " + manufacturerInfoSearchHits.length);
+							 //for(int i=0;i<manufacturerInfoSearchHits.length;i++){
+								 manufacturerInfoList.add(getResponse.getSource());
+							 //}
 							 manufacturerResultMap.put("ManufacturerInfo",manufacturerInfoList);
 
-							 /*
+							 	/*
 								 * query for getting orders from start date to end date of respective
 								 * manufacturer id
 								 */
@@ -445,8 +449,8 @@ public class ManufacturerResource {
 							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId))
 							            .must(QueryBuilders.rangeQuery("dateAdd").from(startDate).to(endDate));
 								
-								response = client.prepareSearch("manufacturer")
-										   .setTypes("orders")
+								response = client.prepareSearch("mkmanufacturer")
+										   .setTypes("manufacturerOrders")
 										   .setQuery(ordersQuery)									
 										   .setFrom(page*paginationLimit)
 										   .setSize(paginationLimit)

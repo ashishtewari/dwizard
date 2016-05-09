@@ -12,11 +12,13 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 
 
 
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -71,9 +73,9 @@ public class CustomerResource {
 	 */	
 	
 	@GET
-	@Path("/getCustomerDetails")
+	@Path("/{id}")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getCustomerDetails(@HeaderParam("accessParam")String accessParam) throws ParseException, ConnectException{
+	public Object getCustomerDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long customerId) throws ParseException, ConnectException{
 		
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
@@ -81,7 +83,6 @@ public class CustomerResource {
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
 				String accessToken = (String) headerInputJsonData.get("apiKey");
 				String userName = (String) headerInputJsonData.get("userName");
-				long customerId = (long) headerInputJsonData.get("customerId");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
 				try {
 						/*
@@ -165,8 +166,8 @@ public class CustomerResource {
 	
 	
 	@SuppressWarnings("unused")
-	@PUT
-	@Path("/addNewAddress")
+	@POST
+	@Path("/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewAddress(@Context HttpServletRequest request) throws ParseException{
@@ -238,10 +239,10 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("/updateAddress")
+	@Path("/address/{id}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object updateAddress(@Context HttpServletRequest request) throws ParseException{
+	public Object updateAddress(@Context HttpServletRequest request,@PathParam("id")long customerId) throws ParseException{
 		try {
 			String getUpdateDetails = "";
 			String splitUpdateDetails[]=null;
@@ -250,7 +251,6 @@ public class CustomerResource {
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
 			String accessToken = (String) bodyInputJsonData.get("apiKey");
 			String userName = (String) bodyInputJsonData.get("userName");
-			long customerId = (long) bodyInputJsonData.get("customerId");
 			long addressId = (long)bodyInputJsonData.get("addressId");
 			try {
 					/*

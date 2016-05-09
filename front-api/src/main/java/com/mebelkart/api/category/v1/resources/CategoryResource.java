@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutionException;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -64,7 +65,7 @@ public class CategoryResource {
 		 * Below method is for getting top categories 
 		 */
 	@GET
-	@Path("/getCategories")
+	@Path("/categories")
 	public Object getCategories(@HeaderParam("accessParam")String accessParam) throws InterruptedException, ExecutionException{
 		
 		try {
@@ -130,14 +131,13 @@ public class CategoryResource {
 	
 	
 	@GET
-	@Path("/getCategoryDetails")
-	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam){
+	@Path("/category/{id}")
+	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long categoryId){
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam);
 			String accessToken = headerInputJsonData.get("apiKey").toString();
 			String userName = headerInputJsonData.get("userName").toString();
-			long categoryId = (long) headerInputJsonData.get("categoryId");
 			
 			try{
 				
