@@ -757,6 +757,53 @@ public class AdminResource {
 		}
 	}
 	
+	@GET
+	@Path("/getResources")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object getResources(@HeaderParam("accessToken") String apikey){
+		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
+			int accessLevel = this.auth.validate(apikey);
+			//Here 1 is Super Admin and 2 is Secondary Admin
+			if(accessLevel == 1){
+				// Here null means we want every resource in DB as the user accessing it will be super admin
+				List<String> resourceNames = this.auth.getResourceNames("null");
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+			}
+			else if(accessLevel == 2){
+				// Here admin means we want every resource except admin in DB as the user accessing it will be admin
+				List<String> resourceNames = this.auth.getResourceNames("admin");
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+			}
+			else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown admin level");
+				return invalidRequestReply;
+			}
+		} catch(NumberFormatException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid value for userType");
+			return invalidRequestReply;
+		} catch(NullPointerException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			return invalidRequestReply;
+		} catch(ClassCastException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		} catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused server stopped in getResources function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
+				return invalidRequestReply;
+			}else{
+				log.warn(e.getMessage());
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
+				return invalidRequestReply;
+			}
+		}	
+	}
+	
 	@POST
 	@Path("/addNewResource")
 	@Consumes(MediaType.APPLICATION_JSON)
