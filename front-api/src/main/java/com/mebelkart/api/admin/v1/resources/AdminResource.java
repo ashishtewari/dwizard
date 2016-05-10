@@ -21,8 +21,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import redis.clients.jedis.JedisPool;
-
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
@@ -68,9 +66,6 @@ public class AdminResource {
 	 * Getting redis client
 	 */
 	JedisFactory jedisAuthentication = new JedisFactory();
-	
-	JedisFactory jedisFactory = new JedisFactory();
-	JedisPool pool = jedisFactory.getJedisConnectionPool();
 	
 	/**
 	 * InvalidInputReplyClass class
