@@ -8,6 +8,7 @@ productClusterName: MK-FRONT-ALL
 
 redisHost: 127.0.0.1
 redisPort: 6379
+redisPassword: mebelkart
 
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case
