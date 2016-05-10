@@ -31,7 +31,7 @@ mebelkartProductionDatabase:
 server:
   applicationConnectors:
     - type: http
-      port: 8080
+      port: 8000
     - type: https
       port: 8443
       keyStorePath: front-api/src/main/resources/mkapi.keystore
@@ -40,7 +40,7 @@ server:
       validatePeers: false    
   adminConnectors:
     - type: http
-      port: 8081
+      port: 8001
     - type: https
       port: 8444
       keyStorePath: front-api/src/main/resources/mkapi.keystore
