@@ -921,7 +921,7 @@ public class AdminResource {
 										}
 									}
 								}else
-								if(functionObject.containsKey("postFunction")){
+								if(functionObject.containsKey("postFunctions")){
 									JSONArray postFunctions = (JSONArray) functionObject.get("postFunctions");
 									List<String> getPreAssignedPOSTFunctions = this.auth.getFunctionNames(resourceId, "post");
 									for (int j = 0; j < postFunctions.size(); j++) {
@@ -932,7 +932,7 @@ public class AdminResource {
 										}
 									}
 								}
-								if(functionObject.containsKey("putFunction")){
+								if(functionObject.containsKey("putFunctions")){
 									JSONArray putFunctions = (JSONArray) functionObject.get("putFunctions");
 									List<String> getPreAssignedPUTFunctions = this.auth.getFunctionNames(resourceId, "put");
 									for (int j = 0; j < putFunctions.size(); j++) {
