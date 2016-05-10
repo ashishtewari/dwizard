@@ -81,7 +81,7 @@ public class CustomerResource {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			if(helperMethods.isValidJson(accessParam)){ // validating the input json data
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = (String) headerInputJsonData.get("apiKey");
+				String accessToken = (String) headerInputJsonData.get("accessToken");
 				String userName = (String) headerInputJsonData.get("userName");
 				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
 				try {
@@ -136,13 +136,13 @@ public class CustomerResource {
 			}	
 		}
 			catch (NullPointerException nullPointer) {
-				errorLog.warn("apiKey or customerId spelled Incorrectly or mention necessary fields of address");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or customerId spelled Incorrectly or mention necessary fields of address");
+				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
 				return invalidRequestReply;
 			}
 			catch (ClassCastException classCast) {
-				errorLog.warn("Give apiKey as String,customerid as integer,requiredFields as array of strings");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Give apiKey as String,customerid as integer,requiredFields as array of strings");
+				errorLog.warn("Give accessToken as String,customerid as integer,requiredFields as array of strings");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Give accessToken as String,customerid as integer,requiredFields as array of strings");
 				return invalidRequestReply;
 			}
 			catch (ParseException parse) {
@@ -167,14 +167,14 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@POST
-	@Path("/address")
+	@Path("{customerId}/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addNewAddress(@Context HttpServletRequest request) throws ParseException{
+	public Object addNewAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
-			String accessToken = (String) bodyInputJsonData.get("apiKey");
+			String accessToken = (String) bodyInputJsonData.get("accessToken");
 			String userName = (String) bodyInputJsonData.get("userName");
 			int isAddressAdded=0;
 			try{
@@ -186,7 +186,6 @@ public class CustomerResource {
 				return invalidRequestReply;
 			}
 			
-				long customerId = (long) bodyInputJsonData.get("customerId");
 					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
 						String isValidInputValues = helperMethods.validateInputValues(bodyInputJsonData);
 						     /*
@@ -215,8 +214,8 @@ public class CustomerResource {
 					}
 			} 	
 		catch (NullPointerException nullPointer) {
-			errorLog.warn("apiKey or customerId spelled Incorrectly or mention necessary fields of address");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or customerId spelled Incorrectly or mention necessary fields of address");
+			errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
 			return invalidRequestReply;
 		}	
 		catch (ClassCastException classCast) {
@@ -239,19 +238,18 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("/address/{id}")
+	@Path("{customerId}/address/{addressId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object updateAddress(@Context HttpServletRequest request,@PathParam("id")long customerId) throws ParseException{
+	public Object updateAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId,@PathParam("addressId")long addressId) throws ParseException{
 		try {
 			String getUpdateDetails = "";
 			String splitUpdateDetails[]=null;
 			int isAddressUpdated = 0;
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
-			String accessToken = (String) bodyInputJsonData.get("apiKey");
+			String accessToken = (String) bodyInputJsonData.get("accessToken");
 			String userName = (String) bodyInputJsonData.get("userName");
-			long addressId = (long)bodyInputJsonData.get("addressId");
 			try {
 					/*
 					 * validating the accesstoken given by user
@@ -303,8 +301,8 @@ public class CustomerResource {
 					}
 				} 	
 		catch (NullPointerException nullPointer) {
-			errorLog.warn("apiKey or customerId or addressId spelled Incorrectly");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or customerId or addressId spelled Incorrectly");
+			errorLog.warn("accessToken or userName spelled Incorrectly");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName or addressId spelled Incorrectly");
 			return invalidRequestReply;
 		}	
 		catch (ClassCastException classCast) {
@@ -333,7 +331,7 @@ public class CustomerResource {
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
-			String accessToken = (String) bodyInputJsonData.get("apiKey");
+			String accessToken = (String) bodyInputJsonData.get("accessToken");
 			String userName = (String) bodyInputJsonData.get("userName");
 			int isAddressDeleted=0;
 			try{
@@ -368,8 +366,8 @@ public class CustomerResource {
 					}
 			} 	
 		catch (NullPointerException nullPointer) {
-			errorLog.warn("apiKey or customerId or addressId spelled Incorrectly");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or customerId or addressId spelled Incorrectly");
+			errorLog.warn("accessToken or customerId or addressId spelled Incorrectly");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or customerId or addressId spelled Incorrectly");
 			return invalidRequestReply;
 		}	
 		catch (ClassCastException classCast) {

@@ -70,7 +70,7 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
-			String accessToken = headerInputJsonData.get("apiKey").toString();
+			String accessToken = headerInputJsonData.get("accessToken").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 				/*
 				 * validating the accesstoken given by user
@@ -101,8 +101,8 @@ public class CategoryResource {
 					return new Reply(200,"success",categoryList);
 		}
 		catch (NullPointerException nullPointer) {
-			errorLog.info("apiKey or other fields spelled Incorrectly or mention necessary fields");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or other fields spelled Incorrectly or mention necessary fields");
+			errorLog.info("accessToken or other fields spelled Incorrectly or mention necessary fields");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or other fields spelled Incorrectly or mention necessary fields");
 			return invalidRequestReply;
 		}
 		catch (ParseException parse) {
@@ -136,7 +136,7 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam);
-			String accessToken = headerInputJsonData.get("apiKey").toString();
+			String accessToken = headerInputJsonData.get("accessToken").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 			
 			try{
@@ -175,8 +175,8 @@ public class CategoryResource {
 		
 		} 
 		catch (NullPointerException nullPointer) {
-			errorLog.info("apiKey or other fields spelled Incorrectly or mention necessary fields");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or other fields spelled Incorrectly or mention necessary fields");
+			errorLog.info("accessToken or other fields spelled Incorrectly or mention necessary fields");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or other fields spelled Incorrectly or mention necessary fields");
 			return invalidRequestReply;
 		}
 		catch (ParseException parse) {
