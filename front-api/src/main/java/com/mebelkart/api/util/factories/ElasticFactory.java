@@ -24,7 +24,10 @@ public class ElasticFactory {
             System.out.println("elastic host from config :"+mkApiConfiguration.getElasticsearchHost());
             System.out.println("elastic cluster name :"+mkApiConfiguration.getClusterName());
             System.out.println("elastic port "+mkApiConfiguration.getElasticPort());
-            Client client = TransportClient.builder().build()
+            Settings settings = Settings.settingsBuilder()
+        	        .put("cluster.name", mkApiConfiguration.getClusterName())
+        	        .build();
+            Client client = TransportClient.builder().settings(settings).build()
          	       .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(mkApiConfiguration.getElasticsearchHost()), mkApiConfiguration.getElasticPort()));
         	return client;
         }

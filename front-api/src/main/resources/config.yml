@@ -1,6 +1,6 @@
-elasticsearchHost: 127.0.0.1
+elasticsearchHost: 52.77.131.42
 elasticPort: 9300
-clusterName: elasticsearch
+clusterName: MK-NEW-CLUSTER
 
 productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
