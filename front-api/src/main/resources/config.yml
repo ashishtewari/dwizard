@@ -8,7 +8,7 @@ productClusterName: MK-FRONT-ALL
 
 redisHost: 127.0.0.1
 redisPort: 6379
-redisPassword: mebelkart
+redisPassword: stage@redis_caching
 
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case
@@ -16,7 +16,7 @@ apiAuthenticationDatabase:
     # the username
     user: root
     # the password
-    password: root
+    password: stage@mebelkart
     # the JDBC URL; the database is called DWGettingStarted
     url: jdbc:mysql://localhost:3306/mk_api
 mebelkartProductionDatabase:
@@ -25,14 +25,14 @@ mebelkartProductionDatabase:
     # the username
     user: root
     # the password
-    password: root
+    password: stage@mebelkart
     # the JDBC URL; the database is called DWGettingStarted
     #convertToNull is to handle date requests which contains all zeros
     url: jdbc:mysql://localhost:3306/mebelkart_prod?zeroDateTimeBehavior=convertToNull
 server:
   applicationConnectors:
     - type: http
-      port: 8080
+      port: 8000
     - type: https
       port: 8443
       keyStorePath: front-api/src/main/resources/mkapi.keystore
@@ -41,7 +41,7 @@ server:
       validatePeers: false    
   adminConnectors:
     - type: http
-      port: 8081
+      port: 8001
     - type: https
       port: 8444
       keyStorePath: front-api/src/main/resources/mkapi.keystore
