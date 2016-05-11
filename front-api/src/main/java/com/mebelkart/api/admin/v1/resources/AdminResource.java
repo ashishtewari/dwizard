@@ -2,7 +2,9 @@ package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -845,16 +847,25 @@ public class AdminResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
 			}
+			Map<String,Integer> resources = new HashMap<String,Integer>();
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				// Here null means we want every resource in DB as the user accessing it will be super admin
 				List<String> resourceNames = this.auth.getResourceNames("null");
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+				List<Integer> resourceIds = this.auth.getResourceIds("null");
+				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
+					resources.put(resourceNames.get(i), resourceIds.get(i));
+				}
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
 			}
 			else if(accessLevel == 2){
 				// Here admin means we want every resource except admin in DB as the user accessing it will be admin
 				List<String> resourceNames = this.auth.getResourceNames("admin");
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+				List<Integer> resourceIds = this.auth.getResourceIds("admin");
+				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
+					resources.put(resourceNames.get(i), resourceIds.get(i));
+				}
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
 			}
 			else{
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"unknown admin level");

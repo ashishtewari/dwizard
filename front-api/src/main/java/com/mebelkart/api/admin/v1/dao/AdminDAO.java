@@ -324,6 +324,14 @@ public interface AdminDAO {
 	List<String> getResourceNames(@Bind("resourceName") String resourceName);
 	
 	/**
+	 * This query returns all the resource names and its Ids related to user(admin or superAdmin)
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select id from mk_api_resources WHERE a_resource_name != :resourceName")
+	List<Integer> getResourceIds(@Bind("resourceName") String resourceName);
+	
+	/**
 	 * This query returns the id of the resource
 	 * @param resourceName
 	 * @return
