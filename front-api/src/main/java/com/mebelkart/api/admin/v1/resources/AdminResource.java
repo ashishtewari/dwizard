@@ -485,7 +485,9 @@ public class AdminResource {
 				}else if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",adminUserName);
-						this.auth.updateUserChanges("mk_api_user_admin",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_user_admin"),1);
+						if(((long) rawData.get("status")) == 1){
+							this.auth.updateUserChanges("mk_api_user_admin",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_user_admin"),1);
+						}
 						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
@@ -497,7 +499,9 @@ public class AdminResource {
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
 						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",adminUserName);
-						this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
+						if(((long) rawData.get("status")) == 1){
+							this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
+						}
 						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
