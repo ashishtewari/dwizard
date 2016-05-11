@@ -758,6 +758,72 @@ public class AdminResource {
 	}
 	
 	@GET
+	@Path("/getFunctions")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object getFunctions(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String details){
+		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			apikey = helper.getBase64Decoded(apikey);
+			int accessLevel = this.auth.validate(apikey);
+			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+			try {
+				jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getFunctions");
+			} catch (Exception e) {
+				log.info("Unautherized user "+adminUserName+" tried to access getFunctions function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+			}
+			if(utilHelper.isValidJson(details)){
+				JSONObject rawData = utilHelper.jsonParser(details);
+				if(containsValidKeys(rawData)){
+					long resourceId = this.auth.getResourceId((String) rawData.get("resourceName"));
+					String methodType = ((String) rawData.get("methodName")).toLowerCase();
+					//Here 1 is Super Admin and 2 is Secondary Admin
+					if(accessLevel == 1 || accessLevel == 2){
+						// Here null means we want every resource in DB as the user accessing it will be super admin
+						List<String> functionNames = this.auth.getFunctionNames(resourceId, methodType);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),functionNames);
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"unknown admin level");
+						return invalidRequestReply;
+					}
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid json format");
+				return invalidRequestReply;
+			}
+		} catch(NullPointerException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			return invalidRequestReply;
+		} catch(ClassCastException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		} catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused server stopped in getFunctions function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
+				return invalidRequestReply;
+			}else{
+				log.warn(e.getMessage());
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
+				return invalidRequestReply;
+			}
+		}
+	}
+	
+	private boolean containsValidKeys(JSONObject rawData) {
+		if(rawData.containsKey("resourceName") && rawData.containsKey("methodName"))
+			return true;
+		else 
+			return false;
+	}
+
+	@GET
 	@Path("/getResources")
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object getResources(@HeaderParam("accessToken") String apikey){
@@ -787,7 +853,7 @@ public class AdminResource {
 				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
 			}
 			else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown admin level");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"unknown admin level");
 				return invalidRequestReply;
 			}
 		} catch(NumberFormatException e){
