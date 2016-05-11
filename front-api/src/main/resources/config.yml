@@ -1,14 +1,17 @@
-elasticsearchHost: 52.77.131.42
+# While going for production change host to 52.77.131.42
+elasticsearchHost: 127.0.0.1
 elasticPort: 9300
-clusterName: MK-NEW-CLUSTER
+# While going for production change cluster name to MK-NEW-CLUSTER
+clusterName: elasticsearch
 
 productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
 productClusterName: MK-FRONT-ALL
 
+# While going for production change host to 54.169.206.4
 redisHost: 127.0.0.1
 redisPort: 6379
-redisPassword: mebelkart
+redisPassword: stage@redis_caching
 
 apiAuthenticationDatabase:
     # the name of the JDBC driver, mysql in our case

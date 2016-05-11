@@ -767,6 +767,14 @@ public class AdminResource {
 			 */
 			apikey = helper.getBase64Decoded(apikey);
 			int accessLevel = this.auth.validate(apikey);
+			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+			try {
+				jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getResources");
+			} catch (Exception e) {
+				log.info("Unautherized user "+adminUserName+" tried to access getResources function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+			}
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				// Here null means we want every resource in DB as the user accessing it will be super admin
@@ -921,7 +929,7 @@ public class AdminResource {
 										}
 									}
 								}else
-								if(functionObject.containsKey("postFunction")){
+								if(functionObject.containsKey("postFunctions")){
 									JSONArray postFunctions = (JSONArray) functionObject.get("postFunctions");
 									List<String> getPreAssignedPOSTFunctions = this.auth.getFunctionNames(resourceId, "post");
 									for (int j = 0; j < postFunctions.size(); j++) {
@@ -932,7 +940,7 @@ public class AdminResource {
 										}
 									}
 								}
-								if(functionObject.containsKey("putFunction")){
+								if(functionObject.containsKey("putFunctions")){
 									JSONArray putFunctions = (JSONArray) functionObject.get("putFunctions");
 									List<String> getPreAssignedPUTFunctions = this.auth.getFunctionNames(resourceId, "put");
 									for (int j = 0; j < putFunctions.size(); j++) {
