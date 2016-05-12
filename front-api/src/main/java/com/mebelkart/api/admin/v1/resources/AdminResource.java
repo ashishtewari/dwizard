@@ -159,7 +159,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
