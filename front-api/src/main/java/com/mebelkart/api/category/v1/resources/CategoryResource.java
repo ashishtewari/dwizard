@@ -35,7 +35,7 @@ import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 
 /**
  * @author Nikhil
@@ -47,7 +47,10 @@ public class CategoryResource {
 	
 	JSONObject headerInputJsonData = new JSONObject();
 	CategoryDao categoryDao = null;
-	JedisFactory jedisCustomerAuthentication = new JedisFactory();
+	/**
+	 * Getting client to authenticate
+	 */
+	Authentication authenticate = new Authentication();
 	CategoryHelperMethods categoryHelperMethods = new CategoryHelperMethods();
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
 	InvalidInputReplyClass invalidRequestReply = null;
@@ -70,13 +73,13 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
-			String accessToken = headerInputJsonData.get("apiKey").toString();
+			String accessToken = headerInputJsonData.get("accessToken").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 				/*
 				 * validating the accesstoken given by user
 				 */
 			try {
-				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
+				authenticate.validate(userName,accessToken, "category", "get", "getCategories");
 			} catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -101,8 +104,8 @@ public class CategoryResource {
 					return new Reply(200,"success",categoryList);
 		}
 		catch (NullPointerException nullPointer) {
-			errorLog.info("apiKey or other fields spelled Incorrectly or mention necessary fields");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or other fields spelled Incorrectly or mention necessary fields");
+			errorLog.info("accessToken or other fields spelled Incorrectly or mention necessary fields");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or other fields spelled Incorrectly or mention necessary fields");
 			return invalidRequestReply;
 		}
 		catch (ParseException parse) {
@@ -136,12 +139,12 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam);
-			String accessToken = headerInputJsonData.get("apiKey").toString();
+			String accessToken = headerInputJsonData.get("accessToken").toString();
 			String userName = headerInputJsonData.get("userName").toString();
 			
 			try{
 				
-				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+				authenticate.validate(userName,accessToken, "category", "get", "getCategoryDetails");
 				
 			}  catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access getCategoryDetails function");
@@ -175,8 +178,8 @@ public class CategoryResource {
 		
 		} 
 		catch (NullPointerException nullPointer) {
-			errorLog.info("apiKey or other fields spelled Incorrectly or mention necessary fields");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or other fields spelled Incorrectly or mention necessary fields");
+			errorLog.info("accessToken or other fields spelled Incorrectly or mention necessary fields");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or other fields spelled Incorrectly or mention necessary fields");
 			return invalidRequestReply;
 		}
 		catch (ParseException parse) {

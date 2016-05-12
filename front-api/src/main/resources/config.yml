@@ -1,12 +1,15 @@
-elasticsearchHost: 52.77.131.42
+# While going for production change host to 52.77.131.42
+elasticsearchHost: 127.0.0.1
 elasticPort: 9300
-clusterName: MK-NEW-CLUSTER
+# While going for production change cluster name to MK-NEW-CLUSTER
+clusterName: elasticsearch
 
 productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
 productClusterName: MK-FRONT-ALL
 
-redisHost: 127.0.0.1
+# While going for production change host to 54.169.206.4
+redisHost: 54.169.206.4
 redisPort: 6379
 redisPassword: stage@redis_caching
 
@@ -56,7 +59,7 @@ logging:
   appenders:
     - type: console
     - type: file
-      threshold: INFO	
+      threshold: ALL	
       logFormat: "%-6level [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
       currentLogFilename: log.out
       archivedLogFilenamePattern: log-%d{yyyy-MM-dd}-%i.out.gz

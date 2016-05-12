@@ -4,7 +4,7 @@ import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -27,9 +27,9 @@ import java.util.List;
 public class OrderResource {
     OrderDao orderDao;
     /**
-	 * Getting redis client
+	 * Getting client to authenticate
 	 */
-	JedisFactory jedisAuthentication = new JedisFactory();
+	Authentication authenticate = new Authentication();
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -49,7 +49,7 @@ public class OrderResource {
             String userName = (String) headerParamJson.get("userName");
 			String accessToken = (String) headerParamJson.get("accessToken");
             try{
-            	jedisAuthentication.validate(userName,accessToken, "orders", "get", "getAllOrders");
+            	authenticate.validate(userName,accessToken, "orders", "get", "getAllOrders");
             	SimpleDateFormat formatter = new SimpleDateFormat("dd-M-yyyy HH:mm:SS");
                 String whereQuery="";
                 Date fromDate=null;
