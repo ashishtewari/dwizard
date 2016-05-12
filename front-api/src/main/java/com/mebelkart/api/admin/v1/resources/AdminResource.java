@@ -194,12 +194,27 @@ public class AdminResource {
 	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object registerUser(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object registerUser(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -207,7 +222,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "post", "registerUser");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access registerUser function");
+					log.info("Unautherized user "+userName+" tried to access registerUser function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -219,18 +234,18 @@ public class AdminResource {
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 ) {
-					int rowId = registerAdmin(rawData,adminUserName);
+					int rowId = registerAdmin(rawData,userName);
 					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						//1 on successfull insertion and 6 on successfull updation
 						if(status == 1 || status == 6){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == -2){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions to some of the resources", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else{
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}
 					} else if(rowId == 0) {
@@ -251,23 +266,23 @@ public class AdminResource {
 						return invalidRequestReply;
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
-					int rowId = registerConsumer(rawData,adminUserName);
+					int rowId = registerConsumer(rawData,userName);
 					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						}else if(status == -1){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions because you can't give consumer access to ADMIN resource and so avoided this permission");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions because you can't give consumer access to ADMIN resource and so avoided this permission");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned, can't give consumer access to ADMIN resource", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == -2){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions to some of the resources", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == 7){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions, give valid function keys");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions, give valid function keys");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions, give valid function keys ", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else{
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given any resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given any resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						}
 					} else if(rowId == 0) {
@@ -298,7 +313,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -316,6 +331,14 @@ public class AdminResource {
 		}				
 	}
 
+	private boolean isHavingValidAccessParamKeys(String accessParam) {
+		JSONObject jsonData = utilHelper.jsonParser(accessParam);
+		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken"))
+			return true;
+		else
+			return false;
+	}
+
 	/**
 	 * This is the Post method accessed by path HOST/v1.0/admin/assignPermissions
 	 * This method calls assigningConsumerPermission to assign permissions if user already exists
@@ -327,12 +350,27 @@ public class AdminResource {
 	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object updatePermissions(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object updatePermissions(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -341,7 +379,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "put", "updatePermissions");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access updatePermissions function");
+					log.info("Unautherized user "+userName+" tried to access updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -359,13 +397,13 @@ public class AdminResource {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							log.info(userName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else if(status == 6){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							log.info(userName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else
 							return helper.checkStatus(status);
@@ -381,13 +419,13 @@ public class AdminResource {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							log.info(userName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else if(status == 6){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							log.info(userName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}
 						else
@@ -409,7 +447,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -458,12 +496,27 @@ public class AdminResource {
 	@Path("/changeUserActiveStatus")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object changeUserActiveStatus(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+	public Object changeUserActiveStatus(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -472,7 +525,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "put", "changeUserActiveStatus");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access changeUserActiveStatus function");
+					log.info("Unautherized user "+userName+" tried to access changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -486,11 +539,11 @@ public class AdminResource {
 					return invalidRequestReply;
 				}else if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",adminUserName);
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",userName);
 						if(((long) rawData.get("status")) == 1){
 							this.auth.updateUserChanges("mk_api_user_admin",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_user_admin"),1);
 						}
-						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
+						log.info(userName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -500,11 +553,11 @@ public class AdminResource {
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",adminUserName);
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",userName);
 						if(((long) rawData.get("status")) == 1){
 							this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
 						}
-						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
+						log.info(userName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -523,7 +576,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -559,12 +612,27 @@ public class AdminResource {
 	@Path("/changeRateLimit")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object changeRateLimit(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+	public Object changeRateLimit(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
@@ -573,14 +641,14 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "put", "changeRateLimit");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access changeRateLimit function");
+					log.info("Unautherized user "+userName+" tried to access changeRateLimit function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
 				if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
-					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),adminUserName);
+					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),userName);
 					this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
-					log.info(adminUserName+" has changed countAssigned of user "+(String)rawData.get("userName"));
+					log.info(userName+" has changed countAssigned of user "+(String)rawData.get("userName"));
 					return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 				}else{
 					log.warn("Not found userName in changeRateLimit function");
@@ -593,7 +661,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -621,12 +689,27 @@ public class AdminResource {
 	@GET
 	@Path("/getUsersStatus")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getUsersStatus(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails) {
+	public Object getUsersStatus(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && utilHelper.isValidJson(userDetails)){
@@ -635,7 +718,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "get", "getUsersStatus");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access getUsersStatus function");
+					log.info("Unautherized user "+userName+" tried to access getUsersStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -664,11 +747,11 @@ public class AdminResource {
 				}	
 			}else {
 				log.warn("Unauthorized data in getUsersStatus function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessToken/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessLevel/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -696,12 +779,27 @@ public class AdminResource {
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getUserPrivileges(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails){
+	public Object getUserPrivileges(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && utilHelper.isValidJson(userDetails)){
@@ -710,7 +808,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "get", "getUserPrivileges");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access getUserPrivileges function");
+					log.info("Unautherized user "+userName+" tried to access getUserPrivileges function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -745,7 +843,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid values");
@@ -766,18 +864,33 @@ public class AdminResource {
 	@GET
 	@Path("/getFunctions")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getFunctions(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String details){
+	public Object getFunctions(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String details){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 			try {
 				authenticate.validate(adminUserName,apikey, "admin", "get", "getFunctions");
 			} catch (Exception e) {
-				log.info("Unautherized user "+adminUserName+" tried to access getFunctions function");
+				log.info("Unautherized user "+userName+" tried to access getFunctions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
 			}
@@ -804,7 +917,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		} catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		} catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -832,18 +945,33 @@ public class AdminResource {
 	@GET
 	@Path("/getResources")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getResources(@HeaderParam("accessToken") String apikey){
+	public Object getResources(@HeaderParam("userDetails") String accessParam){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 			try {
 				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
 			} catch (Exception e) {
-				log.info("Unautherized user "+adminUserName+" tried to access getResources function");
+				log.info("Unautherized user "+userName+" tried to access getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
 			}
@@ -875,7 +1003,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid value for userType");
 			return invalidRequestReply;
 		} catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		} catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -897,12 +1025,27 @@ public class AdminResource {
 	@Path("/addNewResource")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addNewResource(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object addNewResource(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
@@ -911,7 +1054,7 @@ public class AdminResource {
 					try {
 						authenticate.validate(adminUserName,apikey, "admin", "post", "addNewResource");
 					} catch (Exception e) {
-						log.info("Unautherized user "+adminUserName+" tried to access addNewResource function");
+						log.info("Unautherized user "+userName+" tried to access addNewResource function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
@@ -926,15 +1069,15 @@ public class AdminResource {
 										this.auth.addNewResource((String)resources.get(i));
 								}
 							}
-							log.info(adminUserName + " has added new resource");
+							log.info(userName + " has added new resource");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else{
-							log.warn(adminUserName + " tried to access addNewResource without providing any resources names");
+							log.warn(userName + " tried to access addNewResource without providing any resources names");
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide resource names");
 							return invalidRequestReply;
 						}
 					}else{
-						log.warn(adminUserName + " tried to access addNewResource without giving valid key");
+						log.warn(userName + " tried to access addNewResource without giving valid key");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 						return invalidRequestReply;
 					}
@@ -948,7 +1091,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -971,13 +1114,28 @@ public class AdminResource {
 	@Path("/addNewFunction")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addNewFunction(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
@@ -986,7 +1144,7 @@ public class AdminResource {
 				try {
 					authenticate.validate(adminUserName,apikey, "admin", "post", "addNewFunction");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access addNewFunction function");
+					log.info("Unautherized user "+userName+" tried to access addNewFunction function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -1037,19 +1195,19 @@ public class AdminResource {
 							}
 						}
 						if(errors == 0){
-							log.info(adminUserName + " has added new functions");
+							log.info(userName + " has added new functions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else{
-							log.info(adminUserName + " has added only some functions, there were errors in the requested json");
+							log.info(userName + " has added only some functions, there were errors in the requested json");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but added only some functions, there were errors in the requested json",null);
 						}
 					}else{
-						log.warn(adminUserName + " tried to access addNewFunction without providing any function names specified");
+						log.warn(userName + " tried to access addNewFunction without providing any function names specified");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide resource names");
 						return invalidRequestReply;
 					}
 				}else{
-					log.warn(adminUserName + " tried to access addNewFunction without giving valid key");
+					log.warn(userName + " tried to access addNewFunction without giving valid key");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 					return invalidRequestReply;
 				}	
