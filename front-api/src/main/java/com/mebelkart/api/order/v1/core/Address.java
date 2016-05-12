@@ -1,6 +1,5 @@
 package com.mebelkart.api.order.v1.core;
 
-import org.joda.time.DateTime;
 
 /**
  * Created by vinitpayal on 20/04/16.

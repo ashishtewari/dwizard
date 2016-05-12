@@ -6,7 +6,6 @@
 	<name>MebelKart Parent api</name>
 
 	<properties>
-
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<dropwizard.version>0.9.1</dropwizard.version>

@@ -5,17 +5,18 @@ package com.mebelkart.api.util.cronTasks.jedis;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
 
-import com.mebelkart.api.admin.v1.crypting.MD5Encoding;
-import com.mebelkart.api.admin.v1.helper.HelperMethods;
+import com.mebelkart.api.util.crypting.MD5Encoding;
+import com.mebelkart.api.util.helpers.Helper;
 import com.mebelkart.api.util.cronTasks.dao.JedisDao;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -28,9 +29,13 @@ import de.spinscale.dropwizard.jobs.annotations.OnApplicationStart;
  */
 @OnApplicationStart
 public class JedisIndex extends Job {
+	
+	/**
+	 * Get actual class name to be printed on
+	 */
+	static Logger log = LoggerFactory.getLogger(JedisIndex.class);
 
 	JedisFactory jedisFactory = new JedisFactory();
-	JedisPool pool = jedisFactory.getJedisConnectionPool();
 
 	public void doJob() {
 		try {
@@ -40,7 +45,7 @@ public class JedisIndex extends Job {
 			 * updating it in mk_api_statics table and 
 			 * then later updating the currentCount of the user to 0 in redis
 			 */	
-			Jedis tempJedis = pool.getResource();
+			Jedis tempJedis = jedisFactory.getJedisConnection();
 			Set<String> keys = tempJedis.keys("*");
 			for(String key: keys){
 				String customerName = tempJedis.hget(key, "userName");
@@ -53,7 +58,7 @@ public class JedisIndex extends Job {
 					// getting previous day count
 					int dayCount = Integer.parseInt(tempJedis.hget(key,"currentCount"));
 					// getting previous days date and time
-					String previousDate = new HelperMethods().getYesterdayDateString();
+					String previousDate = new Helper().getYesterdayDateString();
 					// updating this details in mk_api_statics table
 					jedisDaoObject.updateHitsAndDate(customerId,dayCount,previousDate);
 					// updating currentCount of this user to 0
@@ -127,7 +132,7 @@ public class JedisIndex extends Job {
 						functionPermssionsResultSet.close();
 					}
 				}
-				Jedis jedis = pool.getResource();
+				Jedis jedis = jedisFactory.getJedisConnection();
 				try {
 					if(jedis.exists(MD5Encoding.encrypt(customerName))){
 						// removing that key and its all related fields and values form redis
@@ -164,14 +169,9 @@ public class JedisIndex extends Job {
 				} catch (JedisException e) {
 					// if something wrong happen, return it back to the pool
 					if (null != jedis) {
-						pool.returnBrokenResource(jedis);
+						//pool.returnBrokenResource(jedis);
 						jedis = null;
 					}
-				} finally {
-					// /it's important to return the Jedis instance to the pool
-					// once you've finished using it
-					if (null != jedis)
-						pool.returnResource(jedis);
 				}
 			}
 			
@@ -242,7 +242,7 @@ public class JedisIndex extends Job {
 						functionPermssionsResultSet.close();
 					}
 				}
-				Jedis jedis = pool.getResource();
+				Jedis jedis = jedisFactory.getJedisConnection();
 				try {
 					if(jedis.exists(MD5Encoding.encrypt(adminName))){
 						jedis.del(MD5Encoding.encrypt(adminName));
@@ -279,14 +279,9 @@ public class JedisIndex extends Job {
 				} catch (JedisException e) {
 					// if something wrong happen, return it back to the pool
 					if (null != jedis) {
-						pool.returnBrokenResource(jedis);
+						//pool.returnBrokenResource(jedis);
 						jedis = null;
 					}
-				} finally {
-					// /it's important to return the Jedis instance to the pool
-					// once you've finished using it
-					if (null != jedis)
-						pool.returnResource(jedis);
 				}
 			}
 		} catch (SQLException e) {
@@ -296,6 +291,8 @@ public class JedisIndex extends Job {
 			System.out.println("----------NullPointerException in JedisIndex---------");
 		} catch (ClassNotFoundException e1) {
 			e1.printStackTrace();
-		}
+		} catch (JedisDataException e){
+			log.info("There is an JedisDataException in JedisIndex, Message is "+e.getMessage());
+		} 
 	}
 }

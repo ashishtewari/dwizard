@@ -1,6 +1,6 @@
 package com.mebelkart.api.order.v1.dao;
 
-import com.mebelkart.api.order.v1.core.Customer;
+
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.order.v1.core.OrderDetail;
 import com.mebelkart.api.order.v1.mapper.OrderDetailMapper;

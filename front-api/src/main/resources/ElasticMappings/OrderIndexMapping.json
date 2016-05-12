@@ -1,0 +1,317 @@
+{
+  "mk": {
+    "mappings": {
+      "order": {
+        "date_detection": false,
+        "properties": {
+          "customerId": {
+            "type": "long"
+          },
+          "module": {
+            "type": "string"
+          },
+          "orderDate": {
+            "type": "string", "index" : "not_analyzed"
+          },
+          "orderDetails": {
+            "properties": {
+              "deliveredFromDate": {
+                "type": "long", "index" : "not_analyzed"
+              },
+              "deliveredToDate": {
+                "type": "long", "index" : "not_analyzed"
+              },
+              "discountQuantityApplied": {
+                "type": "boolean"
+              },
+              "downloadHash": {
+                "type": "string"
+              },
+              "downloadNb": {
+                "type": "long"
+              },
+              "ecoTax": {
+                "type": "double"
+              },
+              "ecotaxRate": {
+                "type": "double"
+              },
+              "groupReduction": {
+                "type": "double"
+              },
+              "orderDetailAssignToOtherVendor": {
+                "properties": {
+                  "fromVendorId": {
+                    "type": "long"
+                  },
+                  "orderDetailId": {
+                    "type": "long"
+                  },
+                  "toVendorId": {
+                    "type": "long"
+                  }
+                }
+              },
+              "orderDetailId": {
+                "type": "long"
+              },
+              "orderDetailLogisticService": {
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "addressCloseTime": {
+                    "type": "string"
+                  },
+                  "carrierRiskInfo": {
+                    "type": "boolean"
+                  },
+                  "currentPickupDate": {
+                    "type": "string", "index" : "not_analyzed"
+                  },
+                  "dimensionUnit": {
+                    "type": "string"
+                  },
+                  "dimensions": {
+                    "type": "string"
+                  },
+                  "idOrder": {
+                    "type": "string"
+                  },
+                  "idOrderDetail": {
+                    "type": "long"
+                  },
+                  "idOrderDetailLogisticService": {
+                    "type": "long"
+                  },
+                  "invoiceValue": {
+                    "type": "string"
+                  },
+                  "logisticService": {
+                    "type": "long"
+                  },
+                  "logisticServiceMode": {
+                    "type": "long"
+                  },
+                  "migratedToGetit": {
+                    "type": "boolean"
+                  },
+                  "noOfPackages": {
+                    "type": "long"
+                  },
+                  "remarks": {
+                    "type": "string"
+                  },
+                  "shipmentWeight": {
+                    "type": "string"
+                  },
+                  "shipmentWeightUnit": {
+                    "type": "string"
+                  },
+                  "useAmb": {
+                    "type": "long"
+                  }
+                }
+              },
+              "orderDetailPaymentInfo": {
+                "properties": {
+                  "advancePaidTOSeller": {
+                    "type": "double"
+                  },
+                  "amountCollectedByMebelkart": {
+                    "type": "double"
+                  },
+                  "amountCollectedBySeller": {
+                    "type": "double"
+                  },
+                  "manufacturerId": {
+                    "type": "long"
+                  },
+                  "orderDetailId": {
+                    "type": "long"
+                  },
+                  "otherCharges": {
+                    "type": "double"
+                  },
+                  "paymentDone": {
+                    "type": "boolean", "index" : "not_analyzed"
+                  },
+                  "productPriceToCustomer": {
+                    "type": "double"
+                  },
+                  "productPriceToSeller": {
+                    "type": "double"
+                  },
+                  "totalAmountTransferred": {
+                    "type": "double"
+                  },
+                  "transactionBankReference": {
+                    "type": "string"
+                  },
+                  "transactionComments": {
+                    "type": "string"
+                  },
+                  "transactionDate": {
+                    "type": "string", "index" : "not_analyzed"
+                  },
+                  "transactionId": {
+                    "type": "long"
+                  },
+                  "transactionMode": {
+                    "type": "string"
+                  },
+                  "vendorSuggestedTransferPrice": {
+                    "type": "double"
+                  }
+                }
+              },
+              "orderDetailProductAdvanceAmount": {
+                "type": "double"
+              },
+              "orderDetailShipments": {
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "carrierName": {
+                    "type": "string"
+                  },
+                  "carrierTrackingId": {
+                    "type": "string"
+                  },
+                  "default": {
+                    "type": "boolean"
+                  },
+                  "logisticServiceId": {
+                    "type": "long"
+                  },
+                  "logisticServiceModeId": {
+                    "type": "long"
+                  },
+                  "orderDetailId": {
+                    "type": "long"
+                  },
+                  "otherLogisticService": {
+                    "type": "boolean"
+                  },
+                  "shipmentId": {
+                    "type": "long"
+                  },
+                  "shipmentInformation": {
+                    "type": "string"
+                  }
+                }
+              },
+              "orderDetailVendorStatus": {
+                "properties": {
+                  "allStatusInfo": {
+                    "type": "string"
+                  },
+                  "courierTrackingDetail": {
+                    "type": "string"
+                  },
+                  "courierUrlOrName": {
+                    "type": "string"
+                  },
+                  "delaySmsSent": {
+                    "type": "boolean"
+                  },
+                  "expectedShipmentDate": {
+                    "type": "string", "index" : "not_analyzed"
+                  },
+                  "idCurrentStatus": {
+                    "type": "long"
+                  },
+                  "idOrderDetailVendorStatus": {
+                    "type": "long"
+                  },
+                  "otherCarrier": {
+                    "type": "boolean"
+                  },
+                  "pickupDone": {
+                    "type": "boolean"
+                  },
+                  "pickupRequestInfo": {
+                    "type": "string"
+                  },
+                  "pickupRequested": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "orderDetailWholeSalePrice": {
+                "type": "double"
+              },
+              "orderId": {
+                "type": "long"
+              },
+              "productAttributeId": {
+                "type": "long"
+              },
+              "productEan13": {
+                "type": "string"
+              },
+              "productId": {
+                "type": "long"
+              },
+              "productName": {
+                "type": "string"
+              },
+              "productPrice": {
+                "type": "double"
+              },
+              "productQuantity": {
+                "type": "long"
+              },
+              "productQuantityDiscount": {
+                "type": "double"
+              },
+              "productQuantityInStock": {
+                "type": "long"
+              },
+              "productQuantityRefunded": {
+                "type": "long"
+              },
+              "productQuantityReinjected": {
+                "type": "long"
+              },
+              "productRefrence": {
+                "type": "string"
+              },
+              "productSupplierRefrence": {
+                "type": "string"
+              },
+              "productUpc": {
+                "type": "string"
+              },
+              "productWeight": {
+                "type": "double"
+              },
+              "reductionAmount": {
+                "type": "double"
+              },
+              "reductionPercentage": {
+                "type": "double"
+              },
+              "shippedFromDate": {
+                "type": "long"
+              },
+              "shippedToDate": {
+                "type": "long"
+              },
+              "taxName": {
+                "type": "string"
+              },
+              "taxRate": {
+                "type": "double"
+              }
+            }
+          },
+          "orderId": {
+            "type": "long"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,7 +1,5 @@
 package com.mebelkart.api.order.v1.core;
 
-import java.sql.Date;
-
 /**
  * Created by vinitpayal on 21/04/16.
  */

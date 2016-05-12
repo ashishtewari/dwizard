@@ -24,7 +24,7 @@ public class ManufacturerHelperMethods {
 	 * @return
 	 */
 	public boolean isManufacturerIdValid(long manufacturerId, Client client) {
-		SearchResponse response = client.prepareSearch("manufacturer").setTypes("info")
+		SearchResponse response = client.prepareSearch("mkmanufacturer").setTypes("manufacturerInfo")
                 .setQuery(QueryBuilders.termQuery("_id", manufacturerId))
                 .setSize(2)
                 .execute()

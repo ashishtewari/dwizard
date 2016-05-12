@@ -1,0 +1,25 @@
+{
+	"manufacturer": {
+		"mappings": {
+			"manufacturerProducts": {
+				"properties": {
+					"categoryId": {
+						"type": "long"
+					},
+					"manufacturerId": {
+						"type": "long"
+					},
+					"price": {
+						"type": "double"
+					},
+					"productId": {
+						"type": "long"
+					},
+					"productName": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	}
+}

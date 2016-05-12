@@ -1,6 +1,5 @@
 package com.mebelkart.api.util.cronTasks.dao;
 
-import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.factories.JDBCFactory;
 
 import java.sql.*;
@@ -12,6 +11,9 @@ public class OrderIndexDao {
 
     private Connection sqlConnection=null;
     public OrderIndexDao() throws SQLException, ClassNotFoundException {
+        System.out.println("----------------------");
+        System.out.println("calling jdbc factory from  orderdao");
+        System.out.println("----------------------");
             sqlConnection = JDBCFactory.getJDBCInstance();
         }
     /**

@@ -8,29 +8,39 @@ package com.mebelkart.api.util.classes;
  *
  */
 public class PaginationReply {
-	private int statusCode;
+	private int status;
 	private String message;
 	private long totalCount;
+	private long totalPages;
 	private String currentShowing;
 	private long currentPage;
 	private Object source;
 	
 	
-	public PaginationReply(int statusCode,String message,long totalCount, String currentShowing,long currentPage, Object source) {
-		this.statusCode = statusCode;
+	public PaginationReply(int status,String message,long totalCount, long totalPages, long currentPage,String currentShowing, Object source) {
+		this.status = status;
 		this.message = message;
 		this.totalCount = totalCount;
 		this.currentShowing = currentShowing;
 		this.currentPage = currentPage;
 		this.source = source;
+		this.totalPages = totalPages;
 	}
 	
-	public int getStatusCode() {
-		return statusCode;
+	public long getTotalPages() {
+		return totalPages;
 	}
 
-	public void setStatusCode(int statusCode) {
-		this.statusCode = statusCode;
+	public void setTotalPages(long totalPages) {
+		this.totalPages = totalPages;
+	}
+	
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
 	}
 
 	public String getMessage() {

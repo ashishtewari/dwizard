@@ -4,7 +4,6 @@ import io.dropwizard.Configuration;
 import io.dropwizard.db.DataSourceFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -36,6 +35,16 @@ public class mkApiConfiguration extends Configuration {
 	private static String redisHost;
 	@NotNull
 	private static Integer redisPort;
+	@NotNull
+	private static String redisPassword;
+	
+	public static String getRedisPassword(){
+		return redisPassword;
+	}
+	
+	public void setRedisPassword(String redisPassword){
+		mkApiConfiguration.redisPassword = redisPassword;
+	}
 	
 	public static Integer getRedisPort() {
 		return redisPort;

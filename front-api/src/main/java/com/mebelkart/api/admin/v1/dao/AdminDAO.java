@@ -394,4 +394,21 @@ public interface AdminDAO {
 	 */
 	@SqlUpdate("insert into mk_api_functions (a_resource_id,a_function_name,a_type) values (:resourceId,:functionName,:type)")
 	void insertNewFunction(@Bind("resourceId")long resourceId,@Bind("functionName") String functionName,@Bind("type") String type);
+
+	/**
+	 * This query returns the accessToken of the admin
+	 * @param userName
+	 * @return
+	 */
+	@SqlQuery("select a_access_token from mk_api_user_admin where a_user_name = :userName")
+	String getAccessTokenOfUser(@Bind("userName") String userName);
+
+	/**
+	 * This query returns non zero if the user name matches
+	 * @param userName
+	 * @return
+	 */
+	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
+	int isUserInterfaceUser(@Bind("userName") String userName);
+
 }

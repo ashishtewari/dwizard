@@ -4,15 +4,14 @@
 package com.mebelkart.api.util.cronTasks.dao;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.elasticsearch.client.Client;
 
-import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.factories.ElasticFactory;
+import com.mebelkart.api.util.factories.JDBCFactory;
 
 
 
@@ -34,8 +33,7 @@ public class ManufacturerDao {
 	
 	public ManufacturerDao() throws SQLException{
 		 try {
-			Class.forName("com.mysql.jdbc.Driver");
-			sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
+			sqlConnection = JDBCFactory.getJDBCInstance();
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}

@@ -1,11 +1,9 @@
 package com.mebelkart.api.order.v1.mapper;
 
 import com.mebelkart.api.order.v1.core.*;
-import org.joda.time.DateTime;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
