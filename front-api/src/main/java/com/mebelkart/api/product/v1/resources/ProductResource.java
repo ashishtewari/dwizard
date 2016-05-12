@@ -17,7 +17,6 @@ import com.mebelkart.api.product.v1.api.CategoryFeatured;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-//import com.mebelkart.api.util.classes.ProductsPaginationReply;
 
 import com.mebelkart.api.util.classes.PaginationReply;
 
@@ -35,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.mebelkart.api.product.v1.api.ProductDetailsResponse;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
 /**
@@ -64,9 +63,9 @@ public class ProductResource {
 	 */
 	InvalidInputReplyClass invalidRequestReply = null;	
 	/**
-	 * Getting redis client
+	 * Getting client to authenticate
 	 */
-	JedisFactory jedisAuthentication = new JedisFactory();
+	Authentication authenticate = new Authentication();
 
 	/**
 	 * Helper class from utils
@@ -88,7 +87,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllProducts");
+						authenticate.validate(userName,accessToken, "products", "get", "getAllProducts");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -178,7 +177,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListByCategory function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -297,7 +296,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductDetail");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductDetail");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -441,7 +440,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getSellingPrice");
+						authenticate.validate(userName,accessToken, "products", "get", "getSellingPrice");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -496,7 +495,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdDesc");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdDesc");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdDesc function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -549,7 +548,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdAttr");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdAttr");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdAttr function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -601,7 +600,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFeature");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdFeature");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdFeature function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -652,7 +651,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try{
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "featured");
+						authenticate.validate(userName,accessToken, "products", "get", "featured");
 					}catch(Exception e){
 						log.info("Unautherized user "+userName+" tried to access featured function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -723,7 +722,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListBySeller");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductsListBySeller");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListBySeller function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -818,7 +817,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllOutOfStock");
+						authenticate.validate(userName,accessToken, "products", "get", "getAllOutOfStock");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getAllOutOfStock function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -904,7 +903,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try{
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getTopProducts");
+						authenticate.validate(userName,accessToken, "products", "get", "getTopProducts");
 					}catch(Exception e){
 						log.info("Unautherized user "+userName+" tried to access getTopProducts function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -975,7 +974,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFaq");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdFaq");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdFaq function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());

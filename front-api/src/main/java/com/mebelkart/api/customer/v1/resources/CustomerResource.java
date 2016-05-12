@@ -39,7 +39,7 @@ import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 
@@ -58,7 +58,11 @@ public class CustomerResource {
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null,bodyInputJsonData = null;
 	JSONArray requiredFields;
-	JedisFactory jedisCustomerAuthentication = new JedisFactory();
+	/**
+	 * Getting client to authenticate
+	 */
+	Authentication authenticate = new Authentication();
+	//JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	MD5Encoding encode = new MD5Encoding();
 	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	
@@ -88,7 +92,7 @@ public class CustomerResource {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "customer", "get","getCustomerDetails");
+					authenticate.validate(userName,accessToken, "customer", "get","getCustomerDetails");
 				} catch(Exception e) {
 					errorLog.info("Unautherized user "+userName+" tried to access getCustomerDetails function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -178,7 +182,7 @@ public class CustomerResource {
 			String userName = (String) bodyInputJsonData.get("userName");
 			int isAddressAdded=0;
 			try{
-				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","addNewAddress");
+				authenticate.validate(userName,accessToken, "customer", "put","addNewAddress");
 				
 			} catch(Exception e) {
 				errorLog.warn("Unautherized user "+userName+" tried to access addNewAddress function");
@@ -254,7 +258,7 @@ public class CustomerResource {
 					/*
 					 * validating the accesstoken given by user
 					 */
-				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put","updateAddress");
+				authenticate.validate(userName,accessToken, "customer", "put","updateAddress");
 				
 			} catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access updateAddress function");
@@ -335,7 +339,7 @@ public class CustomerResource {
 			String userName = (String) bodyInputJsonData.get("userName");
 			int isAddressDeleted=0;
 			try{
-				jedisCustomerAuthentication.validate(userName,accessToken, "customer", "put", "deleteAddress");
+				authenticate.validate(userName,accessToken, "customer", "put", "deleteAddress");
 			} catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access deleteAddress function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());

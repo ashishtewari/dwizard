@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
 
 /**
  * @author Nikky-Akky
@@ -58,7 +58,11 @@ public class ManufacturerResource {
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null;
 	JSONArray requiredFields;
-	JedisFactory jedisCustomerAuthentication = new JedisFactory();
+	/**
+	 * Getting client to authenticate
+	 */
+	Authentication authenticate = new Authentication();
+	//JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	Client client = ElasticFactory.getElasticClient();
 	Client productsClient = ElasticFactory.getProductsElasticClient();
 	static Logger errorLog = LoggerFactory.getLogger(ManufacturerResource.class);
@@ -80,7 +84,7 @@ public class ManufacturerResource {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerInfo");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerInfo");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerInfo function");
@@ -166,7 +170,7 @@ public class ManufacturerResource {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerProducts");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerProducts");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerProducts function");
@@ -291,7 +295,7 @@ public class ManufacturerResource {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerAddresses");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerAddresses");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerAddresses function");
@@ -392,7 +396,7 @@ public class ManufacturerResource {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerOrders");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerOrders");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerOrders function");

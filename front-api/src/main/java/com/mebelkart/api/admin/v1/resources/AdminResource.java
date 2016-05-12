@@ -35,7 +35,7 @@ import com.mebelkart.api.admin.v1.core.Admin;
 import com.mebelkart.api.admin.v1.core.Privilages;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.util.crypting.MD5Encoding;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
 /**
@@ -65,9 +65,9 @@ public class AdminResource {
 	Helper utilHelper = new Helper();
 	
 	/**
-	 * Getting redis client
+	 * Getting client to authenticate
 	 */
-	JedisFactory jedisAuthentication = new JedisFactory();
+	Authentication authenticate = new Authentication();
 	
 	/**
 	 * InvalidInputReplyClass class
@@ -116,8 +116,8 @@ public class AdminResource {
 					} else {
 						String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 						try {
-							jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "login");
-						} catch (Exception e) {							
+							authenticate.validate(adminUserName,apikey, "admin", "get", "login");
+						} catch (Exception e) {					
 							log.info("Unautherized user "+username+" tried to access admin function");
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 							return invalidRequestReply;
@@ -205,7 +205,7 @@ public class AdminResource {
 			if(accessLevel == 1 || accessLevel == 2){
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "registerUser");
+					authenticate.validate(adminUserName,apikey, "admin", "post", "registerUser");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access registerUser function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -339,7 +339,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "updatePermissions");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "updatePermissions");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -470,7 +470,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "changeUserActiveStatus");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "changeUserActiveStatus");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -571,7 +571,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "changeRateLimit");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "changeRateLimit");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access changeRateLimit function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -633,7 +633,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.jsonParser(userDetails);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getUsersStatus");
+					authenticate.validate(adminUserName,apikey, "admin", "get", "getUsersStatus");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access getUsersStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -708,7 +708,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.jsonParser(userDetails);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getUserPrivileges");
+					authenticate.validate(adminUserName,apikey, "admin", "get", "getUserPrivileges");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access getUserPrivileges function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -775,7 +775,7 @@ public class AdminResource {
 			int accessLevel = this.auth.validate(apikey);
 			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 			try {
-				jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getFunctions");
+				authenticate.validate(adminUserName,apikey, "admin", "get", "getFunctions");
 			} catch (Exception e) {
 				log.info("Unautherized user "+adminUserName+" tried to access getFunctions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -841,7 +841,7 @@ public class AdminResource {
 			int accessLevel = this.auth.validate(apikey);
 			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 			try {
-				jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getResources");
+				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
 			} catch (Exception e) {
 				log.info("Unautherized user "+adminUserName+" tried to access getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -909,7 +909,7 @@ public class AdminResource {
 					JSONObject rawData = utilHelper.contextRequestParser(request);
 					String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 					try {
-						jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "addNewResource");
+						authenticate.validate(adminUserName,apikey, "admin", "post", "addNewResource");
 					} catch (Exception e) {
 						log.info("Unautherized user "+adminUserName+" tried to access addNewResource function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -984,7 +984,7 @@ public class AdminResource {
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "addNewFunction");
+					authenticate.validate(adminUserName,apikey, "admin", "post", "addNewFunction");
 				} catch (Exception e) {
 					log.info("Unautherized user "+adminUserName+" tried to access addNewFunction function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());

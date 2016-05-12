@@ -35,7 +35,7 @@ import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 
 /**
  * @author Nikhil
@@ -47,7 +47,10 @@ public class CategoryResource {
 	
 	JSONObject headerInputJsonData = new JSONObject();
 	CategoryDao categoryDao = null;
-	JedisFactory jedisCustomerAuthentication = new JedisFactory();
+	/**
+	 * Getting client to authenticate
+	 */
+	Authentication authenticate = new Authentication();
 	CategoryHelperMethods categoryHelperMethods = new CategoryHelperMethods();
 	static Logger errorLog = LoggerFactory.getLogger(CategoryResource.class);
 	InvalidInputReplyClass invalidRequestReply = null;
@@ -76,7 +79,7 @@ public class CategoryResource {
 				 * validating the accesstoken given by user
 				 */
 			try {
-				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategories");
+				authenticate.validate(userName,accessToken, "category", "get", "getCategories");
 			} catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -141,7 +144,7 @@ public class CategoryResource {
 			
 			try{
 				
-				jedisCustomerAuthentication.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+				authenticate.validate(userName,accessToken, "category", "get", "getCategoryDetails");
 				
 			}  catch(Exception e) {
 				errorLog.info("Unautherized user "+userName+" tried to access getCategoryDetails function");

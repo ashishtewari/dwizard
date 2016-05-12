@@ -3,6 +3,8 @@
  */
 package com.mebelkart.api.util.factories;
 
+import java.net.SocketException;
+
 import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 
@@ -97,7 +99,11 @@ public class JedisFactory {
 				throw new Exception("you are not a Valid User");
 			}
 		} catch(JedisDataException e){
-			throw new Exception("Invalid Password passed to redis");
+			// If password is not set
+			throw new Exception(e.getMessage());
+		} catch(SocketException e){
+			// If server is Down
+			throw new Exception(e.getMessage());
 		}
 	}
 
