@@ -1,8 +1,8 @@
 # While going for production change host to 52.77.131.42
-elasticsearchHost: 127.0.0.1
+elasticsearchHost: 52.77.131.42
 elasticPort: 9300
 # While going for production change cluster name to MK-NEW-CLUSTER
-clusterName: elasticsearch
+clusterName: MK-NEW-CLUSTER
 
 productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
