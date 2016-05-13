@@ -971,6 +971,7 @@ public class AdminResource {
 			try {
 				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
 			} catch (Exception e) {
+				e.printStackTrace();
 				log.info("Unautherized user "+userName+" tried to access getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;

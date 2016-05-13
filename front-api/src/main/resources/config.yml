@@ -9,7 +9,7 @@ productElasticPort: 9300
 productClusterName: MK-FRONT-ALL
 
 # While going for production change host to 54.169.206.4
-redisHost: 54.169.206.4
+redisHost: 127.0.0.1
 redisPort: 6379
 redisPassword: stage@redis_caching
 
@@ -19,9 +19,9 @@ apiAuthenticationDatabase:
     # the username
     user: root
     # the password
-    password: stage@mebelkart
+    password: root
     # the JDBC URL; the database is called DWGettingStarted
-    url: jdbc:mysql://54.169.206.4:3306/mk_api
+    url: jdbc:mysql://localhost:3306/mk_api
 mebelkartProductionDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver
