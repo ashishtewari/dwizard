@@ -816,6 +816,17 @@ public class AdminResource {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("admin",(String)rawData.get("userName"))){
 						int adminId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_user_admin");
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) adminId,"mk_api_resources_admin_permission","a_admin_id");
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"get"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"post"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"put"));
+							}
+						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
 					}
 					else{
@@ -826,6 +837,17 @@ public class AdminResource {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("consumer",(String)rawData.get("userName"))){
 						int consumerId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_consumer");
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"get"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"post"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put"));
+							}
+						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
 					}
 					else{

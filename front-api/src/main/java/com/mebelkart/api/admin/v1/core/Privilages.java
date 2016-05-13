@@ -3,6 +3,8 @@
  */
 package com.mebelkart.api.admin.v1.core;
 
+import java.util.List;
+
 /**
  * @author Tinku
  *
@@ -10,10 +12,13 @@ package com.mebelkart.api.admin.v1.core;
 public class Privilages {
 
 	private String resourceName;
-	private long GET;
-	private long POST;
-	private long PUT;
-	private long DELETE;
+	private long get;
+	private long post;
+	private long put;
+	private long delete;
+	private List<String> getFunctions;
+	private List<String> postFunctions;
+	private List<String> putFunctions;
 	/**
 	 * Default Constructer
 	 */
@@ -60,56 +65,98 @@ public class Privilages {
 	 * @return
 	 */
 	public long getGET() {
-		return GET;
+		return get;
 	}
 	/**
 	 * This is a setter
 	 * @param gET
 	 */
 	public void setGET(long gET) {
-		GET = gET;
+		get = gET;
 	}
 	/**
 	 * This is a getter
 	 * @return
 	 */
 	public long getPUT() {
-		return PUT;
+		return put;
 	}
 	/**
 	 * This is a setter
 	 * @param pUT
 	 */
 	public void setPUT(long pUT) {
-		PUT = pUT;
+		put = pUT;
 	}
 	/**
 	 * This is a getter
 	 * @return
 	 */
 	public long getPOST() {
-		return POST;
+		return post;
 	}
 	/**
 	 * This is a setter
 	 * @param pOST
 	 */
 	public void setPOST(long pOST) {
-		POST = pOST;
+		post = pOST;
 	}
 	/**
 	 * This is a getter
 	 * @return
 	 */
 	public long getDELETE() {
-		return DELETE;
+		return delete;
 	}
 	/**
 	 * This is a setter
 	 * @param dELETE
 	 */
 	public void setDELETE(long dELETE) {
-		DELETE = dELETE;
+		delete = dELETE;
+	}
+	/**
+	 * This returns all getFunctions
+	 * @return
+	 */
+	public List<String> getGetFunctions() {
+		return getFunctions;
+	}
+	/**
+	 * This will set all getFunctions 
+	 * @param getFunctions
+	 */
+	public void setGetFunctions(List<String> getFunctions) {
+		this.getFunctions = getFunctions;
+	}
+	/**
+	 * This will return all postFunctions
+	 * @return
+	 */
+	public List<String> getPostFunctions() {
+		return postFunctions;
+	}
+	/**
+	 * This will set postFunctions
+	 * @param postFunctions
+	 */
+	public void setPostFunctions(List<String> postFunctions) {
+		this.postFunctions = postFunctions;
+	}
+	/**
+	 * This will return all putFunctions
+	 * @return
+	 */
+	public List<String> getPutFunctions() {
+		return putFunctions;
+	}
+	/**
+	 * This will set putFunctions
+	 * @param putFunctions
+	 */
+	public void setPutFunctions(List<String> putFunctions) {
+		this.putFunctions = putFunctions;
 	}
 
 }
