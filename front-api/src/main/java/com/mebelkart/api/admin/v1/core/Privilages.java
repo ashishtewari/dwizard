@@ -11,6 +11,7 @@ import java.util.List;
  */
 public class Privilages {
 
+	private long resourceId;
 	private String resourceName;
 	private long get;
 	private long post;
@@ -23,12 +24,15 @@ public class Privilages {
 	 * Default Constructer
 	 */
 	public Privilages() {
-		// TODO Auto-generated constructor stub
+		this.setResourceId(0);
 		this.setResourceName(null);
 		this.setGET(0);
 		this.setPOST(0);
 		this.setPUT(0);
 		this.setDELETE(0);
+		this.setGetFunctions(null);
+		this.setPostFunctions(null);
+		this.setPutFunctions(null);
 	}
 	/**
 	 * Parameterised Constructer
@@ -38,8 +42,8 @@ public class Privilages {
 	 * @param put
 	 * @param delete
 	 */
-	public Privilages(String resourceName,long get,long post,long put,long delete) {
-		// TODO Auto-generated constructor stub
+	public Privilages(long resourceId,String resourceName,long get,long post,long put,long delete) {
+		this.setResourceId(resourceId);
 		this.setResourceName(resourceName);
 		this.setGET(get);
 		this.setPOST(post);
@@ -157,6 +161,12 @@ public class Privilages {
 	 */
 	public void setPutFunctions(List<String> putFunctions) {
 		this.putFunctions = putFunctions;
+	}
+	public long getResourceId() {
+		return resourceId;
+	}
+	public void setResourceId(long resourceId) {
+		this.resourceId = resourceId;
 	}
 
 }
