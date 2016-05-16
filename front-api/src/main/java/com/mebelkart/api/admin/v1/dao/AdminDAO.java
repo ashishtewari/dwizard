@@ -68,7 +68,7 @@ public interface AdminDAO {
 	 * @param colName
 	 * @return
 	 */
-	@SqlQuery("SELECT mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
+	@SqlQuery("SELECT mk_api_resources.id,mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
 			+"<tableName>.a_have_put_permission, <tableName>.a_have_delete_permission "
 			+"FROM <tableName> "
 			+"INNER JOIN mk_api_resources "
@@ -424,7 +424,9 @@ public interface AdminDAO {
 			+ "WHERE mk_api_functions.a_resource_id "
 			+ "IN (select mk_api_resources.id FROM mk_api_resources WHERE mk_api_resources.a_resource_name = :resourceName) "
 			+ "AND mk_api_functions.a_type = :methodType "
-			+ "AND <tableName>.a_admin_id = :userId")
-	List<String> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,@Bind("resourceName") String resourceName,@Bind("methodType") String methodType);
+			+ "AND <tableName>.<colName> = :userId")
+	List<String> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,
+			@Bind("resourceName") String resourceName,@Bind("methodType") String methodType,
+			@Define("colName") String colName);
 
 }

@@ -818,13 +818,13 @@ public class AdminResource {
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) adminId,"mk_api_resources_admin_permission","a_admin_id");
 						for(int i = 0; i < userDetail.size(); i++){
 							if(userDetail.get(i).getGET() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"get"));
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"get","a_admin_id"));
 							}
 							if(userDetail.get(i).getPOST() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"post"));
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"post","a_admin_id"));
 							}
 							if(userDetail.get(i).getPUT() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"put"));
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"put","a_admin_id"));
 							}
 						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
@@ -839,13 +839,13 @@ public class AdminResource {
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
 						for(int i = 0; i < userDetail.size(); i++){
 							if(userDetail.get(i).getGET() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"get"));
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"get","a_consumer_id"));
 							}
 							if(userDetail.get(i).getPOST() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"post"));
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"post","a_consumer_id"));
 							}
 							if(userDetail.get(i).getPUT() == 1){
-								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put"));
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put","a_consumer_id"));
 							}
 						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));

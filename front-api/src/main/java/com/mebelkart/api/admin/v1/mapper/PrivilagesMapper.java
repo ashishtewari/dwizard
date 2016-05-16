@@ -20,7 +20,7 @@ public class PrivilagesMapper implements ResultSetMapper<Privilages>{
 
 	public Privilages map(int i, ResultSet resultSet,
 			StatementContext statementContext) throws SQLException {
-		return new Privilages(resultSet.getString("a_resource_name"),
+		return new Privilages(resultSet.getLong("id"),resultSet.getString("a_resource_name"),
 				resultSet.getLong("a_have_get_permission"),
 				resultSet.getLong("a_have_post_permission"),
 				resultSet.getLong("a_have_put_permission"),
