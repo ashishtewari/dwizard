@@ -125,8 +125,8 @@ public class AdminResource {
 						AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
 						if(adminDetails.get(0).getAdminLevel() == 1){
 							// Here parameter null means I need all the resource names 
-							List<String> resourcePrivilages = this.auth.getResourceNames("null");
-							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("null");
+//							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("1");
@@ -134,8 +134,8 @@ public class AdminResource {
 						}
 						else if(adminDetails.get(0).getAdminLevel() == 2){
 							// Here parameter admin means I need all the resource names except admin
-							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
-							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
+//							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("2");
@@ -919,13 +919,18 @@ public class AdminResource {
 			if(utilHelper.isValidJson(details)){
 				JSONObject rawData = utilHelper.jsonParser(details);
 				if(containsValidKeys(rawData)){
+					Map<String,Integer> functionNamesWithIds = new HashMap<String,Integer>();
 					long resourceId = this.auth.getResourceId((String) rawData.get("resourceName"));
 					String methodType = ((String) rawData.get("methodName")).toLowerCase();
 					//Here 1 is Super Admin and 2 is Secondary Admin
 					if(accessLevel == 1 || accessLevel == 2){
 						// Here null means we want every resource in DB as the user accessing it will be super admin
 						List<String> functionNames = this.auth.getFunctionNames(resourceId, methodType);
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),functionNames);
+						List<Integer> functionId = this.auth.getFunctionIds(resourceId,methodType);
+						for(int i = 0; i < functionNames.size() && i < functionId.size(); i++){
+							functionNamesWithIds.put(functionNames.get(i), functionId.get(i));
+						}
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),functionNamesWithIds);
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"unknown admin level");
 						return invalidRequestReply;

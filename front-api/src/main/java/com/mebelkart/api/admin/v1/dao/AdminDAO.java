@@ -429,4 +429,13 @@ public interface AdminDAO {
 			@Bind("resourceName") String resourceName,@Bind("methodType") String methodType,
 			@Define("colName") String colName);
 
+	/**
+	 * This query retrieves all the function Ids with respect to their method type of a particular resource 
+	 * @param resourceId This is the resource id
+	 * @param type This is the type of the method
+	 * @return List of function names
+	 */
+	@SqlQuery("select id from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
+	List<Integer> getFunctionIds(@Bind("resourceId") long resourceId,@Bind("type") String type);
+
 }
