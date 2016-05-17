@@ -17,9 +17,9 @@ public class Privilages {
 	private long post;
 	private long put;
 	private long delete;
-	private List<String> getFunctions;
-	private List<String> postFunctions;
-	private List<String> putFunctions;
+	private List<FunctionNames> getFunctions;
+	private List<FunctionNames> postFunctions;
+	private List<FunctionNames> putFunctions;
 	/**
 	 * Default Constructer
 	 */
@@ -124,42 +124,42 @@ public class Privilages {
 	 * This returns all getFunctions
 	 * @return
 	 */
-	public List<String> getGetFunctions() {
+	public List<FunctionNames> getGetFunctions() {
 		return getFunctions;
 	}
 	/**
 	 * This will set all getFunctions 
 	 * @param getFunctions
 	 */
-	public void setGetFunctions(List<String> getFunctions) {
+	public void setGetFunctions(List<FunctionNames> getFunctions) {
 		this.getFunctions = getFunctions;
 	}
 	/**
 	 * This will return all postFunctions
 	 * @return
 	 */
-	public List<String> getPostFunctions() {
+	public List<FunctionNames> getPostFunctions() {
 		return postFunctions;
 	}
 	/**
 	 * This will set postFunctions
 	 * @param postFunctions
 	 */
-	public void setPostFunctions(List<String> postFunctions) {
+	public void setPostFunctions(List<FunctionNames> postFunctions) {
 		this.postFunctions = postFunctions;
 	}
 	/**
 	 * This will return all putFunctions
 	 * @return
 	 */
-	public List<String> getPutFunctions() {
+	public List<FunctionNames> getPutFunctions() {
 		return putFunctions;
 	}
 	/**
 	 * This will set putFunctions
 	 * @param putFunctions
 	 */
-	public void setPutFunctions(List<String> putFunctions) {
+	public void setPutFunctions(List<FunctionNames> putFunctions) {
 		this.putFunctions = putFunctions;
 	}
 	public long getResourceId() {

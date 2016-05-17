@@ -28,11 +28,15 @@ import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
 import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.api.ConsumerResponse;
+import com.mebelkart.api.admin.v1.api.FunctionNamesResponse;
+import com.mebelkart.api.admin.v1.api.ResourceNamesResponse;
 import com.mebelkart.api.admin.v1.api.UserPrivilagesResponse;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.FunctionNames;
 import com.mebelkart.api.admin.v1.core.Privilages;
+import com.mebelkart.api.admin.v1.core.ResourceNames;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.util.helpers.Authentication;
@@ -125,8 +129,8 @@ public class AdminResource {
 						AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
 						if(adminDetails.get(0).getAdminLevel() == 1){
 							// Here parameter null means I need all the resource names 
-							List<String> resourcePrivilages = this.auth.getResourceNames("null");
-							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("null");
+//							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("1");
@@ -134,8 +138,8 @@ public class AdminResource {
 						}
 						else if(adminDetails.get(0).getAdminLevel() == 2){
 							// Here parameter admin means I need all the resource names except admin
-							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
-							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
+//							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("2");
@@ -924,8 +928,8 @@ public class AdminResource {
 					//Here 1 is Super Admin and 2 is Secondary Admin
 					if(accessLevel == 1 || accessLevel == 2){
 						// Here null means we want every resource in DB as the user accessing it will be super admin
-						List<String> functionNames = this.auth.getFunctionNames(resourceId, methodType);
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),functionNames);
+						List<FunctionNames> functionNames = this.auth.getFunctionNamesWithIds(resourceId, methodType);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new FunctionNamesResponse(functionNames));
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"unknown admin level");
 						return invalidRequestReply;
@@ -998,25 +1002,16 @@ public class AdminResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
 			}
-			Map<String,Integer> resources = new HashMap<String,Integer>();
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				// Here null means we want every resource in DB as the user accessing it will be super admin
-				List<String> resourceNames = this.auth.getResourceNames("null");
-				List<Integer> resourceIds = this.auth.getResourceIds("null");
-				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
-					resources.put(resourceNames.get(i), resourceIds.get(i));
-				}
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("null");				
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else if(accessLevel == 2){
 				// Here admin means we want every resource except admin in DB as the user accessing it will be admin
-				List<String> resourceNames = this.auth.getResourceNames("admin");
-				List<Integer> resourceIds = this.auth.getResourceIds("admin");
-				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
-					resources.put(resourceNames.get(i), resourceIds.get(i));
-				}
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("admin");
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else{
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"unknown admin level");
