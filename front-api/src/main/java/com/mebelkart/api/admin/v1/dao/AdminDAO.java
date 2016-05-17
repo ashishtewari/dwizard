@@ -430,13 +430,14 @@ public interface AdminDAO {
 	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
 	int isUserInterfaceUser(@Bind("userName") String userName);
 	
-	@SqlQuery("SELECT mk_api_functions.a_function_name from mk_api_functions INNER JOIN <tableName> "
+	@SqlQuery("SELECT mk_api_functions.id,mk_api_functions.a_function_name from mk_api_functions INNER JOIN <tableName> "
 			+ "ON mk_api_functions.id = <tableName>.a_function_id "
 			+ "WHERE mk_api_functions.a_resource_id "
 			+ "IN (select mk_api_resources.id FROM mk_api_resources WHERE mk_api_resources.a_resource_name = :resourceName) "
 			+ "AND mk_api_functions.a_type = :methodType "
 			+ "AND <tableName>.<colName> = :userId")
-	List<String> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,
+	@Mapper(FunctionNamesMapper.class)
+	List<FunctionNames> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,
 			@Bind("resourceName") String resourceName,@Bind("methodType") String methodType,
 			@Define("colName") String colName);
 
