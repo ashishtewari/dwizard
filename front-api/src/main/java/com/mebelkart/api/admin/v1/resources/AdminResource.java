@@ -921,7 +921,7 @@ public class AdminResource {
 			if(utilHelper.isValidJson(details)){
 				JSONObject rawData = utilHelper.jsonParser(details);
 				if(containsValidKeys(rawData)){
-					long resourceId = Integer.parseInt((String)rawData.get("resourceId"));
+					long resourceId = Integer.parseInt((String)(rawData.get("resourceId")+""));
 					String methodType = ((String) rawData.get("methodName")).toLowerCase();
 					//Here 1 is Super Admin and 2 is Secondary Admin
 					if(accessLevel == 1 || accessLevel == 2){
@@ -1132,6 +1132,7 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
+		int alreadyAssigned = 0;
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
@@ -1167,12 +1168,12 @@ public class AdminResource {
 				if(rawData.containsKey("addFunctions")){
 					JSONArray resourceNamesWithFunctions = (JSONArray) rawData.get("addFunctions");
 					if(resourceNamesWithFunctions.size() > 0){
-						//This will return all resource names excluding the admin resource
-						List<String> preAssignedResourceNames = this.auth.getResourceNames("admin");
+						//This will return all resource ids
+						List<Integer> preAssignedResourceNames = this.auth.getResourceIds("null");
 						for (int i = 0; i < resourceNamesWithFunctions.size(); i++) {
 							JSONObject functionObject = (JSONObject) resourceNamesWithFunctions.get(i);
-							if(functionObject.containsKey("resourceName") && preAssignedResourceNames.contains((String)functionObject.get("resourceName"))){
-								long resourceId = this.auth.getResourceId((String)functionObject.get("resourceName"));
+							if(functionObject.containsKey("resourceId") && preAssignedResourceNames.contains(Integer.parseInt((String)(functionObject.get("resourceId")+"")))){
+								long resourceId = Integer.parseInt((String)(functionObject.get("resourceId")+""));
 								if(functionObject.containsKey("getFunctions")){
 									JSONArray getFunctions = (JSONArray) functionObject.get("getFunctions");
 									List<String> getPreAssignedGETFunctions = this.auth.getFunctionNames(resourceId, "get");
@@ -1181,9 +1182,11 @@ public class AdminResource {
 											if(getFunctions.get(j) == null || (getFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)getFunctions.get(j),"get");
+										}else{
+											alreadyAssigned++;
 										}
 									}
-								}else
+								}
 								if(functionObject.containsKey("postFunctions")){
 									JSONArray postFunctions = (JSONArray) functionObject.get("postFunctions");
 									List<String> getPreAssignedPOSTFunctions = this.auth.getFunctionNames(resourceId, "post");
@@ -1192,6 +1195,8 @@ public class AdminResource {
 											if(postFunctions.get(j) == null || (postFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)postFunctions.get(j),"post");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
@@ -1203,6 +1208,8 @@ public class AdminResource {
 											if(putFunctions.get(j) == null || (putFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)putFunctions.get(j),"put");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
@@ -1210,10 +1217,19 @@ public class AdminResource {
 								errors++;
 							}
 						}
-						if(errors == 0){
+						if(errors == 0 && alreadyAssigned == 0){
 							log.info(userName + " has added new functions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
-						}else{
+						}else if(errors == resourceNamesWithFunctions.size()){
+							log.info(userName + " tried to access addNewFunction without providing any valid resourceId/functionNames");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide valid resourceId/functionNames");
+							return invalidRequestReply;
+						}else if(alreadyAssigned > 0){
+							log.warn(userName + "tried to create a function which is already defined");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_ACCEPTABLE.getStatusCode(), Response.Status.NOT_ACCEPTABLE.getReasonPhrase(),"some of the functions are already defined");
+							return invalidRequestReply;
+						}
+						else{
 							log.info(userName + " has added only some functions, there were errors in the requested json");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but added only some functions, there were errors in the requested json",null);
 						}
