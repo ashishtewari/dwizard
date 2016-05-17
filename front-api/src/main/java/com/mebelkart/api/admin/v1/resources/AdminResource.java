@@ -2,9 +2,7 @@ package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -923,7 +921,7 @@ public class AdminResource {
 			if(utilHelper.isValidJson(details)){
 				JSONObject rawData = utilHelper.jsonParser(details);
 				if(containsValidKeys(rawData)){
-					long resourceId = this.auth.getResourceId((String) rawData.get("resourceName"));
+					long resourceId = Integer.parseInt((String)rawData.get("resourceId"));
 					String methodType = ((String) rawData.get("methodName")).toLowerCase();
 					//Here 1 is Super Admin and 2 is Secondary Admin
 					if(accessLevel == 1 || accessLevel == 2){
@@ -962,7 +960,7 @@ public class AdminResource {
 	}
 	
 	private boolean containsValidKeys(JSONObject rawData) {
-		if(rawData.containsKey("resourceName") && rawData.containsKey("methodName"))
+		if(rawData.containsKey("resourceId") && rawData.containsKey("methodName"))
 			return true;
 		else 
 			return false;
