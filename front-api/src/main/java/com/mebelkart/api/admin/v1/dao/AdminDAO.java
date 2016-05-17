@@ -294,10 +294,10 @@ public interface AdminDAO {
 	 * @param userColoumnName
 	 * @return
 	 */
-	@SqlQuery("select mk_api_functions.a_function_name from mk_api_functions inner join <tableName> ON mk_api_functions.id = <tableName>.a_function_id "
+	@SqlQuery("select mk_api_functions.id from mk_api_functions inner join <tableName> ON mk_api_functions.id = <tableName>.a_function_id "
 			+ "where <tableName>.<userColoumnName> = :userId and <tableName>.a_is_active = :isActive and mk_api_functions.a_resource_id = :resourceId "
 			+ "and mk_api_functions.a_type = :type and mk_api_functions.a_is_active = 1")
-	List<String> getPreAssignedFunctionNames(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
+	List<Integer> getPreAssignedFunctionNames(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
 			@Bind("isActive") int isActive, @Define("userColoumnName") String userColoumnName, @Define("tableName")String tableName);
 	
 	/**
