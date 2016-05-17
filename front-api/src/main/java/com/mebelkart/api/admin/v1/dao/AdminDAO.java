@@ -11,10 +11,14 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.FunctionNames;
 import com.mebelkart.api.admin.v1.core.Privilages;
+import com.mebelkart.api.admin.v1.core.ResourceNames;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.mapper.AdminMapper;
+import com.mebelkart.api.admin.v1.mapper.FunctionNamesMapper;
 import com.mebelkart.api.admin.v1.mapper.PrivilagesMapper;
+import com.mebelkart.api.admin.v1.mapper.ResourceNamesMapper;
 import com.mebelkart.api.admin.v1.mapper.UserStatusMapper;
 
 /**
@@ -248,6 +252,16 @@ public interface AdminDAO {
 			@Bind("isActive") int isActive,@Define("tableName") String tableName,@Define("userColoumnName") String userColoumnName);
 	
 	/**
+	 * This query retrieves all the function name and its Ids with respect to their method type of a particular resource 
+	 * @param resourceId This is the resource id
+	 * @param type This is the type of the method
+	 * @return List of function names
+	 */
+	@SqlQuery("select id,a_function_name from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
+	@Mapper(FunctionNamesMapper.class)
+	List<FunctionNames> getFunctionNamesWithIds(@Bind("resourceId") long resourceId,@Bind("type") String type);
+	
+	/**
 	 * This query retrieves all the function name with respect to their method type of a particular resource 
 	 * @param resourceId This is the resource id
 	 * @param type This is the type of the method
@@ -264,10 +278,6 @@ public interface AdminDAO {
 	 * @param isActive
 	 * @param userColoumnName
 	 */
-	//update mk_api_resources_consumer_function_permission t1
-	//inner join mk_api_functions t2 on
-	//    t1.a_function_id = t2.id
-	//set t1.a_is_active = 0 WHERE t2.a_resource_id = 5 and t1.a_consumer_id = 1 and t2.a_type = "get"
 	@SqlUpdate("update <tableName> t1 inner join mk_api_functions t2 on "
 			+ "t1.a_function_id = t2.id "
 			+ "set t1.a_is_active = :isActive "
@@ -316,20 +326,21 @@ public interface AdminDAO {
 	int isMethodPermissionExists(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Define("tableName")String tableName,@Define("userColoumnName") String colName, @Define("userWantedColoumnName") String wantedColName);
 	
 	/**
-	 * This query returns all the resource names related to user(admin or superAdmin)
-	 * @param resourceName
-	 * @return
-	 */
-	@SqlQuery("select a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName")
-	List<String> getResourceNames(@Bind("resourceName") String resourceName);
-	
-	/**
 	 * This query returns all the resource names and its Ids related to user(admin or superAdmin)
 	 * @param resourceName
 	 * @return
 	 */
-	@SqlQuery("select id from mk_api_resources WHERE a_resource_name != :resourceName")
-	List<Integer> getResourceIds(@Bind("resourceName") String resourceName);
+	@SqlQuery("select id,a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName and a_is_active = 1")
+	@Mapper(ResourceNamesMapper.class)
+	List<ResourceNames> getResourceNamesWithIds(@Bind("resourceName") String resourceName);
+	
+	/**
+	 * This query returns all the resource names related to user(admin or superAdmin)
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName and a_is_active = 1")
+	List<String> getResourceNames(@Bind("resourceName") String resourceName);
 	
 	/**
 	 * This query returns the id of the resource
