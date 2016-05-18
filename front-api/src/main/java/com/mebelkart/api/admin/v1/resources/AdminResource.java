@@ -838,6 +838,7 @@ public class AdminResource {
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) ) {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("consumer",(String)rawData.get("userName"))){
 						int consumerId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_consumer");
+						int rateLimit = this.auth.getRateLimit(consumerId);
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
 						for(int i = 0; i < userDetail.size(); i++){
 							if(userDetail.get(i).getGET() == 1){
@@ -850,7 +851,7 @@ public class AdminResource {
 								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put","a_consumer_id"));
 							}
 						}
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),rateLimit,userDetail));
 					}
 					else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys");

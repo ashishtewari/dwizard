@@ -458,4 +458,11 @@ public interface AdminDAO {
 	@SqlQuery("select id from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
 	List<Integer> getFunctionIds(@Bind("resourceId") long resourceId,@Bind("type") String type);
 
+	/**
+	 * @param consumerId
+	 * @return
+	 */
+	@SqlQuery("select a_count_assigned from mk_api_consumer where id = :userId")
+	int getRateLimit(@Bind("userId")int consumerId);
+
 }
