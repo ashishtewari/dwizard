@@ -469,7 +469,7 @@ public class AdminResource {
 	}
 	
 	private boolean isUserInterfaceUser(String userName) {
-		if(this.auth.isUserInterfaceUser(userName) == 0)
+		if(this.auth.isUserInterfaceUser(userName) != 0)
 			return true;
 		else
 			return false;
