@@ -2,9 +2,7 @@ package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -28,11 +26,15 @@ import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
 import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.api.ConsumerResponse;
+import com.mebelkart.api.admin.v1.api.FunctionNamesResponse;
+import com.mebelkart.api.admin.v1.api.ResourceNamesResponse;
 import com.mebelkart.api.admin.v1.api.UserPrivilagesResponse;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.FunctionNames;
 import com.mebelkart.api.admin.v1.core.Privilages;
+import com.mebelkart.api.admin.v1.core.ResourceNames;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.util.helpers.Authentication;
@@ -125,8 +127,8 @@ public class AdminResource {
 						AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
 						if(adminDetails.get(0).getAdminLevel() == 1){
 							// Here parameter null means I need all the resource names 
-							List<String> resourcePrivilages = this.auth.getResourceNames("null");
-							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("null");
+//							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("1");
@@ -134,8 +136,8 @@ public class AdminResource {
 						}
 						else if(adminDetails.get(0).getAdminLevel() == 2){
 							// Here parameter admin means I need all the resource names except admin
-							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
-							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
+//							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("2");
@@ -159,7 +161,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -816,6 +818,17 @@ public class AdminResource {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("admin",(String)rawData.get("userName"))){
 						int adminId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_user_admin");
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) adminId,"mk_api_resources_admin_permission","a_admin_id");
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"get","a_admin_id"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"post","a_admin_id"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"put","a_admin_id"));
+							}
+						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
 					}
 					else{
@@ -825,8 +838,20 @@ public class AdminResource {
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) ) {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("consumer",(String)rawData.get("userName"))){
 						int consumerId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_consumer");
+						int rateLimit = this.auth.getRateLimit(consumerId);
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"get","a_consumer_id"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"post","a_consumer_id"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put","a_consumer_id"));
+							}
+						}
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),rateLimit,userDetail));
 					}
 					else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys");
@@ -897,13 +922,13 @@ public class AdminResource {
 			if(utilHelper.isValidJson(details)){
 				JSONObject rawData = utilHelper.jsonParser(details);
 				if(containsValidKeys(rawData)){
-					long resourceId = this.auth.getResourceId((String) rawData.get("resourceName"));
+					long resourceId = Integer.parseInt((String)(rawData.get("resourceId")+""));
 					String methodType = ((String) rawData.get("methodName")).toLowerCase();
 					//Here 1 is Super Admin and 2 is Secondary Admin
 					if(accessLevel == 1 || accessLevel == 2){
 						// Here null means we want every resource in DB as the user accessing it will be super admin
-						List<String> functionNames = this.auth.getFunctionNames(resourceId, methodType);
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),functionNames);
+						List<FunctionNames> functionNames = this.auth.getFunctionNamesWithIds(resourceId, methodType);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new FunctionNamesResponse(functionNames));
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"unknown admin level");
 						return invalidRequestReply;
@@ -936,7 +961,7 @@ public class AdminResource {
 	}
 	
 	private boolean containsValidKeys(JSONObject rawData) {
-		if(rawData.containsKey("resourceName") && rawData.containsKey("methodName"))
+		if(rawData.containsKey("resourceId") && rawData.containsKey("methodName"))
 			return true;
 		else 
 			return false;
@@ -975,25 +1000,16 @@ public class AdminResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
 			}
-			Map<String,Integer> resources = new HashMap<String,Integer>();
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				// Here null means we want every resource in DB as the user accessing it will be super admin
-				List<String> resourceNames = this.auth.getResourceNames("null");
-				List<Integer> resourceIds = this.auth.getResourceIds("null");
-				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
-					resources.put(resourceNames.get(i), resourceIds.get(i));
-				}
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("null");				
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else if(accessLevel == 2){
 				// Here admin means we want every resource except admin in DB as the user accessing it will be admin
-				List<String> resourceNames = this.auth.getResourceNames("admin");
-				List<Integer> resourceIds = this.auth.getResourceIds("admin");
-				for(int i = 0;i < resourceNames.size() && i < resourceIds.size(); i++){
-					resources.put(resourceNames.get(i), resourceIds.get(i));
-				}
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resources);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("admin");
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else{
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"unknown admin level");
@@ -1116,6 +1132,7 @@ public class AdminResource {
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
+		int alreadyAssigned = 0;
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
@@ -1151,12 +1168,12 @@ public class AdminResource {
 				if(rawData.containsKey("addFunctions")){
 					JSONArray resourceNamesWithFunctions = (JSONArray) rawData.get("addFunctions");
 					if(resourceNamesWithFunctions.size() > 0){
-						//This will return all resource names excluding the admin resource
-						List<String> preAssignedResourceNames = this.auth.getResourceNames("admin");
+						//This will return all resource ids
+						List<Integer> preAssignedResourceNames = this.auth.getResourceIds("null");
 						for (int i = 0; i < resourceNamesWithFunctions.size(); i++) {
 							JSONObject functionObject = (JSONObject) resourceNamesWithFunctions.get(i);
-							if(functionObject.containsKey("resourceName") && preAssignedResourceNames.contains((String)functionObject.get("resourceName"))){
-								long resourceId = this.auth.getResourceId((String)functionObject.get("resourceName"));
+							if(functionObject.containsKey("resourceId") && preAssignedResourceNames.contains(Integer.parseInt((String)(functionObject.get("resourceId")+"")))){
+								long resourceId = Integer.parseInt((String)(functionObject.get("resourceId")+""));
 								if(functionObject.containsKey("getFunctions")){
 									JSONArray getFunctions = (JSONArray) functionObject.get("getFunctions");
 									List<String> getPreAssignedGETFunctions = this.auth.getFunctionNames(resourceId, "get");
@@ -1165,9 +1182,11 @@ public class AdminResource {
 											if(getFunctions.get(j) == null || (getFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)getFunctions.get(j),"get");
+										}else{
+											alreadyAssigned++;
 										}
 									}
-								}else
+								}
 								if(functionObject.containsKey("postFunctions")){
 									JSONArray postFunctions = (JSONArray) functionObject.get("postFunctions");
 									List<String> getPreAssignedPOSTFunctions = this.auth.getFunctionNames(resourceId, "post");
@@ -1176,6 +1195,8 @@ public class AdminResource {
 											if(postFunctions.get(j) == null || (postFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)postFunctions.get(j),"post");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
@@ -1187,6 +1208,8 @@ public class AdminResource {
 											if(putFunctions.get(j) == null || (putFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)putFunctions.get(j),"put");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
@@ -1194,10 +1217,19 @@ public class AdminResource {
 								errors++;
 							}
 						}
-						if(errors == 0){
+						if(errors == 0 && alreadyAssigned == 0){
 							log.info(userName + " has added new functions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
-						}else{
+						}else if(errors == resourceNamesWithFunctions.size()){
+							log.info(userName + " tried to access addNewFunction without providing any valid resourceId/functionNames");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide valid resourceId/functionNames");
+							return invalidRequestReply;
+						}else if(alreadyAssigned > 0){
+							log.warn(userName + "tried to create a function which is already defined");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_ACCEPTABLE.getStatusCode(), Response.Status.NOT_ACCEPTABLE.getReasonPhrase(),"some of the functions are already defined");
+							return invalidRequestReply;
+						}
+						else{
 							log.info(userName + " has added only some functions, there were errors in the requested json");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but added only some functions, there were errors in the requested json",null);
 						}
@@ -1344,9 +1376,9 @@ public class AdminResource {
 		JSONArray getFunctionJsonArray = null;
 		JSONArray postFunctionJsonArray = null;
 		JSONArray putFunctionJsonArray = null;
-		List<String> getFunctionName = new ArrayList<String>();
-		List<String> putFunctionName = new ArrayList<String>();
-		List<String> postFunctionName = new ArrayList<String>();
+		List<Integer> getFunctionIds = new ArrayList<Integer>();
+		List<Integer> putFunctionIds = new ArrayList<Integer>();
+		List<Integer> postFunctionIds = new ArrayList<Integer>();
 		try{
 			permissionJsonArray = (JSONArray) permissions.get("permission");
 			if(to.equals("consumer")){
@@ -1373,13 +1405,13 @@ public class AdminResource {
 		for (int j = 0; j < permissionJsonArray.size(); j++) {
 			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET")) {
 				get = 1;
-				getFunctionName.addAll(this.auth.getFunctionNames(resourceId,"get"));
+				getFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"get"));
 			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST")) {
 				post = 1;
-				postFunctionName.addAll(this.auth.getFunctionNames(resourceId,"post"));
+				postFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"post"));
 			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT")) {
 				put = 1;
-				putFunctionName.addAll(this.auth.getFunctionNames(resourceId,"put"));
+				putFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"put"));
 			} 
 			else {
 				//Refer to checkstatus method in HelperMethods class
@@ -1398,36 +1430,36 @@ public class AdminResource {
 				if(get == 1)
 					try{
 						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getFunctionName.contains((String) getFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in get function");
 					}
 				if(post == 1)
 					try{
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(postFunctionName.contains((String) postFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in post function");
 					}
 				if(put == 1)
 					try{
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(putFunctionName.contains((String) putFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in put function");
 					}
 				this.auth.insertUserPermission(resourceId,userId, get, post, put,"mk_api_resources_consumer_permission","a_consumer_id");
 			}else{
 				System.out.println("User type Admin");				
-				for (int j = 0; j < getFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
-				for (int j = 0; j < postFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
-				for (int j = 0; j < putFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < getFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,getFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < postFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,postFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < putFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,putFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
 				this.auth.insertUserPermission(resourceId,userId, get, post, put,"mk_api_resources_admin_permission","a_admin_id");
 			}
 			//Refer to checkstatus method in HelperMethods class
@@ -1438,17 +1470,17 @@ public class AdminResource {
 				System.out.println("User type Consumer");
 				try{
 					if(get == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) getFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) getFunctionJsonArray.get(i));
-							else if(getFunctionName.contains((String) getFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) getFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getPreAssignedFunctionIds.contains( Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))))
+								getPreAssignedFunctionIds.remove( Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")));
+							else if(getFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"get",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
@@ -1458,17 +1490,17 @@ public class AdminResource {
 				}				
 				try{
 					if(post == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) postFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) postFunctionJsonArray.get(i));
-							else if(postFunctionName.contains((String) postFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) postFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
+								getPreAssignedFunctionIds.remove(Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")));
+							else if(postFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"post",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
@@ -1478,17 +1510,17 @@ public class AdminResource {
 				}				
 				try{
 					if(put == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) putFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) putFunctionJsonArray.get(i));
-							else if(putFunctionName.contains((String) putFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) putFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
+								getPreAssignedFunctionIds.remove(Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")));
+							else if(putFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"put",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
@@ -1504,21 +1536,21 @@ public class AdminResource {
 					this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Giving get permissions");
-					updateAdminMethodPermission(resourceId,userId,"get",getFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"get",getFunctionIds);
 				}
 				if(post == 0){
 					System.out.println("Removing post permissions");
 					this.auth.removeFunctionPermissions(resourceId,userId,"post",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Updating post permissions");
-					updateAdminMethodPermission(resourceId,userId,"post",postFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"post",postFunctionIds);
 				}
 				if(put == 0){
 					System.out.println("Removing put permissions");
 					this.auth.removeFunctionPermissions(resourceId,userId,"put",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Updating put permissions");
-					updateAdminMethodPermission(resourceId,userId,"put",putFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"put",putFunctionIds);
 				}
 				this.auth.updateUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_admin_permission","a_admin_id");
 			}
@@ -1535,19 +1567,19 @@ public class AdminResource {
 	 * @param method
 	 * @param functionNames
 	 */
-	private void updateAdminMethodPermission(long resourceId,long userId,String method,List<String> functionNames){
-		List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,1,"a_admin_id","mk_api_resources_admin_function_permission");
-		List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,0,"a_admin_id","mk_api_resources_admin_function_permission");						
-		for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-			if(functionNames.contains(getPreAssignedFunctionNames.get(i)))
-				functionNames.remove(getPreAssignedFunctionNames.get(i));
+	private void updateAdminMethodPermission(long resourceId,long userId,String method,List<Integer> functionIds){
+		List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,1,"a_admin_id","mk_api_resources_admin_function_permission");
+		List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,0,"a_admin_id","mk_api_resources_admin_function_permission");						
+		for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+			if(functionIds.contains(getPreAssignedFunctionIds.get(i)))
+				functionIds.remove(getPreAssignedFunctionIds.get(i));
 			else
-				this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,method,getPreAssignedFunctionNames.get(i)),userId,0,"a_admin_id","mk_api_resources_admin_function_permission");
-		for(int i = 0; i < functionNames.size(); i++)
-			if(getDeactivatedPreAssignedFunctionNames.contains(functionNames.get(i)))
-				this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,method,functionNames.get(i)),userId,1,"a_admin_id","mk_api_resources_admin_function_permission");
+				this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_admin_id","mk_api_resources_admin_function_permission");
+		for(int i = 0; i < functionIds.size(); i++)
+			if(getDeactivatedPreAssignedFunctionIds.contains(functionIds.get(i)))
+				this.auth.updateSpecificFunctionNames(functionIds.get(i),userId,1,"a_admin_id","mk_api_resources_admin_function_permission");
 			else
-				this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,method,((String) functionNames.get(i))),1,"mk_api_resources_admin_function_permission","a_admin_id");		
+				this.auth.insertUserFunctionPermissions(userId,functionIds.get(i),1,"mk_api_resources_admin_function_permission","a_admin_id");		
 	}
 
 	/**
