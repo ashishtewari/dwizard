@@ -385,11 +385,11 @@ public class AdminResource {
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
-				if(isUserSuperAdmin(((String) rawData.get("userName")))){
+				if(((String) rawData.get("type")).equals("admin") && isUserSuperAdmin(((String) rawData.get("userName")))){
 					log.warn("Trying to update super admin permissions in updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin permissions");
 					return invalidRequestReply;
-				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+				}else if(((String) rawData.get("type")).equals("admin") && isUserInterfaceUser(((String) rawData.get("userName")))){
 					log.warn("Trying to update interfcae user permissions in updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user permissions");
 					return invalidRequestReply;
@@ -531,11 +531,11 @@ public class AdminResource {
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
-				if(isUserSuperAdmin(((String) rawData.get("userName")))){
+				if(((String) rawData.get("type")).equals("admin") && isUserSuperAdmin(((String) rawData.get("userName")))){
 					log.warn("Trying to update super admin active status in changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin active status");
 					return invalidRequestReply;
-				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+				}else if(((String) rawData.get("type")).equals("admin") && isUserInterfaceUser(((String) rawData.get("userName")))){
 					log.warn("Trying to update interfcae user active status in changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user active status");
 					return invalidRequestReply;
