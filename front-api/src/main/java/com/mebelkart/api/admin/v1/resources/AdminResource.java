@@ -1472,13 +1472,15 @@ public class AdminResource {
 					if(get == 1){
 						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionIds.contains( Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))))
-								getPreAssignedFunctionIds.remove( Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")));
-							else if(getFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))))
+						for(int i = 0; i < getFunctionJsonArray.size(); i++){
+							if(getPreAssignedFunctionIds.contains( Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")))){
+								getPreAssignedFunctionIds.remove( getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))));
+							}else if(getFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")))){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
-							else
+							}else{
 								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+							}
+						}
 						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
 							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
@@ -1486,6 +1488,7 @@ public class AdminResource {
 						this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}
 				}catch(Exception e){
+					e.printStackTrace();
 					System.out.println("Exception in update get function");
 				}				
 				try{
@@ -1494,7 +1497,7 @@ public class AdminResource {
 						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
 							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
-								getPreAssignedFunctionIds.remove(Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")));
+								getPreAssignedFunctionIds.remove(getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))));
 							else if(postFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
@@ -1514,7 +1517,7 @@ public class AdminResource {
 						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
 							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
-								getPreAssignedFunctionIds.remove(Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")));
+								getPreAssignedFunctionIds.remove(getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))));
 							else if(putFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
