@@ -1,12 +1,15 @@
+# While going for production change host to 52.77.131.42
 elasticsearchHost: 52.77.131.42
 elasticPort: 9300
+# While going for production change cluster name to MK-NEW-CLUSTER
 clusterName: MK-NEW-CLUSTER
 
 productElasticsearchHost: 52.74.202.15
 productElasticPort: 9300
 productClusterName: MK-FRONT-ALL
 
-redisHost: 127.0.0.1
+# While going for production change host to 54.169.206.4
+redisHost: 54.169.206.4
 redisPort: 6379
 redisPassword: stage@redis_caching
 
@@ -18,7 +21,7 @@ apiAuthenticationDatabase:
     # the password
     password: stage@mebelkart
     # the JDBC URL; the database is called DWGettingStarted
-    url: jdbc:mysql://localhost:3306/mk_api
+    url: jdbc:mysql://54.169.206.4:3306/mk_api
 mebelkartProductionDatabase:
     # the name of the JDBC driver, mysql in our case
     driverClass: com.mysql.jdbc.Driver
@@ -28,7 +31,7 @@ mebelkartProductionDatabase:
     password: stage@mebelkart
     # the JDBC URL; the database is called DWGettingStarted
     #convertToNull is to handle date requests which contains all zeros
-    url: jdbc:mysql://localhost:3306/mebelkart_prod?zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://54.169.206.4:3306/mebelkart_prod?zeroDateTimeBehavior=convertToNull
 server:
   applicationConnectors:
     - type: http
@@ -56,7 +59,7 @@ logging:
   appenders:
     - type: console
     - type: file
-      threshold: INFO	
+      threshold: ALL
       logFormat: "%-6level [%d{yyyy-MM-dd_HH:mm:ss.SSS}] [%t] %logger{5} - %X{code} %msg %n"
       currentLogFilename: log.out
       archivedLogFilenamePattern: log-%d{yyyy-MM-dd}-%i.out.gz

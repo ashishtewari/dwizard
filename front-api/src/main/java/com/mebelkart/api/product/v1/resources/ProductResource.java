@@ -14,11 +14,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
+import com.mebelkart.api.product.v1.core.AttributeGroupsInnerPOJO;
+import com.mebelkart.api.product.v1.core.AttributeGroupsOuterPOJO;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-//import com.mebelkart.api.util.classes.ProductsPaginationReply;
-
 import com.mebelkart.api.util.classes.PaginationReply;
 
 import org.elasticsearch.action.get.GetResponse;
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import com.mebelkart.api.product.v1.api.ProductDetailsResponse;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
 /**
@@ -64,9 +64,9 @@ public class ProductResource {
 	 */
 	InvalidInputReplyClass invalidRequestReply = null;	
 	/**
-	 * Getting redis client
+	 * Getting client to authenticate
 	 */
-	JedisFactory jedisAuthentication = new JedisFactory();
+	Authentication authenticate = new Authentication();
 
 	/**
 	 * Helper class from utils
@@ -88,7 +88,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllProducts");
+						authenticate.validate(userName,accessToken, "products", "get", "getAllProducts");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -178,7 +178,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductsListByCategory");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListByCategory function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -297,7 +297,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductDetail");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductDetail");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductDetail function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -321,8 +321,8 @@ public class ProductResource {
 								prodFilteredDetails.put("productName",(String)categoryVars.get("name"));
 								prodFilteredDetails.put("productDesc",(String)categoryVars.get("description"));
 							} else if(((String)required.get(i)).equalsIgnoreCase("attr") || ((String)required.get(i)).equalsIgnoreCase("attributes")){
-								prodFilteredDetails.put("attributes",(Object)source.get("attributes"));
-								prodFilteredDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
+								prodFilteredDetails.put("attributes",(Object)categoryVars.get("id_product_attribute"));
+								prodFilteredDetails.put("attributeGroups",setAttributeGroups(source));
 							} else if(((String)required.get(i)).equalsIgnoreCase("feature") ){
 								prodFilteredDetails.put("features",getProductFeatures(source));
 							}								
@@ -351,10 +351,10 @@ public class ProductResource {
 					prodDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));
 					prodDetails.setEmiPrice("https://www.mebelkart.com/getEMIForProduct/"+(String)info.get("id_product")+"?mode=json");
 					prodDetails.setRating((Integer) source.get("product_rating"));
-					prodDetails.setAttributes((String) source.get("attributes"));
+					prodDetails.setAttributes((String) categoryVars.get("id_product_attribute"));
 					prodDetails.setProductFeatures(getProductFeatures(source));
 					prodDetails.setIsSoldOut(0);
-					prodDetails.setAttributeGroups((Object) source.get("attribute_groups"));
+					prodDetails.setAttributeGroups(setAttributeGroups(source));
 					prodDetails.setReviews(null);
 					prodDetails.setTotalReviews(0);
 					prodDetails.setTotalReviewsCount(0);
@@ -423,6 +423,64 @@ public class ProductResource {
 		}
 		return gallery.toArray();
 	}
+	
+	@SuppressWarnings("unchecked")
+	private Object setAttributeGroups(Map<String, Object> source){
+		Map<String,Object> groupKeys = new HashMap<String,Object>();
+		Map<String,Map<String,Integer>> attributeMappings = new HashMap<String,Map<String,Integer>>();
+		List<Map<String,Object>> attributeGroups = (List<Map<String, Object>>) source.get("attribute_groups");
+		Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+		for(int i = 0; i < attributeGroups.size(); i++){
+			String attributeGroupId = attributeGroups.get(i).get("id_attribute_group").toString();
+			if(groupKeys.containsKey(attributeGroupId)){
+				AttributeGroupsInnerPOJO innerPojo = (AttributeGroupsInnerPOJO) groupKeys.get(attributeGroupId);
+				if(innerPojo.getDefaultAttribute() == 0){
+					if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
+						innerPojo.setDefaultAttribute(Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString()));
+					}
+				}
+				List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
+				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
+				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
+				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
+				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
+				attributesList.add(attributes);
+				innerPojo.setAttributes(attributesList);
+				groupKeys.put(attributeGroupId, innerPojo);
+				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
+				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+				
+			}else{
+				String name = attributeGroups.get(i).get("group_name").toString();
+				String colorGroup = attributeGroups.get(i).get("is_color_group").toString();
+				int defaultAttribute = 0;
+				if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
+					defaultAttribute = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
+				}
+				List<Map<String,Map<String,Object>>> attributesList = new ArrayList<Map<String,Map<String,Object>>>();
+				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
+				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
+				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
+				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
+				attributesList.add(attributes);
+				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributesList);
+				groupKeys.put(attributeGroupId, innerPojo);
+				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
+				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+			}
+		}
+		return new AttributeGroupsOuterPOJO(groupKeys,attributeMappings);
+	}
 
 	/**
 	 * This function returns the price details of the products based on their id 
@@ -441,7 +499,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getSellingPrice");
+						authenticate.validate(userName,accessToken, "products", "get", "getSellingPrice");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -496,7 +554,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdDesc");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdDesc");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdDesc function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -537,7 +595,7 @@ public class ProductResource {
 	 * @param id
 	 * @return
 	 */
-	@SuppressWarnings({ "unused" })
+	@SuppressWarnings({ "unused", "unchecked" })
 	@GET
 	@Path("/product/{productId}/attributes")
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
@@ -549,7 +607,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdAttr");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdAttr");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdAttr function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -558,8 +616,9 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
-					productsDetails.put("attributes",(Object)source.get("attributes"));
-					productsDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
+					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+					productsDetails.put("attributes",(String) categoryVars.get("id_product_attribute"));
+					productsDetails.put("attributeGroups",setAttributeGroups(source));
 					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
 				}else{
 					log.info("Invalid header keys provided to access getProdAttr function");
@@ -601,7 +660,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFeature");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdFeature");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdFeature function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -652,7 +711,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try{
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "featured");
+						authenticate.validate(userName,accessToken, "products", "get", "featured");
 					}catch(Exception e){
 						log.info("Unautherized user "+userName+" tried to access featured function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -723,7 +782,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProductsListBySeller");
+						authenticate.validate(userName,accessToken, "products", "get", "getProductsListBySeller");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListBySeller function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -818,7 +877,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getAllOutOfStock");
+						authenticate.validate(userName,accessToken, "products", "get", "getAllOutOfStock");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getAllOutOfStock function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -904,7 +963,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try{
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getTopProducts");
+						authenticate.validate(userName,accessToken, "products", "get", "getTopProducts");
 					}catch(Exception e){
 						log.info("Unautherized user "+userName+" tried to access getTopProducts function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
@@ -975,7 +1034,7 @@ public class ProductResource {
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
 					try {
-						jedisAuthentication.validate(userName,accessToken, "products", "get", "getProdFaq");
+						authenticate.validate(userName,accessToken, "products", "get", "getProdFaq");
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProdFaq function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());

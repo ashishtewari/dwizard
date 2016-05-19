@@ -23,13 +23,23 @@ public class JDBCFactory {
         if(sqlConnection==null)
         {
             System.out.println("-------------------------------");
-            System.out.println("JDBC connection created");
+            System.out.println("JDBC Prod connection created");
             System.out.println("-------------------------------");
             Class.forName("com.mysql.jdbc.Driver");
             sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkProdDriverClass(), mkApiConfiguration.getMkProdUserName(), mkApiConfiguration.getMkProdPassword());
         }
         return sqlConnection;
     }
-
-
+    
+    public static Connection getMkAuthJDBCInstance() throws ClassNotFoundException, SQLException {
+        if(sqlConnection==null)
+        {
+            System.out.println("-------------------------------");
+            System.out.println("JDBC MkAuth connection created");
+            System.out.println("-------------------------------");
+            Class.forName("com.mysql.jdbc.Driver");
+    		sqlConnection = DriverManager.getConnection(mkApiConfiguration.getMkAuthDriverClass(), mkApiConfiguration.getMkAuthUserName(), mkApiConfiguration.getMkAuthPassword());
+        }
+        return sqlConnection;
+    }
 }

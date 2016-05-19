@@ -35,12 +35,12 @@ import org.slf4j.LoggerFactory;
 
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
-import com.mebelkart.api.util.factories.JedisFactory;
 
 /**
  * @author Nikky-Akky
@@ -58,7 +58,11 @@ public class ManufacturerResource {
 	JSONParser parser = new JSONParser();
 	JSONObject headerInputJsonData = null;
 	JSONArray requiredFields;
-	JedisFactory jedisCustomerAuthentication = new JedisFactory();
+	/**
+	 * Getting client to authenticate
+	 */
+	Authentication authenticate = new Authentication();
+	//JedisFactory jedisCustomerAuthentication = new JedisFactory();
 	Client client = ElasticFactory.getElasticClient();
 	Client productsClient = ElasticFactory.getProductsElasticClient();
 	static Logger errorLog = LoggerFactory.getLogger(ManufacturerResource.class);
@@ -74,13 +78,13 @@ public class ManufacturerResource {
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = headerInputJsonData.get("apiKey").toString();
+				String accessToken = headerInputJsonData.get("accessToken").toString();
 				String userName = headerInputJsonData.get("userName").toString();
 				try {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerInfo");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerInfo");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerInfo function");
@@ -120,14 +124,14 @@ public class ManufacturerResource {
 					}
 				
 			} else {
-				errorLog.warn("Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
+				errorLog.warn("Given header is not a valid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Given header is not a valid json");
 				return invalidRequestReply;
 			}
 		}
 		catch (NullPointerException nullPointer) {
-			errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+			errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or manufacturerId spelled Incorrectly or mention necessary fields of address");
 			return invalidRequestReply;
 		}
 		catch (ParseException parse) {
@@ -160,13 +164,13 @@ public class ManufacturerResource {
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = headerInputJsonData.get("apiKey").toString();
+				String accessToken = headerInputJsonData.get("accessToken").toString();
 				String userName = headerInputJsonData.get("userName").toString();
 				try {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerProducts");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerProducts");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerProducts function");
@@ -243,14 +247,14 @@ public class ManufacturerResource {
 						return invalidRequestReply;
 					}
 				} else {
-					errorLog.warn("Content-Type or apiKey or manufacturerId spelled Incorrectly");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
+					errorLog.warn("Given header is not a valid json");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Given header is not a valid json");
 					return invalidRequestReply;
 				}
 			}
 			catch (NullPointerException nullPointer) {
-				errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or manufacturerId spelled Incorrectly or mention necessary fields of address");
 				return invalidRequestReply;
 			}
 			catch (ClassCastException classCast) {
@@ -285,13 +289,13 @@ public class ManufacturerResource {
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = headerInputJsonData.get("apiKey").toString();
+				String accessToken = headerInputJsonData.get("accessToken").toString();
 				String userName = headerInputJsonData.get("userName").toString();
 				try {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerAddresses");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerAddresses");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerAddresses function");
@@ -350,14 +354,14 @@ public class ManufacturerResource {
 						return invalidRequestReply;
 					}
 				} else {
-					errorLog.warn("Content-Type or apiKey or manufacturerId spelled Incorrectly");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
+					errorLog.warn("Given header is not a valid json");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Given header is not a valid json");
 					return invalidRequestReply;
 				}
 			}
 			catch (NullPointerException nullPointer) {
-				errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or manufacturerId spelled Incorrectly or mention necessary fields of address");
 				return invalidRequestReply;
 			}
 			catch (ClassCastException classCast) {
@@ -386,13 +390,13 @@ public class ManufacturerResource {
 		try{
 			if(utilHelper.isValidJson(accessParam)){
 				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = headerInputJsonData.get("apiKey").toString();
+				String accessToken = headerInputJsonData.get("accessToken").toString();
 				String userName = headerInputJsonData.get("userName").toString();
 				try {
 						/*
 						 * validating the accesstoken given by user
 						 */
-					jedisCustomerAuthentication.validate(userName,accessToken, "manufacturer", "get", "getManufacturerOrders");
+					authenticate.validate(userName,accessToken, "manufacturer", "get", "getManufacturerOrders");
 				} catch(Exception e) {
 					e.printStackTrace();
 					errorLog.info("Unautherized user "+userName+" tried to access getManufacturerOrders function");
@@ -478,14 +482,14 @@ public class ManufacturerResource {
 						return invalidRequestReply;
 					}
 				} else {
-					errorLog.warn("Content-Type or apiKey or manufacturerId spelled Incorrectly");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Content-Type or apiKey or manufacturerId or requiredFields spelled Incorrectly");
+					errorLog.warn("Given header is not a valid json");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Given header is not a valid json");
 					return invalidRequestReply;
 				}
 			}
 			catch (NullPointerException nullPointer) {
-				errorLog.warn("apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "apiKey or manufacturerId spelled Incorrectly or mention necessary fields of address");
+				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
 				return invalidRequestReply;
 			}
 			catch (ClassCastException classCast) {

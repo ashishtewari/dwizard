@@ -26,14 +26,18 @@ import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
 import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.admin.v1.api.ConsumerResponse;
+import com.mebelkart.api.admin.v1.api.FunctionNamesResponse;
+import com.mebelkart.api.admin.v1.api.ResourceNamesResponse;
 import com.mebelkart.api.admin.v1.api.UserPrivilagesResponse;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.FunctionNames;
 import com.mebelkart.api.admin.v1.core.Privilages;
+import com.mebelkart.api.admin.v1.core.ResourceNames;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.util.crypting.MD5Encoding;
-import com.mebelkart.api.util.factories.JedisFactory;
+import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
 /**
@@ -63,9 +67,9 @@ public class AdminResource {
 	Helper utilHelper = new Helper();
 	
 	/**
-	 * Getting redis client
+	 * Getting client to authenticate
 	 */
-	JedisFactory jedisAuthentication = new JedisFactory();
+	Authentication authenticate = new Authentication();
 	
 	/**
 	 * InvalidInputReplyClass class
@@ -114,8 +118,8 @@ public class AdminResource {
 					} else {
 						String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 						try {
-							jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "login");
-						} catch (Exception e) {							
+							authenticate.validate(adminUserName,apikey, "admin", "get", "login");
+						} catch (Exception e) {					
 							log.info("Unautherized user "+username+" tried to access admin function");
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 							return invalidRequestReply;
@@ -123,8 +127,8 @@ public class AdminResource {
 						AdminPrivilagesResponse privilages = new AdminPrivilagesResponse();
 						if(adminDetails.get(0).getAdminLevel() == 1){
 							// Here parameter null means I need all the resource names 
-							List<String> resourcePrivilages = this.auth.getResourceNames("null");
-							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("null");
+//							privilages.setSuperAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("1");
@@ -132,8 +136,8 @@ public class AdminResource {
 						}
 						else if(adminDetails.get(0).getAdminLevel() == 2){
 							// Here parameter admin means I need all the resource names except admin
-							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
-							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
+//							List<String> resourcePrivilages = this.auth.getResourceNames("admin");
+//							privilages.setAdminPrivilages(resourcePrivilages.toArray(new String[resourcePrivilages.size()]));
 							String sessionId = helper.generateSessionId();
 							privilages.setSessionId(sessionId);
 							privilages.setUserLevel("2");
@@ -157,7 +161,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+		    invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -192,20 +196,35 @@ public class AdminResource {
 	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object registerUser(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object registerUser(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "registerUser");
+					authenticate.validate(adminUserName,apikey, "admin", "post", "registerUser");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access registerUser function");
+					log.info("Unautherized user "+userName+" tried to access registerUser function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -217,18 +236,18 @@ public class AdminResource {
 				rawData.put("accessToken",generateduserAccessToken);
 				rawData.put("password", generatedpassword);
 				if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 ) {
-					int rowId = registerAdmin(rawData,adminUserName);
+					int rowId = registerAdmin(rawData,userName);
 					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						//1 on successfull insertion and 6 on successfull updation
 						if(status == 1 || status == 6){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == -2){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions to some of the resources", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else{
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}
 					} else if(rowId == 0) {
@@ -249,23 +268,23 @@ public class AdminResource {
 						return invalidRequestReply;
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2)) {
-					int rowId = registerConsumer(rawData,adminUserName);
+					int rowId = registerConsumer(rawData,userName);
 					if (rowId > 0) {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" and also has given resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						}else if(status == -1){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions because you can't give consumer access to ADMIN resource and so avoided this permission");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given resource persmissions because you can't give consumer access to ADMIN resource and so avoided this permission");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned, can't give consumer access to ADMIN resource", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == -2){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions to some of the resources");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions to some of the resources", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else if(status == 7){
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given persmissions, give valid function keys");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given persmissions, give valid function keys");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but not given persmissions, give valid function keys ", new AdminResponse(generateduserAccessToken,generatedpassword,(String)rawData.get("userName")));
 						}else{
-							log.info(adminUserName+" has registered "+(String)rawData.get("userName")+" but not given any resource persmissions");
+							log.info(userName+" has registered "+(String)rawData.get("userName")+" but not given any resource persmissions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but permissions not assigned", new ConsumerResponse(generateduserAccessToken,(String)rawData.get("userName")));
 						}
 					} else if(rowId == 0) {
@@ -296,7 +315,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -314,6 +333,14 @@ public class AdminResource {
 		}				
 	}
 
+	private boolean isHavingValidAccessParamKeys(String accessParam) {
+		JSONObject jsonData = utilHelper.jsonParser(accessParam);
+		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken"))
+			return true;
+		else
+			return false;
+	}
+
 	/**
 	 * This is the Post method accessed by path HOST/v1.0/admin/assignPermissions
 	 * This method calls assigningConsumerPermission to assign permissions if user already exists
@@ -325,29 +352,44 @@ public class AdminResource {
 	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object updatePermissions(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object updatePermissions(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "updatePermissions");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "updatePermissions");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access updatePermissions function");
+					log.info("Unautherized user "+userName+" tried to access updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
-				if(isUserSuperAdmin(((String) rawData.get("userName")))){
+				if(((String) rawData.get("type")).equals("admin") && isUserSuperAdmin(((String) rawData.get("userName")))){
 					log.warn("Trying to update super admin permissions in updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin permissions");
 					return invalidRequestReply;
-				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+				}else if(((String) rawData.get("type")).equals("admin") && isUserInterfaceUser(((String) rawData.get("userName")))){
 					log.warn("Trying to update interfcae user permissions in updatePermissions function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user permissions");
 					return invalidRequestReply;
@@ -357,13 +399,13 @@ public class AdminResource {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							log.info(userName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else if(status == 6){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_user_admin",adminUserName,(long)rowId);
+							log.info(userName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_user_admin",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else
 							return helper.checkStatus(status);
@@ -379,13 +421,13 @@ public class AdminResource {
 						int status = assigningPermission(rawData, rowId);
 						if(status == 1){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has given "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							log.info(userName+" has given "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else if(status == 6){
 							//update consumer/admin table addedBy coloumn with adminUserName
-							log.info(adminUserName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
-							this.auth.modifiedBy("mk_api_consumer",adminUserName,(long)rowId);
+							log.info(userName+" has updated "+(String)rawData.get("userName")+" resource persmissions");
+							this.auth.modifiedBy("mk_api_consumer",userName,(long)rowId);
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}
 						else
@@ -407,7 +449,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -427,7 +469,7 @@ public class AdminResource {
 	}
 	
 	private boolean isUserInterfaceUser(String userName) {
-		if(this.auth.isUserInterfaceUser(userName) == 0)
+		if(this.auth.isUserInterfaceUser(userName) != 0)
 			return true;
 		else
 			return false;
@@ -456,37 +498,54 @@ public class AdminResource {
 	@Path("/changeUserActiveStatus")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object changeUserActiveStatus(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+	public Object changeUserActiveStatus(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "changeUserActiveStatus");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "changeUserActiveStatus");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access changeUserActiveStatus function");
+					log.info("Unautherized user "+userName+" tried to access changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
-				if(isUserSuperAdmin(((String) rawData.get("userName")))){
+				if(((String) rawData.get("type")).equals("admin") && isUserSuperAdmin(((String) rawData.get("userName")))){
 					log.warn("Trying to update super admin active status in changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update super admin active status");
 					return invalidRequestReply;
-				}else if(isUserInterfaceUser(((String) rawData.get("userName")))){
+				}else if(((String) rawData.get("type")).equals("admin") && isUserInterfaceUser(((String) rawData.get("userName")))){
 					log.warn("Trying to update interfcae user active status in changeUserActiveStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"you can't update interface user active status");
 					return invalidRequestReply;
 				}else if (((String) rawData.get("type")).equals("admin") && accessLevel == 1 && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("admin",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",adminUserName);
-						this.auth.updateUserChanges("mk_api_user_admin",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_user_admin"),1);
-						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_user_admin",userName);
+						if(((long) rawData.get("status")) == 1){
+							this.auth.updateUserChanges("mk_api_user_admin",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_user_admin"),1);
+						}
+						log.info(userName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -496,9 +555,11 @@ public class AdminResource {
 					}
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) && isValidStatus((long) rawData.get("status"))) {
 					if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
-						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",adminUserName);
-						this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
-						log.info(adminUserName+" has changed isActive status of user "+(String)rawData.get("userName"));
+						this.auth.changeUserActiveStatus((String) rawData.get("userName"),(long) rawData.get("status"),"mk_api_consumer",userName);
+						if(((long) rawData.get("status")) == 1){
+							this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
+						}
+						log.info(userName+" has changed isActive status of user "+(String)rawData.get("userName"));
 						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 					}
 					else{
@@ -517,7 +578,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -553,28 +614,43 @@ public class AdminResource {
 	@Path("/changeRateLimit")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object changeRateLimit(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request){
+	public Object changeRateLimit(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1 || accessLevel == 2){
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "put", "changeRateLimit");
+					authenticate.validate(adminUserName,apikey, "admin", "put", "changeRateLimit");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access changeRateLimit function");
+					log.info("Unautherized user "+userName+" tried to access changeRateLimit function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
 				if(isUserNameAlreadyExists("consumer",(String) rawData.get("userName"))){
-					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),adminUserName);
+					this.auth.changeRateLimit((String) rawData.get("userName"),(long) rawData.get("rateLimit"),userName);
 					this.auth.updateUserChanges("mk_api_consumer",(long)this.auth.getUserId((String) rawData.get("userName"), "mk_api_consumer"),1);
-					log.info(adminUserName+" has changed countAssigned of user "+(String)rawData.get("userName"));
+					log.info(userName+" has changed countAssigned of user "+(String)rawData.get("userName"));
 					return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 				}else{
 					log.warn("Not found userName in changeRateLimit function");
@@ -587,7 +663,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -615,21 +691,36 @@ public class AdminResource {
 	@GET
 	@Path("/getUsersStatus")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getUsersStatus(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails) {
+	public Object getUsersStatus(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && utilHelper.isValidJson(userDetails)){
 				JSONObject rawData = utilHelper.jsonParser(userDetails);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getUsersStatus");
+					authenticate.validate(adminUserName,apikey, "admin", "get", "getUsersStatus");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access getUsersStatus function");
+					log.info("Unautherized user "+userName+" tried to access getUsersStatus function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -658,11 +749,11 @@ public class AdminResource {
 				}	
 			}else {
 				log.warn("Unauthorized data in getUsersStatus function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessToken/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessLevel/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -690,21 +781,36 @@ public class AdminResource {
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getUserPrivileges(@HeaderParam("accessToken") String apikey,@HeaderParam("accessParam") String userDetails){
+	public Object getUserPrivileges(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if((accessLevel == 1 || accessLevel == 2) && utilHelper.isValidJson(userDetails)){
 				JSONObject rawData = utilHelper.jsonParser(userDetails);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "get", "getUserPrivileges");
+					authenticate.validate(adminUserName,apikey, "admin", "get", "getUserPrivileges");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access getUserPrivileges function");
+					log.info("Unautherized user "+userName+" tried to access getUserPrivileges function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
@@ -712,6 +818,17 @@ public class AdminResource {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("admin",(String)rawData.get("userName"))){
 						int adminId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_user_admin");
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) adminId,"mk_api_resources_admin_permission","a_admin_id");
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"get","a_admin_id"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"post","a_admin_id"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) adminId,"mk_api_resources_admin_function_permission",userDetail.get(i).getResourceName(),"put","a_admin_id"));
+							}
+						}
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
 					}
 					else{
@@ -721,8 +838,20 @@ public class AdminResource {
 				} else if (((String) rawData.get("type")).equals("consumer")&& (accessLevel == 1 || accessLevel == 2) ) {
 					if(rawData.containsKey("userName") && isUserNameAlreadyExists("consumer",(String)rawData.get("userName"))){
 						int consumerId = this.auth.getUserId((String)rawData.get("userName"), "mk_api_consumer");
+						int rateLimit = this.auth.getRateLimit(consumerId);
 						List<Privilages> userDetail = this.auth.getUserPrivileges((long) consumerId,"mk_api_resources_consumer_permission","a_consumer_id");
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),userDetail));
+						for(int i = 0; i < userDetail.size(); i++){
+							if(userDetail.get(i).getGET() == 1){
+								userDetail.get(i).setGetFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"get","a_consumer_id"));
+							}
+							if(userDetail.get(i).getPOST() == 1){
+								userDetail.get(i).setPostFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"post","a_consumer_id"));
+							}
+							if(userDetail.get(i).getPUT() == 1){
+								userDetail.get(i).setPutFunctions(this.auth.getFunctionNames((long) consumerId,"mk_api_resources_consumer_function_permission",userDetail.get(i).getResourceName(),"put","a_consumer_id"));
+							}
+						}
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new UserPrivilagesResponse((String)rawData.get("userName"),rateLimit,userDetail));
 					}
 					else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys");
@@ -739,7 +868,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid values");
@@ -758,35 +887,139 @@ public class AdminResource {
 	}
 	
 	@GET
-	@Path("/getResources")
+	@Path("/getFunctions")
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object getResources(@HeaderParam("accessToken") String apikey){
+	public Object getFunctions(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String details){
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
+			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+			try {
+				authenticate.validate(adminUserName,apikey, "admin", "get", "getFunctions");
+			} catch (Exception e) {
+				log.info("Unautherized user "+userName+" tried to access getFunctions function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+			}
+			if(utilHelper.isValidJson(details)){
+				JSONObject rawData = utilHelper.jsonParser(details);
+				if(containsValidKeys(rawData)){
+					long resourceId = Integer.parseInt((String)(rawData.get("resourceId")+""));
+					String methodType = ((String) rawData.get("methodName")).toLowerCase();
+					//Here 1 is Super Admin and 2 is Secondary Admin
+					if(accessLevel == 1 || accessLevel == 2){
+						// Here null means we want every resource in DB as the user accessing it will be super admin
+						List<FunctionNames> functionNames = this.auth.getFunctionNamesWithIds(resourceId, methodType);
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new FunctionNamesResponse(functionNames));
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"unknown admin level");
+						return invalidRequestReply;
+					}
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid json format");
+				return invalidRequestReply;
+			}
+		} catch(NullPointerException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
+			return invalidRequestReply;
+		} catch(ClassCastException e){
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		} catch(Exception e){
+			if(e instanceof ConnectException){
+				log.warn("Connection refused server stopped in getFunctions function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
+				return invalidRequestReply;
+			}else{
+				log.warn(e.getMessage());
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
+				return invalidRequestReply;
+			}
+		}
+	}
+	
+	private boolean containsValidKeys(JSONObject rawData) {
+		if(rawData.containsKey("resourceId") && rawData.containsKey("methodName"))
+			return true;
+		else 
+			return false;
+	}
+
+	@GET
+	@Path("/getResources")
+	@Produces({ MediaType.APPLICATION_JSON })
+	public Object getResources(@HeaderParam("userDetails") String accessParam){
+		try{
+			/*
+			 * decoding encoded apikey given by the admin
+			 */
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
+			int accessLevel = this.auth.validate(apikey);
+			String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
+			try {
+				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
+			} catch (Exception e) {
+				log.info("Unautherized user "+userName+" tried to access getResources function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+			}
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				// Here null means we want every resource in DB as the user accessing it will be super admin
-				List<String> resourceNames = this.auth.getResourceNames("null");
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("null");				
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else if(accessLevel == 2){
 				// Here admin means we want every resource except admin in DB as the user accessing it will be admin
-				List<String> resourceNames = this.auth.getResourceNames("admin");
-				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),resourceNames);
+				List<ResourceNames> resourceNames = this.auth.getResourceNamesWithIds("admin");
+				return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(),new ResourceNamesResponse(resourceNames));
 			}
 			else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown admin level");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"unknown admin level");
 				return invalidRequestReply;
 			}
 		} catch(NumberFormatException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid value for userType");
 			return invalidRequestReply;
 		} catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		} catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -808,21 +1041,36 @@ public class AdminResource {
 	@Path("/addNewResource")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addNewResource(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object addNewResource(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 					JSONObject rawData = utilHelper.contextRequestParser(request);
 					String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 					try {
-						jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "addNewResource");
+						authenticate.validate(adminUserName,apikey, "admin", "post", "addNewResource");
 					} catch (Exception e) {
-						log.info("Unautherized user "+adminUserName+" tried to access addNewResource function");
+						log.info("Unautherized user "+userName+" tried to access addNewResource function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
@@ -837,15 +1085,15 @@ public class AdminResource {
 										this.auth.addNewResource((String)resources.get(i));
 								}
 							}
-							log.info(adminUserName + " has added new resource");
+							log.info(userName + " has added new resource");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
 						}else{
-							log.warn(adminUserName + " tried to access addNewResource without providing any resources names");
+							log.warn(userName + " tried to access addNewResource without providing any resources names");
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide resource names");
 							return invalidRequestReply;
 						}
 					}else{
-						log.warn(adminUserName + " tried to access addNewResource without giving valid key");
+						log.warn(userName + " tried to access addNewResource without giving valid key");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 						return invalidRequestReply;
 					}
@@ -859,7 +1107,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}				
 		}catch(NullPointerException e){
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys or check whether you are sending base64 encoded values");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid input format");
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
@@ -882,34 +1130,50 @@ public class AdminResource {
 	@Path("/addNewFunction")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
-	public Object addNewFunction(@HeaderParam("accessToken") String apikey,@Context HttpServletRequest request) {
+	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
+		int alreadyAssigned = 0;
 		try{
 			/*
 			 * decoding encoded apikey given by the admin
 			 */
-			apikey = helper.getBase64Decoded(apikey);
+			accessParam = helper.getBase64Decoded(accessParam);
+			String apikey = "";
+			String userName = "";
+			if(utilHelper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = utilHelper.jsonParser(accessParam);
+					userName = (String) jsonData.get("userName");
+					apikey = (String) jsonData.get("accessToken");
+				}else{
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					return invalidRequestReply;
+				}
+			}else{
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				return invalidRequestReply;
+			}
 			int accessLevel = this.auth.validate(apikey);
 			//Here 1 is Super Admin and 2 is Secondary Admin
 			if(accessLevel == 1){
 				JSONObject rawData = utilHelper.contextRequestParser(request);
 				String adminUserName = this.auth.getUserNameRelatedToAccessToken(apikey);
 				try {
-					jedisAuthentication.validate(adminUserName,apikey, "admin", "post", "addNewFunction");
+					authenticate.validate(adminUserName,apikey, "admin", "post", "addNewFunction");
 				} catch (Exception e) {
-					log.info("Unautherized user "+adminUserName+" tried to access addNewFunction function");
+					log.info("Unautherized user "+userName+" tried to access addNewFunction function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
 				if(rawData.containsKey("addFunctions")){
 					JSONArray resourceNamesWithFunctions = (JSONArray) rawData.get("addFunctions");
 					if(resourceNamesWithFunctions.size() > 0){
-						//This will return all resource names excluding the admin resource
-						List<String> preAssignedResourceNames = this.auth.getResourceNames("admin");
+						//This will return all resource ids
+						List<Integer> preAssignedResourceNames = this.auth.getResourceIds("null");
 						for (int i = 0; i < resourceNamesWithFunctions.size(); i++) {
 							JSONObject functionObject = (JSONObject) resourceNamesWithFunctions.get(i);
-							if(functionObject.containsKey("resourceName") && preAssignedResourceNames.contains((String)functionObject.get("resourceName"))){
-								long resourceId = this.auth.getResourceId((String)functionObject.get("resourceName"));
+							if(functionObject.containsKey("resourceId") && preAssignedResourceNames.contains(Integer.parseInt((String)(functionObject.get("resourceId")+"")))){
+								long resourceId = Integer.parseInt((String)(functionObject.get("resourceId")+""));
 								if(functionObject.containsKey("getFunctions")){
 									JSONArray getFunctions = (JSONArray) functionObject.get("getFunctions");
 									List<String> getPreAssignedGETFunctions = this.auth.getFunctionNames(resourceId, "get");
@@ -918,10 +1182,12 @@ public class AdminResource {
 											if(getFunctions.get(j) == null || (getFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)getFunctions.get(j),"get");
+										}else{
+											alreadyAssigned++;
 										}
 									}
-								}else
-								if(functionObject.containsKey("postFunction")){
+								}
+								if(functionObject.containsKey("postFunctions")){
 									JSONArray postFunctions = (JSONArray) functionObject.get("postFunctions");
 									List<String> getPreAssignedPOSTFunctions = this.auth.getFunctionNames(resourceId, "post");
 									for (int j = 0; j < postFunctions.size(); j++) {
@@ -929,10 +1195,12 @@ public class AdminResource {
 											if(postFunctions.get(j) == null || (postFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)postFunctions.get(j),"post");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
-								if(functionObject.containsKey("putFunction")){
+								if(functionObject.containsKey("putFunctions")){
 									JSONArray putFunctions = (JSONArray) functionObject.get("putFunctions");
 									List<String> getPreAssignedPUTFunctions = this.auth.getFunctionNames(resourceId, "put");
 									for (int j = 0; j < putFunctions.size(); j++) {
@@ -940,6 +1208,8 @@ public class AdminResource {
 											if(putFunctions.get(j) == null || (putFunctions.get(j)).equals("")){
 											}else
 												this.auth.insertNewFunction(resourceId,(String)putFunctions.get(j),"put");
+										}else{
+											alreadyAssigned++;
 										}
 									}
 								}
@@ -947,20 +1217,29 @@ public class AdminResource {
 								errors++;
 							}
 						}
-						if(errors == 0){
-							log.info(adminUserName + " has added new functions");
+						if(errors == 0 && alreadyAssigned == 0){
+							log.info(userName + " has added new functions");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(),null);
-						}else{
-							log.info(adminUserName + " has added only some functions, there were errors in the requested json");
+						}else if(errors == resourceNamesWithFunctions.size()){
+							log.info(userName + " tried to access addNewFunction without providing any valid resourceId/functionNames");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide valid resourceId/functionNames");
+							return invalidRequestReply;
+						}else if(alreadyAssigned > 0){
+							log.warn(userName + "tried to create a function which is already defined");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_ACCEPTABLE.getStatusCode(), Response.Status.NOT_ACCEPTABLE.getReasonPhrase(),"some of the functions are already defined");
+							return invalidRequestReply;
+						}
+						else{
+							log.info(userName + " has added only some functions, there were errors in the requested json");
 							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase()+" but added only some functions, there were errors in the requested json",null);
 						}
 					}else{
-						log.warn(adminUserName + " tried to access addNewFunction without providing any function names specified");
+						log.warn(userName + " tried to access addNewFunction without providing any function names specified");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"provide resource names");
 						return invalidRequestReply;
 					}
 				}else{
-					log.warn(adminUserName + " tried to access addNewFunction without giving valid key");
+					log.warn(userName + " tried to access addNewFunction without giving valid key");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid keys");
 					return invalidRequestReply;
 				}	
@@ -1097,9 +1376,9 @@ public class AdminResource {
 		JSONArray getFunctionJsonArray = null;
 		JSONArray postFunctionJsonArray = null;
 		JSONArray putFunctionJsonArray = null;
-		List<String> getFunctionName = new ArrayList<String>();
-		List<String> putFunctionName = new ArrayList<String>();
-		List<String> postFunctionName = new ArrayList<String>();
+		List<Integer> getFunctionIds = new ArrayList<Integer>();
+		List<Integer> putFunctionIds = new ArrayList<Integer>();
+		List<Integer> postFunctionIds = new ArrayList<Integer>();
 		try{
 			permissionJsonArray = (JSONArray) permissions.get("permission");
 			if(to.equals("consumer")){
@@ -1126,13 +1405,13 @@ public class AdminResource {
 		for (int j = 0; j < permissionJsonArray.size(); j++) {
 			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET")) {
 				get = 1;
-				getFunctionName.addAll(this.auth.getFunctionNames(resourceId,"get"));
+				getFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"get"));
 			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST")) {
 				post = 1;
-				postFunctionName.addAll(this.auth.getFunctionNames(resourceId,"post"));
+				postFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"post"));
 			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT")) {
 				put = 1;
-				putFunctionName.addAll(this.auth.getFunctionNames(resourceId,"put"));
+				putFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"put"));
 			} 
 			else {
 				//Refer to checkstatus method in HelperMethods class
@@ -1151,36 +1430,36 @@ public class AdminResource {
 				if(get == 1)
 					try{
 						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getFunctionName.contains((String) getFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in get function");
 					}
 				if(post == 1)
 					try{
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(postFunctionName.contains((String) postFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in post function");
 					}
 				if(put == 1)
 					try{
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(putFunctionName.contains((String) putFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) ))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 					}catch(Exception e){
 						System.out.println("Exception in put function");
 					}
 				this.auth.insertUserPermission(resourceId,userId, get, post, put,"mk_api_resources_consumer_permission","a_consumer_id");
 			}else{
 				System.out.println("User type Admin");				
-				for (int j = 0; j < getFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
-				for (int j = 0; j < postFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
-				for (int j = 0; j < putFunctionName.size(); j++)
-					this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionName.get(j))),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < getFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,getFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < postFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,postFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
+				for (int j = 0; j < putFunctionIds.size(); j++)
+					this.auth.insertUserFunctionPermissions(userId,putFunctionIds.get(j),1,"mk_api_resources_admin_function_permission","a_admin_id");
 				this.auth.insertUserPermission(resourceId,userId, get, post, put,"mk_api_resources_admin_permission","a_admin_id");
 			}
 			//Refer to checkstatus method in HelperMethods class
@@ -1191,37 +1470,40 @@ public class AdminResource {
 				System.out.println("User type Consumer");
 				try{
 					if(get == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) getFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) getFunctionJsonArray.get(i));
-							else if(getFunctionName.contains((String) getFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) getFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
-							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"get",((String) getFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"get",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getFunctionJsonArray.size(); i++){
+							if(getPreAssignedFunctionIds.contains( Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")))){
+								getPreAssignedFunctionIds.remove( getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))));
+							}else if(getFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")))){
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							}else{
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (getFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+							}
+						}
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}
 				}catch(Exception e){
+					e.printStackTrace();
 					System.out.println("Exception in update get function");
 				}				
 				try{
 					if(post == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) postFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) postFunctionJsonArray.get(i));
-							else if(postFunctionName.contains((String) postFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) postFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
+								getPreAssignedFunctionIds.remove(getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))));
+							else if(postFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"post",((String) postFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"post",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"post",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
@@ -1231,17 +1513,17 @@ public class AdminResource {
 				}				
 				try{
 					if(put == 1){
-						List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
-						List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",1,"a_consumer_id","mk_api_resources_consumer_function_permission");
+						List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(getPreAssignedFunctionNames.contains((String) putFunctionJsonArray.get(i)))
-								getPreAssignedFunctionNames.remove((String) putFunctionJsonArray.get(i));
-							else if(putFunctionName.contains((String) putFunctionJsonArray.get(i)) && !getDeactivatedPreAssignedFunctionNames.contains((String) putFunctionJsonArray.get(i)))
-								this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+							if(getPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
+								getPreAssignedFunctionIds.remove(getPreAssignedFunctionIds.indexOf(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))));
+							else if(putFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))) && !getDeactivatedPreAssignedFunctionIds.contains(Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))))
+								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
 							else
-								this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"put",((String) putFunctionJsonArray.get(i))), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
-						for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-							this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,"put",getPreAssignedFunctionNames.get(i)),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
+								this.auth.updateSpecificFunctionNames(Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")), userId, 1, "a_consumer_id", "mk_api_resources_consumer_function_permission");
+						for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+							this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}else{
 						// Remove all get function permissions for this user specific to this resource id
 						this.auth.removeFunctionPermissions(resourceId,userId,"put",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
@@ -1257,21 +1539,21 @@ public class AdminResource {
 					this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Giving get permissions");
-					updateAdminMethodPermission(resourceId,userId,"get",getFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"get",getFunctionIds);
 				}
 				if(post == 0){
 					System.out.println("Removing post permissions");
 					this.auth.removeFunctionPermissions(resourceId,userId,"post",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Updating post permissions");
-					updateAdminMethodPermission(resourceId,userId,"post",postFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"post",postFunctionIds);
 				}
 				if(put == 0){
 					System.out.println("Removing put permissions");
 					this.auth.removeFunctionPermissions(resourceId,userId,"put",0,"a_admin_id","mk_api_resources_admin_function_permission");
 				}else{
 					System.out.println("Updating put permissions");
-					updateAdminMethodPermission(resourceId,userId,"put",putFunctionName);
+					updateAdminMethodPermission(resourceId,userId,"put",putFunctionIds);
 				}
 				this.auth.updateUserPermission(resourceId,userId, get, post, put, delete,"mk_api_resources_admin_permission","a_admin_id");
 			}
@@ -1288,19 +1570,19 @@ public class AdminResource {
 	 * @param method
 	 * @param functionNames
 	 */
-	private void updateAdminMethodPermission(long resourceId,long userId,String method,List<String> functionNames){
-		List<String> getPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,1,"a_admin_id","mk_api_resources_admin_function_permission");
-		List<String> getDeactivatedPreAssignedFunctionNames = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,0,"a_admin_id","mk_api_resources_admin_function_permission");						
-		for(int i = 0; i < getPreAssignedFunctionNames.size(); i++)
-			if(functionNames.contains(getPreAssignedFunctionNames.get(i)))
-				functionNames.remove(getPreAssignedFunctionNames.get(i));
+	private void updateAdminMethodPermission(long resourceId,long userId,String method,List<Integer> functionIds){
+		List<Integer> getPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,1,"a_admin_id","mk_api_resources_admin_function_permission");
+		List<Integer> getDeactivatedPreAssignedFunctionIds = this.auth.getPreAssignedFunctionNames(resourceId,userId,method,0,"a_admin_id","mk_api_resources_admin_function_permission");						
+		for(int i = 0; i < getPreAssignedFunctionIds.size(); i++)
+			if(functionIds.contains(getPreAssignedFunctionIds.get(i)))
+				functionIds.remove(getPreAssignedFunctionIds.get(i));
 			else
-				this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,method,getPreAssignedFunctionNames.get(i)),userId,0,"a_admin_id","mk_api_resources_admin_function_permission");
-		for(int i = 0; i < functionNames.size(); i++)
-			if(getDeactivatedPreAssignedFunctionNames.contains(functionNames.get(i)))
-				this.auth.updateSpecificFunctionNames(this.auth.getFunctionId(resourceId,method,functionNames.get(i)),userId,1,"a_admin_id","mk_api_resources_admin_function_permission");
+				this.auth.updateSpecificFunctionNames(getPreAssignedFunctionIds.get(i),userId,0,"a_admin_id","mk_api_resources_admin_function_permission");
+		for(int i = 0; i < functionIds.size(); i++)
+			if(getDeactivatedPreAssignedFunctionIds.contains(functionIds.get(i)))
+				this.auth.updateSpecificFunctionNames(functionIds.get(i),userId,1,"a_admin_id","mk_api_resources_admin_function_permission");
 			else
-				this.auth.insertUserFunctionPermissions(userId,this.auth.getFunctionId(resourceId,method,((String) functionNames.get(i))),1,"mk_api_resources_admin_function_permission","a_admin_id");		
+				this.auth.insertUserFunctionPermissions(userId,functionIds.get(i),1,"mk_api_resources_admin_function_permission","a_admin_id");		
 	}
 
 	/**
