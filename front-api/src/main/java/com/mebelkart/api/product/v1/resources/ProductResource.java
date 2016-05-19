@@ -14,10 +14,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
+import com.mebelkart.api.product.v1.core.AttributeGroupsInnerPOJO;
+import com.mebelkart.api.product.v1.core.AttributeGroupsOuterPOJO;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
-
 import com.mebelkart.api.util.classes.PaginationReply;
 
 import org.elasticsearch.action.get.GetResponse;
@@ -320,8 +321,8 @@ public class ProductResource {
 								prodFilteredDetails.put("productName",(String)categoryVars.get("name"));
 								prodFilteredDetails.put("productDesc",(String)categoryVars.get("description"));
 							} else if(((String)required.get(i)).equalsIgnoreCase("attr") || ((String)required.get(i)).equalsIgnoreCase("attributes")){
-								prodFilteredDetails.put("attributes",(Object)source.get("attributes"));
-								prodFilteredDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
+								prodFilteredDetails.put("attributes",(Object)categoryVars.get("id_product_attribute"));
+								prodFilteredDetails.put("attributeGroups",setAttributeGroups(source));
 							} else if(((String)required.get(i)).equalsIgnoreCase("feature") ){
 								prodFilteredDetails.put("features",getProductFeatures(source));
 							}								
@@ -350,10 +351,10 @@ public class ProductResource {
 					prodDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));
 					prodDetails.setEmiPrice("https://www.mebelkart.com/getEMIForProduct/"+(String)info.get("id_product")+"?mode=json");
 					prodDetails.setRating((Integer) source.get("product_rating"));
-					prodDetails.setAttributes((String) source.get("attributes"));
+					prodDetails.setAttributes((String) categoryVars.get("id_product_attribute"));
 					prodDetails.setProductFeatures(getProductFeatures(source));
 					prodDetails.setIsSoldOut(0);
-					prodDetails.setAttributeGroups((Object) source.get("attribute_groups"));
+					prodDetails.setAttributeGroups(setAttributeGroups(source));
 					prodDetails.setReviews(null);
 					prodDetails.setTotalReviews(0);
 					prodDetails.setTotalReviewsCount(0);
@@ -421,6 +422,64 @@ public class ProductResource {
 			gallery.add(new JSONObject(images));
 		}
 		return gallery.toArray();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Object setAttributeGroups(Map<String, Object> source){
+		Map<String,Object> groupKeys = new HashMap<String,Object>();
+		Map<String,Map<String,Integer>> attributeMappings = new HashMap<String,Map<String,Integer>>();
+		List<Map<String,Object>> attributeGroups = (List<Map<String, Object>>) source.get("attribute_groups");
+		Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+		for(int i = 0; i < attributeGroups.size(); i++){
+			String attributeGroupId = attributeGroups.get(i).get("id_attribute_group").toString();
+			if(groupKeys.containsKey(attributeGroupId)){
+				AttributeGroupsInnerPOJO innerPojo = (AttributeGroupsInnerPOJO) groupKeys.get(attributeGroupId);
+				if(innerPojo.getDefaultAttribute() == 0){
+					if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
+						innerPojo.setDefaultAttribute(Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString()));
+					}
+				}
+				List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
+				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
+				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
+				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
+				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
+				attributesList.add(attributes);
+				innerPojo.setAttributes(attributesList);
+				groupKeys.put(attributeGroupId, innerPojo);
+				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
+				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+				
+			}else{
+				String name = attributeGroups.get(i).get("group_name").toString();
+				String colorGroup = attributeGroups.get(i).get("is_color_group").toString();
+				int defaultAttribute = 0;
+				if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
+					defaultAttribute = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
+				}
+				List<Map<String,Map<String,Object>>> attributesList = new ArrayList<Map<String,Map<String,Object>>>();
+				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
+				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
+				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
+				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
+				attributesList.add(attributes);
+				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributesList);
+				groupKeys.put(attributeGroupId, innerPojo);
+				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
+				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+			}
+		}
+		return new AttributeGroupsOuterPOJO(groupKeys,attributeMappings);
 	}
 
 	/**
@@ -536,7 +595,7 @@ public class ProductResource {
 	 * @param id
 	 * @return
 	 */
-	@SuppressWarnings({ "unused" })
+	@SuppressWarnings({ "unused", "unchecked" })
 	@GET
 	@Path("/product/{productId}/attributes")
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
@@ -557,8 +616,9 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
-					productsDetails.put("attributes",(Object)source.get("attributes"));
-					productsDetails.put("attributeGroups",(Object) source.get("attribute_groups"));
+					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+					productsDetails.put("attributes",(String) categoryVars.get("id_product_attribute"));
+					productsDetails.put("attributeGroups",setAttributeGroups(source));
 					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), productsDetails);
 				}else{
 					log.info("Invalid header keys provided to access getProdAttr function");

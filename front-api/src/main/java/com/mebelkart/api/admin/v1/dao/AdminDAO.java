@@ -11,10 +11,14 @@ import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import com.mebelkart.api.admin.v1.core.Admin;
+import com.mebelkart.api.admin.v1.core.FunctionNames;
 import com.mebelkart.api.admin.v1.core.Privilages;
+import com.mebelkart.api.admin.v1.core.ResourceNames;
 import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.admin.v1.mapper.AdminMapper;
+import com.mebelkart.api.admin.v1.mapper.FunctionNamesMapper;
 import com.mebelkart.api.admin.v1.mapper.PrivilagesMapper;
+import com.mebelkart.api.admin.v1.mapper.ResourceNamesMapper;
 import com.mebelkart.api.admin.v1.mapper.UserStatusMapper;
 
 /**
@@ -68,7 +72,7 @@ public interface AdminDAO {
 	 * @param colName
 	 * @return
 	 */
-	@SqlQuery("SELECT mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
+	@SqlQuery("SELECT mk_api_resources.id,mk_api_resources.a_resource_name, <tableName>.a_have_get_permission, <tableName>.a_have_post_permission, "
 			+"<tableName>.a_have_put_permission, <tableName>.a_have_delete_permission "
 			+"FROM <tableName> "
 			+"INNER JOIN mk_api_resources "
@@ -248,6 +252,16 @@ public interface AdminDAO {
 			@Bind("isActive") int isActive,@Define("tableName") String tableName,@Define("userColoumnName") String userColoumnName);
 	
 	/**
+	 * This query retrieves all the function name and its Ids with respect to their method type of a particular resource 
+	 * @param resourceId This is the resource id
+	 * @param type This is the type of the method
+	 * @return List of function names
+	 */
+	@SqlQuery("select id,a_function_name from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
+	@Mapper(FunctionNamesMapper.class)
+	List<FunctionNames> getFunctionNamesWithIds(@Bind("resourceId") long resourceId,@Bind("type") String type);
+	
+	/**
 	 * This query retrieves all the function name with respect to their method type of a particular resource 
 	 * @param resourceId This is the resource id
 	 * @param type This is the type of the method
@@ -264,10 +278,6 @@ public interface AdminDAO {
 	 * @param isActive
 	 * @param userColoumnName
 	 */
-	//update mk_api_resources_consumer_function_permission t1
-	//inner join mk_api_functions t2 on
-	//    t1.a_function_id = t2.id
-	//set t1.a_is_active = 0 WHERE t2.a_resource_id = 5 and t1.a_consumer_id = 1 and t2.a_type = "get"
 	@SqlUpdate("update <tableName> t1 inner join mk_api_functions t2 on "
 			+ "t1.a_function_id = t2.id "
 			+ "set t1.a_is_active = :isActive "
@@ -284,10 +294,10 @@ public interface AdminDAO {
 	 * @param userColoumnName
 	 * @return
 	 */
-	@SqlQuery("select mk_api_functions.a_function_name from mk_api_functions inner join <tableName> ON mk_api_functions.id = <tableName>.a_function_id "
+	@SqlQuery("select mk_api_functions.id from mk_api_functions inner join <tableName> ON mk_api_functions.id = <tableName>.a_function_id "
 			+ "where <tableName>.<userColoumnName> = :userId and <tableName>.a_is_active = :isActive and mk_api_functions.a_resource_id = :resourceId "
 			+ "and mk_api_functions.a_type = :type and mk_api_functions.a_is_active = 1")
-	List<String> getPreAssignedFunctionNames(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
+	List<Integer> getPreAssignedFunctionNames(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Bind("type") String type, 
 			@Bind("isActive") int isActive, @Define("userColoumnName") String userColoumnName, @Define("tableName")String tableName);
 	
 	/**
@@ -316,19 +326,28 @@ public interface AdminDAO {
 	int isMethodPermissionExists(@Bind("resourceId") long resourceId, @Bind("userId") long userId, @Define("tableName")String tableName,@Define("userColoumnName") String colName, @Define("userWantedColoumnName") String wantedColName);
 	
 	/**
-	 * This query returns all the resource names related to user(admin or superAdmin)
-	 * @param resourceName
-	 * @return
-	 */
-	@SqlQuery("select a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName")
-	List<String> getResourceNames(@Bind("resourceName") String resourceName);
-	
-	/**
 	 * This query returns all the resource names and its Ids related to user(admin or superAdmin)
 	 * @param resourceName
 	 * @return
 	 */
-	@SqlQuery("select id from mk_api_resources WHERE a_resource_name != :resourceName")
+	@SqlQuery("select id,a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName and a_is_active = 1")
+	@Mapper(ResourceNamesMapper.class)
+	List<ResourceNames> getResourceNamesWithIds(@Bind("resourceName") String resourceName);
+	
+	/**
+	 * This query returns all the resource names related to user(admin or superAdmin)
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select a_resource_name from mk_api_resources WHERE a_resource_name != :resourceName and a_is_active = 1")
+	List<String> getResourceNames(@Bind("resourceName") String resourceName);
+	
+	/**
+	 * This query returns all the resource ids related to user(admin or superAdmin)
+	 * @param resourceName
+	 * @return
+	 */
+	@SqlQuery("select id from mk_api_resources WHERE a_resource_name != :resourceName and a_is_active = 1")
 	List<Integer> getResourceIds(@Bind("resourceName") String resourceName);
 	
 	/**
@@ -418,5 +437,33 @@ public interface AdminDAO {
 	 */
 	@SqlQuery("select id from mk_api_user_admin where a_user_name = :userName")
 	int isUserInterfaceUser(@Bind("userName") String userName);
+	
+	@SqlQuery("SELECT mk_api_functions.id,mk_api_functions.a_function_name from mk_api_functions INNER JOIN <tableName> "
+			+ "ON mk_api_functions.id = <tableName>.a_function_id "
+			+ "WHERE mk_api_functions.a_resource_id "
+			+ "IN (select mk_api_resources.id FROM mk_api_resources WHERE mk_api_resources.a_resource_name = :resourceName) "
+			+ "AND mk_api_functions.a_type = :methodType "
+			+ "AND <tableName>.<colName> = :userId "
+			+ "AND <tableName>.a_is_active = 1")
+	@Mapper(FunctionNamesMapper.class)
+	List<FunctionNames> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,
+			@Bind("resourceName") String resourceName,@Bind("methodType") String methodType,
+			@Define("colName") String colName);
+
+	/**
+	 * This query retrieves all the function Ids with respect to their method type of a particular resource 
+	 * @param resourceId This is the resource id
+	 * @param type This is the type of the method
+	 * @return List of function names
+	 */
+	@SqlQuery("select id from mk_api_functions where a_resource_id = :resourceId and a_type = :type and a_is_active = 1")
+	List<Integer> getFunctionIds(@Bind("resourceId") long resourceId,@Bind("type") String type);
+
+	/**
+	 * @param consumerId
+	 * @return
+	 */
+	@SqlQuery("select a_count_assigned from mk_api_consumer where id = :userId")
+	int getRateLimit(@Bind("userId")int consumerId);
 
 }
