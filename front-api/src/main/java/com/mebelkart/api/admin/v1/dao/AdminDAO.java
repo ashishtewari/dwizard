@@ -443,7 +443,8 @@ public interface AdminDAO {
 			+ "WHERE mk_api_functions.a_resource_id "
 			+ "IN (select mk_api_resources.id FROM mk_api_resources WHERE mk_api_resources.a_resource_name = :resourceName) "
 			+ "AND mk_api_functions.a_type = :methodType "
-			+ "AND <tableName>.<colName> = :userId")
+			+ "AND <tableName>.<colName> = :userId "
+			+ "AND <tableName>.a_is_active = 1")
 	@Mapper(FunctionNamesMapper.class)
 	List<FunctionNames> getFunctionNames(@Bind("userId") long userId,@Define("tableName") String tableName,
 			@Bind("resourceName") String resourceName,@Bind("methodType") String methodType,
