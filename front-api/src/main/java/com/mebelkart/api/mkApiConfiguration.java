@@ -38,6 +38,23 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private static String redisPassword;
 	
+	private static String apiInterfaceAdmin;
+	private static String apiInterfaceSuperAdmin;
+	
+	public void setApiInterfaceSuperAdmin(String user){
+		mkApiConfiguration.apiInterfaceSuperAdmin = user;
+	}
+	public static String getApiInterfaceSuperAdmin(){
+		return apiInterfaceSuperAdmin;
+	}
+	
+	public void setApiInterfaceAdmin(String user){
+		mkApiConfiguration.apiInterfaceAdmin = user;
+	}
+	public static String getApiInterfaceAdmin(){
+		return apiInterfaceAdmin;
+	}
+	
 	public static String getRedisPassword(){
 		return redisPassword;
 	}
