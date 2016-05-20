@@ -66,3 +66,5 @@ logging:
       archivedFileCount: 7
       timeZone: UTC
       maxFileSize: 10MB
+apiInterfaceAdmin: apiInterfaceAdmin@mebelkart.com
+apiInterfaceSuperAdmin: apiInterfaceSuperAdmin@mebelkart.com

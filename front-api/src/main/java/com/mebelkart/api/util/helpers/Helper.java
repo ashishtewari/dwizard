@@ -34,6 +34,8 @@ public class Helper {
 			dataObj = (JSONObject) parser.parse(data);
 		} catch (ParseException e) {
 			return null;
+		} catch (Exception e){
+			return null;
 		}
 		return dataObj;
 	}

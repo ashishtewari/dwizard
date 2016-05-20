@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
 import com.mebelkart.api.admin.v1.api.AdminPrivilagesResponse;
@@ -469,10 +470,9 @@ public class AdminResource {
 	}
 	
 	private boolean isUserInterfaceUser(String userName) {
-		if(this.auth.isUserInterfaceUser(userName) != 0)
+		if(userName.equals(mkApiConfiguration.getApiInterfaceAdmin()) || userName.equals(mkApiConfiguration.getApiInterfaceSuperAdmin()))
 			return true;
-		else
-			return false;
+		else return false;
 	}
 
 	/**

@@ -33,7 +33,7 @@ public interface OrderDao {
             +" left join ps_state as ds on da.id_state=ds.id_state"
             +" left join ps_country as ic on ia.id_country=ic.id_country"
             +" left join ps_state as ist on ia.id_state=ist.id_state"
-            +" where <whereQuery>"
+            +" where 1=1 <whereQuery>"
             +" LIMIT 20 offset :offset")
     List<Order> getAllOrders(@Define("whereQuery") String whereQuery, @Bind("fromDate") Date fromDate, @Bind("toDate") Date toDate, @Bind("statusRequired") String statusRequired, @Bind("orderId") Integer orderId, @Bind("offset") Integer offset);
 
@@ -43,7 +43,7 @@ public interface OrderDao {
             +" left join ps_product as p on od.product_id=p.id_product "
             +" left join ps_order_detail_vendor_status as odvs on odvs.id_order_detail_vendor_status=od.id_order_detail"
             +" left join ps_order_detail_seller_statuses as odss on odss.id_order_detail_status= odvs.id_current_status"
-            +" where <whereQuery>")
+            +" where 1=1 <whereQuery>")
     Integer getOrderCount(@Define("whereQuery") String whereQuery,@Bind("fromDate") Date fromDate,@Bind("toDate") Date toDate,@Bind("statusRequired") String statusRequired,@Bind("orderId") Integer orderId);
 
     @Mapper(OrderDetailMapper.class)
