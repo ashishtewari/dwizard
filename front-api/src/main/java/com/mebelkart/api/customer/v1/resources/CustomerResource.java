@@ -154,12 +154,17 @@ public class CustomerResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct data type for the values as mentioned in instructions");
 				return invalidRequestReply;
 			}
+			catch(StringIndexOutOfBoundsException indexOutOfBounds){
+				errorLog.warn("Specify your requirement in requiredFields array correctly");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify your requirement in requiredFields array correctly");
+				return invalidRequestReply;
+			}
 			catch (Exception e) {
 				if(e instanceof IllegalArgumentException){
 					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct keys for the values as mentioned in instructions");
 					return invalidRequestReply;
-				} else {
+				}else {
 					e.printStackTrace();
 					errorLog.warn("Internal server error");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server error");
