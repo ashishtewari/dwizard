@@ -131,7 +131,7 @@ public class OrderResource {
                     InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(Response.Status.PARTIAL_CONTENT.getStatusCode(),Response.Status.PARTIAL_CONTENT.getReasonPhrase(),"Please mention pageNum in input parameter as this api can contain large ouput set");
                     return noPageNum;
                 }
-                System.out.println("query :"+whereQuery);
+                //System.out.println("query :"+whereQuery);
                 Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
                 if(offset>totalResultCount){
                     InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Page number exceeds limit");
