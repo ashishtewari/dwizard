@@ -56,6 +56,11 @@ public class ProductResource {
 	 * Getting products elastic client connection
 	 */
 	Client client = ElasticFactory.getProductsElasticClient();
+	
+	/**
+	 * Getting products faq elastic client connection
+	 */
+	Client localClient = ElasticFactory.getElasticClient();
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -1087,7 +1092,6 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					Client localClient = ElasticFactory.getElasticClient();
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
 							.must(QueryBuilders.matchQuery("idProduct",productId));
 					SearchResponse response = localClient.prepareSearch("product")
