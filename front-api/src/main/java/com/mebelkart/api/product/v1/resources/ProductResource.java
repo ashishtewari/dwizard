@@ -307,6 +307,10 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					ProductDetailsResponse prodDetails = new ProductDetailsResponse();
 					Map<String,Object> prodFilteredDetails = new HashMap<String,Object>();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> info = (Map<String, Object>) source.get("info");
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -529,6 +533,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -584,6 +592,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -637,6 +649,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -650,7 +666,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdAttr function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -690,6 +706,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}	
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					productsDetails.put("features",getProductFeatures(source));
@@ -747,6 +767,10 @@ public class ProductResource {
 						GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
 								.execute()
 								.actionGet();
+						if(!response.isExists()){
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+							return invalidRequestReply;
+						}
 						String catName=productDao.getNameOfCategory(catId);
 
 						Map<String,Object> source = response.getSource();
@@ -864,7 +888,7 @@ public class ProductResource {
 			}
 		}catch(NumberFormatException e){
 			e.printStackTrace();
-			log.info("Invalid pageNumber/limit given in getProductsListBySeller functions");
+			log.info("Invalid pageNumber/limit/manufacturerId given in getProductsListBySeller functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
 		}

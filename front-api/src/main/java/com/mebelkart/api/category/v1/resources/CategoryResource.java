@@ -41,7 +41,7 @@ import com.mebelkart.api.util.helpers.Authentication;
  * @author Nikhil
  *
  */
-@Path("/v1.0/category")
+@Path("/v1.0")
 @Produces({MediaType.APPLICATION_JSON})
 public class CategoryResource {
 	
@@ -68,7 +68,7 @@ public class CategoryResource {
 		 * Below method is for getting top categories 
 		 */
 	@GET
-	@Path("/categories")
+	@Path("/category/categories")
 	public Object getCategories(@HeaderParam("accessParam")String accessParam) throws InterruptedException, ExecutionException{
 		
 		try {
