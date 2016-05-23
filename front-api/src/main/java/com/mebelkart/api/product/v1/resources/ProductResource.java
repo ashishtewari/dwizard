@@ -15,10 +15,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
-import com.mebelkart.api.product.v1.core.AttributeGroupsInnerPOJO;
-import com.mebelkart.api.product.v1.core.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsInnerPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.core.ProductReviewsWrapper;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
+import com.mebelkart.api.product.v1.dao.ReviewDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.PaginationReply;
 
@@ -48,14 +50,21 @@ import com.mebelkart.api.util.helpers.Helper;
 public class ProductResource {
 
 	ProductDao productDao;
+	ReviewDao reviewDao;
 
-	public ProductResource(ProductDao productDao) {
+	public ProductResource(ProductDao productDao,ReviewDao reviewDao) {
 		this.productDao = productDao;
+		this.reviewDao = reviewDao;
 	}
 	/**
 	 * Getting products elastic client connection
 	 */
 	Client client = ElasticFactory.getProductsElasticClient();
+	
+	/**
+	 * Getting products faq elastic client connection
+	 */
+	Client localClient = ElasticFactory.getElasticClient();
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -307,6 +316,10 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					ProductDetailsResponse prodDetails = new ProductDetailsResponse();
 					Map<String,Object> prodFilteredDetails = new HashMap<String,Object>();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> info = (Map<String, Object>) source.get("info");
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -529,6 +542,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -549,6 +566,62 @@ public class ProductResource {
 		}catch(NumberFormatException e){
 			e.printStackTrace();
 			log.info("Invalid product id given in getSellingPrice functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
+			return invalidRequestReply;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in getSellingPrice function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
+	/**
+	 * This function returns all the reviews of the product based on its id 
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings({ "unused" })
+	@GET
+	@Path("/product/{productId}/reviews")
+	public Object getProductReviews(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
+		try{
+			if(isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
+					int productId = Integer.parseInt(id);
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "products", "get", "getProductReviews");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					Map<String,Object> reviews = new HashMap<String,Object>();
+					List<ProductReviewsWrapper> reviewsList = this.reviewDao.getProductReviews(id);
+					if(reviewsList.size() == 0){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "review details not found for this productId");
+						return invalidRequestReply;
+					}
+					reviews.put("ProductId", id);
+					reviews.put("reviews", reviewsList);
+					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), reviews);
+				}else{
+					log.info("Invalid header keys provided to access getProductReviews function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access getProductReviews function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+			log.info("Invalid product id given in getProductReviews functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
 		}
@@ -584,6 +657,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -637,6 +714,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -650,7 +731,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdAttr function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -690,6 +771,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}	
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					productsDetails.put("features",getProductFeatures(source));
@@ -747,6 +832,10 @@ public class ProductResource {
 						GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
 								.execute()
 								.actionGet();
+						if(!response.isExists()){
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+							return invalidRequestReply;
+						}
 						String catName=productDao.getNameOfCategory(catId);
 
 						Map<String,Object> source = response.getSource();
@@ -864,7 +953,7 @@ public class ProductResource {
 			}
 		}catch(NumberFormatException e){
 			e.printStackTrace();
-			log.info("Invalid pageNumber/limit given in getProductsListBySeller functions");
+			log.info("Invalid pageNumber/limit/manufacturerId given in getProductsListBySeller functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
 		}
@@ -1063,7 +1152,6 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					Client localClient = ElasticFactory.getElasticClient();
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
 							.must(QueryBuilders.matchQuery("idProduct",productId));
 					SearchResponse response = localClient.prepareSearch("product")

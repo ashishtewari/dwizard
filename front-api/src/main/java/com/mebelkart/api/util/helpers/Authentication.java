@@ -29,7 +29,6 @@ public class Authentication {
 		try {
 			jedisAuthentication.validate(user,apikey, resourceName, method,functionName);
 		} catch (Exception e) {	
-			e.printStackTrace();
 			if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
 				log.info("Redis server responded with "+e.getMessage());
 				try{
@@ -45,6 +44,11 @@ public class Authentication {
 
 	private void sqlValidate(String user, String apikey, String resourceName,String method, String functionName) throws Exception{
 		try{
+			if(user.equals("") || user == null){
+				throw new Exception("Your user name is empty");
+			}else if(apikey.equals("") || apikey == null){
+				throw new Exception("Your access token is empty");
+			}
 			String userType = getUserType(user);
 			// checks if the userName exists in SQL or not
 			if (userType != null) {

@@ -176,7 +176,7 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@POST
-	@Path("{customerId}/address")
+	@Path("/{customerId}/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId) throws ParseException{
@@ -247,7 +247,7 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("{customerId}/address/{addressId}")
+	@Path("/{customerId}/address/{addressId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object updateAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId,@PathParam("addressId")long addressId) throws ParseException{

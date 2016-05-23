@@ -42,6 +42,11 @@ public class JedisFactory {
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
+		if(user.equals("") || user == null){
+			throw new Exception("Your user name is empty");
+		}else if(apikey.equals("") || apikey == null){
+			throw new Exception("Your access token is empty");
+		}
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
 		user = encode.encrypt(user);
