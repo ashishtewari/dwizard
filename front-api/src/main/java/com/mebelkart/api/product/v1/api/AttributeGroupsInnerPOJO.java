@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.mebelkart.api.product.v1.core;
+package com.mebelkart.api.product.v1.api;
 
 import java.util.Map;
 
