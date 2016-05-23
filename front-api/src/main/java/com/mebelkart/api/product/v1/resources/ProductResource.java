@@ -15,10 +15,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
-import com.mebelkart.api.product.v1.core.AttributeGroupsInnerPOJO;
-import com.mebelkart.api.product.v1.core.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsInnerPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.core.ProductReviewsWrapper;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
+import com.mebelkart.api.product.v1.dao.ReviewDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.PaginationReply;
 
@@ -48,9 +50,11 @@ import com.mebelkart.api.util.helpers.Helper;
 public class ProductResource {
 
 	ProductDao productDao;
+	ReviewDao reviewDao;
 
-	public ProductResource(ProductDao productDao) {
+	public ProductResource(ProductDao productDao,ReviewDao reviewDao) {
 		this.productDao = productDao;
+		this.reviewDao = reviewDao;
 	}
 	/**
 	 * Getting products elastic client connection
@@ -562,6 +566,62 @@ public class ProductResource {
 		}catch(NumberFormatException e){
 			e.printStackTrace();
 			log.info("Invalid product id given in getSellingPrice functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
+			return invalidRequestReply;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in getSellingPrice function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
+	/**
+	 * This function returns all the reviews of the product based on its id 
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings({ "unused" })
+	@GET
+	@Path("/product/{productId}/reviews")
+	public Object getProductReviews(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
+		try{
+			if(isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
+					int productId = Integer.parseInt(id);
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "products", "get", "getProductReviews");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					Map<String,Object> reviews = new HashMap<String,Object>();
+					List<ProductReviewsWrapper> reviewsList = this.reviewDao.getProductReviews(id);
+					if(reviewsList.size() == 0){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "review details not found for this productId");
+						return invalidRequestReply;
+					}
+					reviews.put("ProductId", id);
+					reviews.put("reviews", reviewsList);
+					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), reviews);
+				}else{
+					log.info("Invalid header keys provided to access getProductReviews function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access getProductReviews function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+			log.info("Invalid product id given in getProductReviews functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
 		}
