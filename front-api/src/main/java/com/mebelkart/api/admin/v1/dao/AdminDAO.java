@@ -123,8 +123,8 @@ public interface AdminDAO {
 			+ "values (:userName, :accessToken, :password, :addedBy, :addedBy)")
 	@GetGeneratedKeys
 	int addAdmin(@Bind("userName") String userName,
-			@Bind("accessToken") String accessToken,
 			@Bind("password") String password,
+			@Bind("accessToken") String accessToken,			
 			@Bind("addedBy") String addedBy);
 	
 	/**
