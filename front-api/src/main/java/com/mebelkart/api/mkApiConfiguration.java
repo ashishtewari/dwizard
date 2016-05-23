@@ -13,6 +13,7 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private DataSourceFactory apiAuthenticationDatabase = new DataSourceFactory();
 	private DataSourceFactory mebelkartProductionDatabase = new DataSourceFactory();
+	private DataSourceFactory reviewSystemDatabase = new DataSourceFactory();
 
 /*
 	These variables are declared static because we will be accessing these variables in elasticFactory
@@ -202,5 +203,14 @@ public class mkApiConfiguration extends Configuration {
 	@JsonProperty("mebelkartProductionDatabase")
 	public void setDatabase2(DataSourceFactory mebelkartProductionDatabase) {
 		this.mebelkartProductionDatabase = mebelkartProductionDatabase;
+	}
+	
+	@JsonProperty("reviewSystemDatabase")
+	public DataSourceFactory getReviewSystemDatabase(){
+		return reviewSystemDatabase;
+	}
+	@JsonProperty("reviewSystemDatabase")
+	public void setDatabase3(DataSourceFactory reviewSystemDatabase) {
+		this.reviewSystemDatabase = reviewSystemDatabase;
 	}
 }

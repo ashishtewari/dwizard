@@ -40,7 +40,7 @@ public class ManufacturerHelperMethods {
 	 * @param client 
 	 */
 	public Map<String, Object> getOrderDetailsFromElastic(int orderId, Client client) {
-			SearchResponse response = client.prepareSearch("mk").setTypes("order")
+			SearchResponse response = client.prepareSearch("orders").setTypes("order")
 										.setQuery(QueryBuilders.termQuery("_id", orderId))
 										.execute()
 										.actionGet();
