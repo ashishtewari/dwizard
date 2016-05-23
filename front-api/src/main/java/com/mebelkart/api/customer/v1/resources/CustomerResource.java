@@ -154,12 +154,17 @@ public class CustomerResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct data type for the values as mentioned in instructions");
 				return invalidRequestReply;
 			}
+			catch(StringIndexOutOfBoundsException indexOutOfBounds){
+				errorLog.warn("Specify your requirement in requiredFields array correctly");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify your requirement in requiredFields array correctly");
+				return invalidRequestReply;
+			}
 			catch (Exception e) {
 				if(e instanceof IllegalArgumentException){
 					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct keys for the values as mentioned in instructions");
 					return invalidRequestReply;
-				} else {
+				}else {
 					e.printStackTrace();
 					errorLog.warn("Internal server error");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server error");
@@ -171,7 +176,7 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@POST
-	@Path("{customerId}/address")
+	@Path("/{customerId}/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object addNewAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId) throws ParseException{
@@ -242,7 +247,7 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("{customerId}/address/{addressId}")
+	@Path("/{customerId}/address/{addressId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	public Object updateAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId,@PathParam("addressId")long addressId) throws ParseException{

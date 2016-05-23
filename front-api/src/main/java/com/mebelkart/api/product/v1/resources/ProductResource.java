@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -55,6 +56,11 @@ public class ProductResource {
 	 * Getting products elastic client connection
 	 */
 	Client client = ElasticFactory.getProductsElasticClient();
+	
+	/**
+	 * Getting products faq elastic client connection
+	 */
+	Client localClient = ElasticFactory.getElasticClient();
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -137,7 +143,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getAllProducts function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -255,7 +261,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductsListByCategory function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -306,6 +312,10 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					ProductDetailsResponse prodDetails = new ProductDetailsResponse();
 					Map<String,Object> prodFilteredDetails = new HashMap<String,Object>();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> info = (Map<String, Object>) source.get("info");
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -366,7 +376,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductDetail function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -428,6 +438,7 @@ public class ProductResource {
 	private Object setAttributeGroups(Map<String, Object> source){
 		Map<String,Object> groupKeys = new HashMap<String,Object>();
 		Map<String,Map<String,Integer>> attributeMappings = new HashMap<String,Map<String,Integer>>();
+		Map<String,String> mapping = new HashMap<String,String>();
 		List<Map<String,Object>> attributeGroups = (List<Map<String, Object>>) source.get("attribute_groups");
 		Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
 		for(int i = 0; i < attributeGroups.size(); i++){
@@ -439,22 +450,34 @@ public class ProductResource {
 						innerPojo.setDefaultAttribute(Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString()));
 					}
 				}
-				List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
-				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				//List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
+				Map<String,Map<String,Object>> attributes = innerPojo.getAttributes();
 				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				int attributeId = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
 				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
 				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
 				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
-				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
-				attributesList.add(attributes);
-				innerPojo.setAttributes(attributesList);
-				groupKeys.put(attributeGroupId, innerPojo);
-				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
-				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
-				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
-				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
-				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
 				
+				if(attributes.containsKey(attributeId+"")){
+					Map<String,Object> tempInnerAttributes = attributes.get(attributeId+"");
+					int prevQuantity = Integer.parseInt((String)tempInnerAttributes.get("attributeQuantity"));
+					if(prevQuantity < Integer.parseInt(attributeGroups.get(i).get("quantity").toString())){
+						attributes.put(attributeId+"", innerAttributes);
+						innerPojo.setAttributes(attributes);
+						groupKeys.put(attributeGroupId, innerPojo);
+					}
+				}else{
+					attributes.put(attributeId+"", innerAttributes);
+					innerPojo.setAttributes(attributes);
+					groupKeys.put(attributeGroupId, innerPojo);
+				}
+				
+				if(mapping.containsKey(attributeGroups.get(i).get("id_product_attribute").toString())){
+					String temp = mapping.get(attributeGroups.get(i).get("id_product_attribute").toString());
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), temp+","+attributeGroups.get(i).get("id_attribute").toString());
+				}else{
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), attributeGroups.get(i).get("id_attribute").toString());
+				}
 			}else{
 				String name = attributeGroups.get(i).get("group_name").toString();
 				String colorGroup = attributeGroups.get(i).get("is_color_group").toString();
@@ -462,22 +485,31 @@ public class ProductResource {
 				if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
 					defaultAttribute = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
 				}
-				List<Map<String,Map<String,Object>>> attributesList = new ArrayList<Map<String,Map<String,Object>>>();
+				
 				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
 				Map<String,Object> innerAttributes = new HashMap<String,Object>();
 				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
 				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
 				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
 				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
-				attributesList.add(attributes);
-				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributesList);
+				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributes);
 				groupKeys.put(attributeGroupId, innerPojo);
-				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
-				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
-				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
-				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
-				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+				
+				if(mapping.containsKey(attributeGroups.get(i).get("id_product_attribute").toString())){
+					String temp = mapping.get(attributeGroups.get(i).get("id_product_attribute").toString());
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), temp+","+attributeGroups.get(i).get("id_attribute").toString());
+				}else{
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), attributeGroups.get(i).get("id_attribute").toString());
+				}
 			}
+		}
+		Set<String> mappings = mapping.keySet();
+		for(String map : mappings){
+			Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+			attributeMapping.put("productAttributeId", Integer.parseInt(map));
+			attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+			attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+			attributeMappings.put(mapping.get(map), attributeMapping);
 		}
 		return new AttributeGroupsOuterPOJO(groupKeys,attributeMappings);
 	}
@@ -506,6 +538,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -520,7 +556,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getSellingPrice function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -561,6 +597,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -574,7 +614,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdDesc function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -614,6 +654,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -627,7 +671,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdAttr function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -667,6 +711,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}	
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					productsDetails.put("features",getProductFeatures(source));
@@ -678,7 +726,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdFeature function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -724,6 +772,10 @@ public class ProductResource {
 						GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
 								.execute()
 								.actionGet();
+						if(!response.isExists()){
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+							return invalidRequestReply;
+						}
 						String catName=productDao.getNameOfCategory(catId);
 
 						Map<String,Object> source = response.getSource();
@@ -754,7 +806,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access featured function in products resource");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		} catch (Exception e) {
@@ -836,12 +888,12 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductsListBySeller function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
 			e.printStackTrace();
-			log.info("Invalid pageNumber/limit given in getProductsListBySeller functions");
+			log.info("Invalid pageNumber/limit/manufacturerId given in getProductsListBySeller functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
 		}
@@ -930,7 +982,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getAllOutOfStock function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -993,7 +1045,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getTopProducts function in products resource");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		} catch(NumberFormatException e){
@@ -1040,7 +1092,6 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					Client localClient = ElasticFactory.getElasticClient();
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
 							.must(QueryBuilders.matchQuery("idProduct",productId));
 					SearchResponse response = localClient.prepareSearch("product")
@@ -1059,7 +1110,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdFaq function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
