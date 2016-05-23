@@ -131,7 +131,7 @@ public class OrderResource {
                     InvalidInputReplyClass noPageNum=new InvalidInputReplyClass(Response.Status.PARTIAL_CONTENT.getStatusCode(),Response.Status.PARTIAL_CONTENT.getReasonPhrase(),"Please mention pageNum in input parameter as this api can contain large ouput set");
                     return noPageNum;
                 }
-                System.out.println("query :"+whereQuery);
+                //System.out.println("query :"+whereQuery);
                 Integer totalResultCount=orderDao.getOrderCount(whereQuery,fromDate,toDate,statusRequired,orderId);
                 if(offset>totalResultCount){
                     InvalidInputReplyClass invalidPageNumber=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Page number exceeds limit");
@@ -158,13 +158,15 @@ public class OrderResource {
                 PaginationReply orderPaginationResult=new PaginationReply(Response.Status.OK.getStatusCode(),Response.Status.OK.getReasonPhrase(),totalResultCount,totalPages,currentPageNum,currentlyShowing,allOrderDetail);
                 return orderPaginationResult;
         } catch (ParseException e) {
-            e.printStackTrace();
+        	log.info(e.getMessage()+" in order resource, function name is getAllOrders");
+            //e.printStackTrace();
 //            System.out.println("Exception occured while parsing json string");
             InvalidInputReplyClass invalidJSON=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Input is not valid");
             return invalidJSON;
         }
         catch (NullPointerException npe){
-            npe.printStackTrace();
+        	log.info(npe.getMessage()+" in order resource, function name is getAllOrders");
+            //npe.printStackTrace();
             InvalidInputReplyClass nullPointer=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Null Value Passed");
             return nullPointer;
         }
