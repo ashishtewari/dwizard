@@ -1455,13 +1455,13 @@ public class AdminResource {
 			return 4;
 		}
 		for (int j = 0; j < permissionJsonArray.size(); j++) {
-			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET")) {
+			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET") && get == 0) {
 				get = 1;
 				getFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"get"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST") && post == 0) {
 				post = 1;
 				postFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"post"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT") && put == 0) {
 				put = 1;
 				putFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"put"));
 			} 
