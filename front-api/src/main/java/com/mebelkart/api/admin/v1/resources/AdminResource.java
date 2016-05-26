@@ -216,11 +216,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -377,11 +377,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -527,11 +527,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -648,11 +648,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -730,11 +730,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -774,7 +774,7 @@ public class AdminResource {
 				}	
 			}else {
 				log.warn("Unauthorized data in getUsersStatus function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessLevel/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your userDetails/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
@@ -825,11 +825,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -894,7 +894,7 @@ public class AdminResource {
 				}
 			}else {
 				log.warn("Unauthorized data in getUserPrivileges function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessToken/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your userDetails/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
@@ -938,11 +938,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -1025,11 +1025,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -1097,11 +1097,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -1193,11 +1193,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
