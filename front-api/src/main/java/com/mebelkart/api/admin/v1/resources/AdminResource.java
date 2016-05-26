@@ -21,6 +21,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
@@ -97,6 +98,7 @@ public class AdminResource {
 	@GET
 	@Path("/login")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getLoginDetails(@HeaderParam("loginDetails") String userDetails,@HeaderParam("accessToken") String apikey) {
 		try{
 			/*
@@ -202,6 +204,7 @@ public class AdminResource {
 	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object registerUser(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -363,6 +366,7 @@ public class AdminResource {
 	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object updatePermissions(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -513,6 +517,7 @@ public class AdminResource {
 	@Path("/changeUserActiveStatus")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object changeUserActiveStatus(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
@@ -634,6 +639,7 @@ public class AdminResource {
 	@Path("/changeRateLimit")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object changeRateLimit(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
@@ -716,6 +722,7 @@ public class AdminResource {
 	@GET
 	@Path("/getUsersStatus")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getUsersStatus(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails) {
 		try{
 			/*
@@ -811,6 +818,7 @@ public class AdminResource {
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getUserPrivileges(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails){
 		try{
 			/*
@@ -924,6 +932,7 @@ public class AdminResource {
 	@GET
 	@Path("/getFunctions")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getFunctions(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String details){
 		try{
 			/*
@@ -1011,6 +1020,7 @@ public class AdminResource {
 	@GET
 	@Path("/getResources")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getResources(@HeaderParam("userDetails") String accessParam){
 		try{
 			/*
@@ -1083,6 +1093,7 @@ public class AdminResource {
 	@Path("/addNewResource")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewResource(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -1177,6 +1188,7 @@ public class AdminResource {
 	@Path("/addNewFunction")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
 		int alreadyAssigned = 0;

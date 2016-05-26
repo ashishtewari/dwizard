@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
 import com.mebelkart.api.product.v1.api.AttributeGroupsInnerPOJO;
 import com.mebelkart.api.product.v1.api.AttributeGroupsOuterPOJO;
@@ -90,6 +91,7 @@ public class ProductResource {
 	@SuppressWarnings("unchecked")
 	@GET
 	@Path("/products")
+	@Timed
 	public Object getAllProducts(@HeaderParam("accessParam") String accessParam){		
 		try{
 			if(isValidJson(accessParam)){
@@ -180,6 +182,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/category/{categoryId}")
+	@Timed
 	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId){		
 		try{
 			if(isValidJson(accessParam)){
@@ -298,6 +301,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}")
+	@Timed
 	public Object getProductDetail(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -526,6 +530,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}/price")
+	@Timed
 	public Object getSellingPrice(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -585,6 +590,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unused" })
 	@GET
 	@Path("/product/{productId}/reviews")
+	@Timed
 	public Object getProductReviews(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -641,6 +647,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}/description")
+	@Timed
 	public Object getProdDesc(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -698,6 +705,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unused", "unchecked" })
 	@GET
 	@Path("/product/{productId}/attributes")
+	@Timed
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -755,6 +763,7 @@ public class ProductResource {
 	@SuppressWarnings("unused")
 	@GET
 	@Path("/product/{productId}/feature")
+	@Timed
 	public Object getProdFeature(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
@@ -811,6 +820,7 @@ public class ProductResource {
 	@GET
 	@Path("/products/featured")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Timed
 	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
 			if(isValidJson(accessParam)){
@@ -886,6 +896,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/seller/{manufacturerId}")
+	@Timed
 	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId){		
 		try{
 			if(isValidJson(accessParam)){
@@ -981,6 +992,7 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/outofstock")
+	@Timed
 	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam){		
 		try{
 			if(isValidJson(accessParam)){
@@ -1067,6 +1079,7 @@ public class ProductResource {
 	@GET
 	@Path("/products/top")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Timed
 	public Object getTopProducts(@HeaderParam("accessParam") String accessParam) {
 		try {
 			if(isValidJson(accessParam)){
@@ -1137,6 +1150,7 @@ public class ProductResource {
 	 */
 	@GET
 	@Path("/product/{productId}/faq")
+	@Timed
 	public Object getProdFaq(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
 			if(isValidJson(accessParam)){
