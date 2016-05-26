@@ -2,6 +2,7 @@ package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -1449,14 +1450,17 @@ public class AdminResource {
 				boolean hasFunctions = false;
 				if(permissions.containsKey("getFunctions")){
 					getFunctionJsonArray = (JSONArray) permissions.get("getFunctions");
+					getFunctionJsonArray = removeDuplicates(getFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(permissions.containsKey("postFunctions")){
 					postFunctionJsonArray = (JSONArray) permissions.get("postFunctions");
+					postFunctionJsonArray = removeDuplicates(postFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(permissions.containsKey("putFunctions")){
 					putFunctionJsonArray = (JSONArray) permissions.get("putFunctions");
+					putFunctionJsonArray = removeDuplicates(putFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(!hasFunctions)
@@ -1494,24 +1498,30 @@ public class AdminResource {
 				if(get == 1)
 					try{
 						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) ))
+							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//getFunctionIds.remove(getFunctionIds.indexOf(Integer.parseInt((String)(getFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in get function");
 					}
 				if(post == 1)
 					try{
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) ))
+							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//postFunctionIds.remove(postFunctionIds.indexOf(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in post function");
 					}
 				if(put == 1)
 					try{
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) ))
+							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//putFunctionIds.remove(putFunctionIds.indexOf( Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in put function");
 					}
@@ -1627,6 +1637,30 @@ public class AdminResource {
 		return typeOfQuery;		
 	}
 	
+	/**
+	 * This method removes duplicates in JSONArray 
+	 * @param getFunctionJsonArray
+	 * @return returns unique JSONArray
+	 */
+	@SuppressWarnings("unchecked")
+	private JSONArray removeDuplicates(JSONArray jsonArray) {
+		HashSet<String> set = new HashSet<String>();
+//		System.out.println("Original json array");
+//		System.out.println(jsonArray);
+		for(int i = 0; i < jsonArray.size(); i++){
+			//System.out.print((String)(jsonArray.get(i)+"")+" ");
+			set.add((String)(jsonArray.get(i)+""));
+		}
+//		System.out.println("json array after removing duplicates");
+//		System.out.println(set);
+		JSONArray array = new JSONArray();
+		for(String s : set){
+			//System.out.print(s+" ");
+			array.add(s);
+		}
+		return array;
+	}
+
 	/**
 	 * This method updates admin method and functions permissions  
 	 * @param resourceId
