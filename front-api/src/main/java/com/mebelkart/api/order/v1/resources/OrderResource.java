@@ -1,5 +1,6 @@
 package com.mebelkart.api.order.v1.resources;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.util.classes.PaginationReply;
@@ -42,6 +43,7 @@ public class OrderResource {
     @GET
     @Path("/orders")
     @Produces({ MediaType.APPLICATION_JSON })
+    @Timed
     public Object getAllOrders(@HeaderParam("filterParam") String headerParam)
     {
         try {

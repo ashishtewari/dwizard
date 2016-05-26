@@ -2,6 +2,7 @@ package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.helper.HelperMethods;
@@ -97,6 +99,7 @@ public class AdminResource {
 	@GET
 	@Path("/login")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getLoginDetails(@HeaderParam("loginDetails") String userDetails,@HeaderParam("accessToken") String apikey) {
 		try{
 			/*
@@ -171,6 +174,11 @@ public class AdminResource {
 			log.warn("unauthorized request in login function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"please provide valid details");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in login functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in login function");
@@ -197,6 +205,7 @@ public class AdminResource {
 	@Path("/registerUser")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object registerUser(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -211,11 +220,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -321,6 +330,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in registerUser functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in registerUser function");
@@ -353,6 +367,7 @@ public class AdminResource {
 	@Path("/updatePermissions")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object updatePermissions(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -367,11 +382,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -455,13 +470,18 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in updatePermissions functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in updatePermissions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
 			}else{
-				e.printStackTrace();
+				
 				log.warn(e.getMessage());
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
 				return invalidRequestReply;
@@ -498,6 +518,7 @@ public class AdminResource {
 	@Path("/changeUserActiveStatus")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object changeUserActiveStatus(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
@@ -512,11 +533,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -583,6 +604,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in changeUserActiveStatus functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in changeUserActiveStatus function");
@@ -614,6 +640,7 @@ public class AdminResource {
 	@Path("/changeRateLimit")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object changeRateLimit(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request){
 		try{
 			/*
@@ -628,11 +655,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -668,6 +695,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in changeRateLimit functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in changeRateLimit function");
@@ -691,6 +723,7 @@ public class AdminResource {
 	@GET
 	@Path("/getUsersStatus")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getUsersStatus(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails) {
 		try{
 			/*
@@ -705,11 +738,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -749,7 +782,7 @@ public class AdminResource {
 				}	
 			}else {
 				log.warn("Unauthorized data in getUsersStatus function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessLevel/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your userDetails/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
@@ -757,6 +790,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getUsersStatus functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -781,6 +819,7 @@ public class AdminResource {
 	@GET
 	@Path("/getUserPrivileges")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getUserPrivileges(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String userDetails){
 		try{
 			/*
@@ -795,11 +834,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -864,7 +903,7 @@ public class AdminResource {
 				}
 			}else {
 				log.warn("Unauthorized data in getUserPrivileges function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your accessToken/accessParam are not acceptable");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "your userDetails/accessParam are not acceptable");
 				return invalidRequestReply;
 			}
 		}catch(NullPointerException e){
@@ -872,6 +911,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getUserPrivileges functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -889,6 +933,7 @@ public class AdminResource {
 	@GET
 	@Path("/getFunctions")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getFunctions(@HeaderParam("userDetails") String accessParam,@HeaderParam("accessParam") String details){
 		try{
 			/*
@@ -903,11 +948,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -947,6 +992,11 @@ public class AdminResource {
 		} catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getFunctions functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		} catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in getFunctions function");
@@ -954,6 +1004,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}else{
 				log.warn(e.getMessage());
+				
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
 				return invalidRequestReply;
 			}
@@ -970,6 +1021,7 @@ public class AdminResource {
 	@GET
 	@Path("/getResources")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getResources(@HeaderParam("userDetails") String accessParam){
 		try{
 			/*
@@ -984,11 +1036,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -996,7 +1048,7 @@ public class AdminResource {
 			try {
 				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
 			} catch (Exception e) {
-				e.printStackTrace();
+				
 				log.info("Unautherized user "+userName+" tried to access getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
@@ -1042,6 +1094,7 @@ public class AdminResource {
 	@Path("/addNewResource")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewResource(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		try{
 			/*
@@ -1056,11 +1109,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -1113,6 +1166,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in addNewResource functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in addNewResource function");
@@ -1131,6 +1189,7 @@ public class AdminResource {
 	@Path("/addNewFunction")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewFunction(@HeaderParam("userDetails") String accessParam,@Context HttpServletRequest request) {
 		int errors = 0;
 		int alreadyAssigned = 0;
@@ -1147,11 +1206,11 @@ public class AdminResource {
 					userName = (String) jsonData.get("userName");
 					apikey = (String) jsonData.get("accessToken");
 				}else{
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in accessParam");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid Keys in userDetails");
 					return invalidRequestReply;
 				}
 			}else{
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessParam is Invalid Json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "userDetails is Invalid Json");
 				return invalidRequestReply;
 			}
 			int accessLevel = this.auth.validate(apikey);
@@ -1258,6 +1317,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in addNewFunction functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -1386,14 +1450,17 @@ public class AdminResource {
 				boolean hasFunctions = false;
 				if(permissions.containsKey("getFunctions")){
 					getFunctionJsonArray = (JSONArray) permissions.get("getFunctions");
+					getFunctionJsonArray = removeDuplicates(getFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(permissions.containsKey("postFunctions")){
 					postFunctionJsonArray = (JSONArray) permissions.get("postFunctions");
+					postFunctionJsonArray = removeDuplicates(postFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(permissions.containsKey("putFunctions")){
 					putFunctionJsonArray = (JSONArray) permissions.get("putFunctions");
+					putFunctionJsonArray = removeDuplicates(putFunctionJsonArray);
 					hasFunctions  = true;
 				}
 				if(!hasFunctions)
@@ -1404,13 +1471,13 @@ public class AdminResource {
 			return 4;
 		}
 		for (int j = 0; j < permissionJsonArray.size(); j++) {
-			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET")) {
+			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET") && get == 0) {
 				get = 1;
 				getFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"get"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST") && post == 0) {
 				post = 1;
 				postFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"post"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT") && put == 0) {
 				put = 1;
 				putFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"put"));
 			} 
@@ -1431,24 +1498,30 @@ public class AdminResource {
 				if(get == 1)
 					try{
 						for(int i = 0; i < getFunctionJsonArray.size(); i++)
-							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) ))
+							if(getFunctionIds.contains( Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String)(getFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//getFunctionIds.remove(getFunctionIds.indexOf(Integer.parseInt((String)(getFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in get function");
 					}
 				if(post == 1)
 					try{
 						for(int i = 0; i < postFunctionJsonArray.size(); i++)
-							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) ))
+							if(postFunctionIds.contains( Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (postFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//postFunctionIds.remove(postFunctionIds.indexOf(Integer.parseInt((String) (postFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in post function");
 					}
 				if(put == 1)
 					try{
 						for(int i = 0; i < putFunctionJsonArray.size(); i++)
-							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) ))
+							if(putFunctionIds.contains( Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")) )){
 								this.auth.insertUserFunctionPermissions(userId,Integer.parseInt((String) (putFunctionJsonArray.get(i)+"")),1,"mk_api_resources_consumer_function_permission","a_consumer_id");
+								//putFunctionIds.remove(putFunctionIds.indexOf( Integer.parseInt((String) (putFunctionJsonArray.get(i)+""))));
+							}
 					}catch(Exception e){
 						System.out.println("Exception in put function");
 					}
@@ -1489,7 +1562,7 @@ public class AdminResource {
 						this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}
 				}catch(Exception e){
-					e.printStackTrace();
+					
 					System.out.println("Exception in update get function");
 				}				
 				try{
@@ -1564,6 +1637,30 @@ public class AdminResource {
 		return typeOfQuery;		
 	}
 	
+	/**
+	 * This method removes duplicates in JSONArray 
+	 * @param getFunctionJsonArray
+	 * @return returns unique JSONArray
+	 */
+	@SuppressWarnings("unchecked")
+	private JSONArray removeDuplicates(JSONArray jsonArray) {
+		HashSet<String> set = new HashSet<String>();
+//		System.out.println("Original json array");
+//		System.out.println(jsonArray);
+		for(int i = 0; i < jsonArray.size(); i++){
+			//System.out.print((String)(jsonArray.get(i)+"")+" ");
+			set.add((String)(jsonArray.get(i)+""));
+		}
+//		System.out.println("json array after removing duplicates");
+//		System.out.println(set);
+		JSONArray array = new JSONArray();
+		for(String s : set){
+			//System.out.print(s+" ");
+			array.add(s);
+		}
+		return array;
+	}
+
 	/**
 	 * This method updates admin method and functions permissions  
 	 * @param resourceId
