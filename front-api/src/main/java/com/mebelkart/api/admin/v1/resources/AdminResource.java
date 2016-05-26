@@ -171,6 +171,11 @@ public class AdminResource {
 			log.warn("unauthorized request in login function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(),"please provide valid details");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in login functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in login function");
@@ -321,6 +326,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in registerUser functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in registerUser function");
@@ -455,13 +465,18 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in updatePermissions functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in updatePermissions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
 			}else{
-				e.printStackTrace();
+				
 				log.warn(e.getMessage());
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
 				return invalidRequestReply;
@@ -583,6 +598,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in changeUserActiveStatus functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in changeUserActiveStatus function");
@@ -667,6 +687,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in changeRateLimit functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -757,6 +782,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getUsersStatus functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -873,6 +903,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getUserPrivileges functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in getUserPrivileges function");
@@ -947,6 +982,11 @@ public class AdminResource {
 		} catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in getFunctions functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		} catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in getFunctions function");
@@ -954,6 +994,7 @@ public class AdminResource {
 				return invalidRequestReply;
 			}else{
 				log.warn(e.getMessage());
+				
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
 				return invalidRequestReply;
 			}
@@ -996,7 +1037,7 @@ public class AdminResource {
 			try {
 				authenticate.validate(adminUserName,apikey, "admin", "get", "getResources");
 			} catch (Exception e) {
-				e.printStackTrace();
+				
 				log.info("Unautherized user "+userName+" tried to access getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 				return invalidRequestReply;
@@ -1112,6 +1153,11 @@ public class AdminResource {
 			return invalidRequestReply;
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
+			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in addNewResource functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
@@ -1259,6 +1305,11 @@ public class AdminResource {
 		}catch(ClassCastException e){
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
+		}catch(NumberFormatException e){
+			
+			log.info("Invalid values given in addNewFunction functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
+			return invalidRequestReply;
 		}catch(Exception e){
 			if(e instanceof ConnectException){
 				log.warn("Connection refused server stopped in addNewFunction function");
@@ -1404,13 +1455,13 @@ public class AdminResource {
 			return 4;
 		}
 		for (int j = 0; j < permissionJsonArray.size(); j++) {
-			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET")) {
+			if (((String) permissionJsonArray.get(j)).toUpperCase().equals("GET") && get == 0) {
 				get = 1;
 				getFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"get"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("POST") && post == 0) {
 				post = 1;
 				postFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"post"));
-			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT")) {
+			} else if (((String) permissionJsonArray.get(j)).toUpperCase().equals("PUT") && put == 0) {
 				put = 1;
 				putFunctionIds.addAll(this.auth.getFunctionIds(resourceId,"put"));
 			} 
@@ -1489,7 +1540,7 @@ public class AdminResource {
 						this.auth.removeFunctionPermissions(resourceId,userId,"get",0,"a_consumer_id","mk_api_resources_consumer_function_permission");
 					}
 				}catch(Exception e){
-					e.printStackTrace();
+					
 					System.out.println("Exception in update get function");
 				}				
 				try{
