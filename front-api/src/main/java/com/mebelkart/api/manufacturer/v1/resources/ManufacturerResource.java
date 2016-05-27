@@ -108,8 +108,8 @@ public class ManufacturerResource {
 									BoolQueryBuilder query = QueryBuilders.boolQuery()
 								            .must(QueryBuilders.termQuery("_id", manufacturerId));
 									
-								response = client.prepareSearch("mkmanufacturer")
-										   .setTypes("manufacturerInfo")
+								response = client.prepareSearch("mkmanufacturers")
+										   .setTypes("manufacturer")
 										   .setQuery(query)									
 										   .execute()
 										   .get();	
@@ -205,8 +205,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
 							            .must(QueryBuilders.termQuery("_id", manufacturerId));
 								
-							response = client.prepareSearch("mkmanufacturer")
-									   .setTypes("manufacturerInfo")
+							response = client.prepareSearch("mkmanufacturers")
+									   .setTypes("manufacturer")
 									   .setQuery(query)									
 									   .execute()
 									   .get();	
@@ -321,8 +321,8 @@ public class ManufacturerResource {
 								BoolQueryBuilder query = QueryBuilders.boolQuery()
 							            .must(QueryBuilders.termQuery("_id", manufacturerId));
 								
-							response = client.prepareSearch("mkmanufacturer")
-									   .setTypes("manufacturerInfo")
+							response = client.prepareSearch("mkmanufacturers")
+									   .setTypes("manufacturer")
 									   .setQuery(query)									
 									   .execute()
 									   .get();	
@@ -436,7 +436,7 @@ public class ManufacturerResource {
 //									   .setQuery(query)									
 //									   .execute()
 //									   .get();
-							GetResponse getResponse = client.prepareGet("mkmanufacturer","manufacturerInfo",manufacturerId+"")
+							GetResponse getResponse = client.prepareGet("mkmanufacturers","manufacturer",manufacturerId+"")
 									.execute().actionGet();
 							 //SearchHit[] manufacturerInfoSearchHits = response.getHits().getHits();
 //							 System.out.println("hits = " + response.getHits().getTotalHits());
@@ -453,11 +453,11 @@ public class ManufacturerResource {
 								String startDate = headerInputJsonData.get("startDate").toString();
 								String endDate = headerInputJsonData.get("endDate").toString();
 								BoolQueryBuilder ordersQuery = QueryBuilders.boolQuery()
-							            .must(QueryBuilders.matchQuery("manufacturerId", manufacturerId))
-							            .must(QueryBuilders.rangeQuery("dateAdd").from(startDate).to(endDate));
+							            .must(QueryBuilders.matchQuery("address.addressDelivery.id_manufacturer", manufacturerId))
+							            .must(QueryBuilders.rangeQuery("order.date_add").from(startDate).to(endDate));
 								
-								response = client.prepareSearch("mkmanufacturer")
-										   .setTypes("manufacturerOrders")
+								response = client.prepareSearch("order-status")
+										   .setTypes("retail")
 										   .setQuery(ordersQuery)									
 										   .setFrom(page*paginationLimit)
 										   .setSize(paginationLimit)
@@ -466,7 +466,7 @@ public class ManufacturerResource {
 								 SearchHit[] ordersSearchHits = response.getHits().getHits();
 								 
 								 for(int i=0;i<ordersSearchHits.length;i++){
-									 manufacturerOrdersList.add(manufacturerHelperMethods.getOrderDetailsFromElastic((int) ordersSearchHits[i].getSource().get("orderId"),client));
+									 manufacturerOrdersList.add(ordersSearchHits[i].getSource());
 								 }
 								 totalOrders = response.getHits().getTotalHits();
 								 totalPages = totalOrders/paginationLimit;
