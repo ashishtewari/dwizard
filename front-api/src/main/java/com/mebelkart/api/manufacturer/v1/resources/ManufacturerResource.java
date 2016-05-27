@@ -334,10 +334,10 @@ public class ManufacturerResource {
 								 * query for getting products of respective manufacturer id
 								 */
 								BoolQueryBuilder addressQuery = QueryBuilders.boolQuery()
-										.must(QueryBuilders.matchQuery("manufacturerId",manufacturerId));
+										.must(QueryBuilders.matchQuery("id_manufacturer",manufacturerId));
 								
-								response = client.prepareSearch("mkmanufacturer")
-										   .setTypes("manufacturerAddresses")
+								response = client.prepareSearch("address")
+										   .setTypes("address")
 										   .setQuery(addressQuery)									
 										   .execute()
 										   .get();	
