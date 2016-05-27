@@ -33,6 +33,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.helper.ManufacturerHelperMethods;
 import com.mebelkart.api.util.helpers.Authentication;
@@ -74,6 +75,7 @@ public class ManufacturerResource {
 	
 	@GET
 	@Path("/{id}")
+	@Timed
 	public Object getManufacturerDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long manufacturerId) throws ParseException, InterruptedException, ExecutionException, ConnectException{
 		try{
 			if(utilHelper.isValidJson(accessParam)){

@@ -28,6 +28,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.github.rkmk.container.FoldingList;
 import com.mebelkart.api.category.v1.core.CategoryWrapper;
 import com.mebelkart.api.category.v1.dao.CategoryDao;
@@ -69,6 +70,7 @@ public class CategoryResource {
 		 */
 	@GET
 	@Path("/category/categories")
+	@Timed
 	public Object getCategories(@HeaderParam("accessParam")String accessParam) throws InterruptedException, ExecutionException{
 		
 		try {
@@ -135,6 +137,7 @@ public class CategoryResource {
 	
 	@GET
 	@Path("/category/{id}")
+	@Timed
 	public Object getCategoryDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long categoryId){
 		
 		try {

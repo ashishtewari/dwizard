@@ -31,6 +31,7 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.github.rkmk.container.FoldingList;
@@ -79,6 +80,7 @@ public class CustomerResource {
 	@GET
 	@Path("/{id}")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getCustomerDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long customerId) throws ParseException, ConnectException{
 		
 		try {
@@ -179,6 +181,7 @@ public class CustomerResource {
 	@Path("/{customerId}/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
@@ -250,6 +253,7 @@ public class CustomerResource {
 	@Path("/{customerId}/address/{addressId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object updateAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId,@PathParam("addressId")long addressId) throws ParseException{
 		try {
 			String getUpdateDetails = "";
@@ -336,6 +340,7 @@ public class CustomerResource {
 	@Path("/deleteAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object deleteAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
