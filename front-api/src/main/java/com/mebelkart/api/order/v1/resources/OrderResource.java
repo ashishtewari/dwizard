@@ -1,12 +1,20 @@
 package com.mebelkart.api.order.v1.resources;
 
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 import com.codahale.metrics.annotation.Timed;
+import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
+import com.mebelkart.api.util.classes.Reply;
+import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.helpers.Authentication;
+import com.mebelkart.api.util.helpers.Helper;
 
+import org.elasticsearch.action.update.UpdateRequest;
+import org.elasticsearch.client.Client;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -32,6 +40,14 @@ public class OrderResource {
 	 */
 	Authentication authenticate = new Authentication();
 	/**
+	 * Getting order-status elastic client connection
+	 */
+	Client client = ElasticFactory.getElasticClient();
+	/**
+	 * Helper class from utils
+	 */
+	Helper helper = new Helper();
+	/**
 	 * Get actual class name to be printed on log files
 	 */
 	static Logger log = LoggerFactory.getLogger(OrderResource.class);
@@ -44,7 +60,7 @@ public class OrderResource {
     @Path("/orders")
     @Produces({ MediaType.APPLICATION_JSON })
     @Timed
-    public Object getAllOrders(@HeaderParam("filterParam") String headerParam)
+    public Object getAllOrders(@HeaderParam("accessParam") String headerParam)
     {
         try {
             JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
@@ -179,4 +195,68 @@ public class OrderResource {
         }
 
     }
+    
+    @PUT
+    @Path("/updateOrderStatus/{subOrderId}")
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Timed
+    public Object updateOrderStatus(@HeaderParam("accessParam") String headerParam,@PathParam("subOrderId") String subOrderId){
+    	try{
+    		if(!helper.isValidJson(headerParam)){
+    			log.info("Invalid header json provided to access updateOrderStatus function");
+    			InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+    		}
+    		if(!isHavingValidKeys(headerParam)){
+    			log.info("Invalid header json provided to access updateOrderStatus function");
+    			InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed valid header keys");
+				return invalidRequestReply;
+    		}
+    		JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
+            String userName = (String) headerParamJson.get("userName");
+			String accessToken = (String) headerParamJson.get("accessToken");
+//            try{
+//            	authenticate.validate(userName,accessToken, "order", "put", "updateOrderStatus");
+//            }catch(Exception e){
+//            	log.info("Unautherized user "+userName+" tried to access updateOrderStatus function");
+//            	InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+//				return invalidRequestReply;
+//            }
+    		String updatedOrderStatus = (String) headerParamJson.get("orderStatus");
+           	//int updatedStatus = Integer.parseInt(updatedOrderStatus);
+        	UpdateRequest updateRequest = new UpdateRequest();
+        	updateRequest.index("order-status");
+        	updateRequest.type("retail");
+        	updateRequest.id(subOrderId);
+        	if(updatedOrderStatus == null)
+        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", updatedOrderStatus).endObject());
+        	else
+        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", Integer.parseInt(updatedOrderStatus)).endObject());
+        	if(client.update(updateRequest).get().getShardInfo().getSuccessful() == 1)
+        		return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), null );
+        	else
+        		return new Reply(Response.Status.NOT_MODIFIED.getStatusCode(), Response.Status.NOT_MODIFIED.getReasonPhrase(),null );
+    	}catch (NullPointerException e){
+        	log.info(e.getMessage()+" in order resource, function name is updateOrderStatus");
+            InvalidInputReplyClass nullPointer=new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(),Response.Status.BAD_REQUEST.getReasonPhrase(),"Null Value Passed");
+            return nullPointer;
+        }catch (Exception e) {
+        	e.printStackTrace();
+            InvalidInputReplyClass serverError=new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Server error occured while serving the request");
+            return serverError;
+        }   	
+    }
+
+	/**
+	 * Checks if header is having basic valid keys 
+	 * @param headerParam
+	 * @return boolean
+	 */
+	private boolean isHavingValidKeys(String headerParam) {
+		JSONObject jsonData = helper.jsonParser(headerParam);
+		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("orderStatus"))
+			return true;
+		else
+			return false;
+	}    
  }
