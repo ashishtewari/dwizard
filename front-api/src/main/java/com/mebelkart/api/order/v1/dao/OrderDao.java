@@ -3,10 +3,14 @@ package com.mebelkart.api.order.v1.dao;
 
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.order.v1.core.OrderDetail;
+import com.mebelkart.api.order.v1.core.OrderDetailSellerStatuses;
 import com.mebelkart.api.order.v1.mapper.OrderDetailMapper;
+import com.mebelkart.api.order.v1.mapper.OrderDetailSellerStatusesMapper;
 import com.mebelkart.api.order.v1.mapper.OrderMapper;
+
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
@@ -54,6 +58,57 @@ public interface OrderDao {
     )
     List<OrderDetail> getSuborderDetail(@Bind("currentOrderId") Integer currentOrderId);
 
+
+	/**
+	 * This function returns all_status_info details of particular subOrderId
+	 * @param subOrderId
+	 * @return
+	 */
+    @SqlQuery("select all_status_info from ps_order_detail_vendor_status where id_order_detail_vendor_status = :subOrderId")
+	String getSubOrderStatusInfo(@Bind("subOrderId") String subOrderId);
+
+
+	/**
+	 * This function checks whether suborderid exists or not
+	 * @param subOrderId
+	 * @return
+	 */
+    @SqlQuery("select id_order_detail_vendor_status from ps_order_detail_vendor_status where id_order_detail_vendor_status = :subOrderId")
+    Integer isSubOrderExists(@Bind("subOrderId") String subOrderId);
+
+	/**
+	 * This function returns the vendors display status
+	 * @param updatedOrderStatus
+	 * @return
+	 */
+    @Mapper(OrderDetailSellerStatusesMapper.class)
+    @SqlQuery("select display_to_seller,status_name,active from ps_order_detail_seller_statuses where id_order_detail_status = :orderStatus")
+	OrderDetailSellerStatuses getOrderDetailsSellerStatuses(@Bind("orderStatus") String updatedOrderStatus);
+
+
+	/**
+	 * This function will create a new suborder
+	 * @param subOrderId
+	 * @param statusInfo
+	 * @param updatedOrderStatus
+	 */
+    @SqlUpdate("insert into ps_order_detail_vendor_status (id_order_detail_vendor_status,all_status_info,id_current_status,last_status_updated_on) "
+    		+ "values (:subOrderId, :statusInfo, :updatedOrderStatus, :currentDateTime)")
+	void createSubOrder(@Bind("subOrderId") String subOrderId, @Bind("statusInfo")String statusInfo,
+			@Bind("updatedOrderStatus") String updatedOrderStatus,@Bind("currentDateTime") String currentDateTime);
+
+
+	/**
+	 * This function will update exicting suborder status
+	 * @param subOrderId
+	 * @param statusInfo
+	 * @param updatedOrderStatus
+	 */
+    @SqlUpdate("update ps_order_detail_vendor_status set all_status_info = :statusInfo,"
+    		+ "id_current_status = :updatedOrderStatus, last_status_updated_on = :currentDateTime "
+    		+ "where id_order_detail_vendor_status = :subOrderId")
+	void updateSubOrder(@Bind("subOrderId") String subOrderId, @Bind("statusInfo") String statusInfo,
+			@Bind("updatedOrderStatus") String updatedOrderStatus,@Bind("currentDateTime") String currentDateTime);
 
 }
 

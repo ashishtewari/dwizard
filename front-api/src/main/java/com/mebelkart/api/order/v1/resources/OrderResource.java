@@ -6,6 +6,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
+import com.mebelkart.api.order.v1.core.OrderDetailSellerStatuses;
 import com.mebelkart.api.util.classes.PaginationReply;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
@@ -213,26 +214,53 @@ public class OrderResource {
 				return invalidRequestReply;
     		}
     		JSONObject headerParamJson = (JSONObject) new JSONParser().parse(headerParam);
-            String userName = (String) headerParamJson.get("userName");
-			String accessToken = (String) headerParamJson.get("accessToken");
-//            try{
-//            	authenticate.validate(userName,accessToken, "order", "put", "updateOrderStatus");
-//            }catch(Exception e){
-//            	log.info("Unautherized user "+userName+" tried to access updateOrderStatus function");
-//            	InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-//				return invalidRequestReply;
-//            }
-    		String updatedOrderStatus = (String) headerParamJson.get("orderStatus");
-           	//int updatedStatus = Integer.parseInt(updatedOrderStatus);
-        	UpdateRequest updateRequest = new UpdateRequest();
+    		String userName = null;
+    		String accessToken = null;
+    		String updatedOrderStatus = null;
+    		try{
+    			userName = (String) headerParamJson.get("userName");
+    			accessToken = (String) headerParamJson.get("accessToken");
+    			updatedOrderStatus = (String) headerParamJson.get("orderStatus");
+    		}catch(ClassCastException e){
+    			log.info("Invalid header data provided to access updateOrderStatus function");
+    			InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid");
+				return invalidRequestReply;
+    		}
+            try{
+            	authenticate.validate(userName,accessToken, "order", "put", "updateOrderStatus");
+            }catch(Exception e){
+            	log.info("Unautherized user "+userName+" tried to access updateOrderStatus function");
+            	InvalidInputReplyClass invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+				return invalidRequestReply;
+            }
+    		/*
+    		 * Now we are updating in elastic 
+    		 */
+        	UpdateRequest updateRequest = new UpdateRequest();	
         	updateRequest.index("order-status");
         	updateRequest.type("retail");
         	updateRequest.id(subOrderId);
         	if(updatedOrderStatus == null)
-        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", updatedOrderStatus).endObject());
+        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", updatedOrderStatus).field("last_status_update_time", helper.getCurrentDateString()).endObject());
         	else
-        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", Integer.parseInt(updatedOrderStatus)).endObject());
-        	if(client.update(updateRequest).get().getShardInfo().getSuccessful() == 1)
+        		updateRequest.doc(jsonBuilder().startObject().field("id_current_order_detail_status", Integer.parseInt(updatedOrderStatus)).field("last_status_update_time", helper.getCurrentDateString()).endObject());
+        	int isElasticUpdateSuccess = client.update(updateRequest).get().getShardInfo().getSuccessful();        	
+        	/*
+        	 * Now after updating in elastic 
+        	 * we need to update it in Main Production DB 
+        	 * Table name is ps_order_detail_vendor_status and col_name is id_current_status, last_status_updated_on and all_status_info
+        	 * In col all_status_info prepend updated json data to the exicting json data
+        	 */
+        	int isDBUpdateSuccess;
+        	System.out.println(this.orderDao.isSubOrderExists(subOrderId));
+        	if(this.orderDao.isSubOrderExists(subOrderId) != 0){
+            	updateSubOrder(subOrderId,updatedOrderStatus);
+            	isDBUpdateSuccess = 1;
+        	}else{
+        		createSubOrder(subOrderId,updatedOrderStatus);
+        		isDBUpdateSuccess = 1;
+        	}
+        	if(isElasticUpdateSuccess == 1 && isDBUpdateSuccess == 1)
         		return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), null );
         	else
         		return new Reply(Response.Status.NOT_MODIFIED.getStatusCode(), Response.Status.NOT_MODIFIED.getReasonPhrase(),null );
@@ -246,6 +274,46 @@ public class OrderResource {
             return serverError;
         }   	
     }
+
+	/**
+	 * This function creates a new sub order detail vendor status
+	 * @param subOrderId
+	 * @param updatedOrderStatus
+	 */
+	private void createSubOrder(String subOrderId, String updatedOrderStatus) {
+		OrderDetailSellerStatuses orderDetailSellerStatuses = this.orderDao.getOrderDetailsSellerStatuses(updatedOrderStatus);
+		boolean vendorVisibility = false;
+		if(orderDetailSellerStatuses.isVendorVisibility() == 1)
+			vendorVisibility = true;
+		String statusName = orderDetailSellerStatuses.getStatusName();
+		int activeState = orderDetailSellerStatuses.getActiveState();
+		String currentTimeStamp = helper.getCurrentDateTime();
+		String statusInfo = "[{\"id_order_detail_status\":\""+subOrderId+"\",\"active\":"+activeState+",\"status_name\":\""+statusName+"\",\"status_set_time\":\""+currentTimeStamp+"\",\"status_id\":\""+updatedOrderStatus+"\",\"visible_to_vendor\":"+vendorVisibility+"}]";
+		this.orderDao.createSubOrder(subOrderId,statusInfo,updatedOrderStatus,helper.getCurrentDateString());
+	}
+
+	/**
+	 * This function updates a sub order detail vendor status
+	 * @param subOrderId
+	 * @param updatedOrderStatus
+	 */
+	private void updateSubOrder(String subOrderId, String updatedOrderStatus) {
+		String previousStatusInfo = this.orderDao.getSubOrderStatusInfo(subOrderId);
+		String statusInfo = "";
+		OrderDetailSellerStatuses orderDetailSellerStatuses = this.orderDao.getOrderDetailsSellerStatuses(updatedOrderStatus);
+		boolean vendorVisibility = false;
+		if(orderDetailSellerStatuses.isVendorVisibility() == 1)
+			vendorVisibility = true;
+		String statusName = orderDetailSellerStatuses.getStatusName();
+		int activeState = orderDetailSellerStatuses.getActiveState();
+		String currentTimeStamp = helper.getCurrentDateTime();
+		if(previousStatusInfo == null || previousStatusInfo.length() == 0){
+			statusInfo = "[{\"id_order_detail_status\":\""+subOrderId+"\",\"active\":"+activeState+",\"status_name\":\""+statusName+"\",\"status_set_time\":\""+currentTimeStamp+"\",\"status_id\":\""+updatedOrderStatus+"\",\"visible_to_vendor\":"+vendorVisibility+"}]";
+		}else{
+			statusInfo = "[{\"id_order_detail_status\":\""+subOrderId+"\",\"active\":"+activeState+",\"status_name\":\""+statusName+"\",\"status_set_time\":\""+currentTimeStamp+"\",\"status_id\":\""+updatedOrderStatus+"\",\"visible_to_vendor\":"+vendorVisibility+"},"+previousStatusInfo.substring(1);
+		}
+		this.orderDao.updateSubOrder(subOrderId,statusInfo,updatedOrderStatus,helper.getCurrentDateString());
+	}
 
 	/**
 	 * Checks if header is having basic valid keys 
