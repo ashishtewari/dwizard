@@ -11,6 +11,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -92,10 +93,10 @@ public class ProductResource {
 	@GET
 	@Path("/products")
 	@Timed
-	public Object getAllProducts(@HeaderParam("accessParam") String accessParam){		
+	public Object getAllProducts(@HeaderParam("accessParam") String accessParam, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetAllProductDetailKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -106,8 +107,13 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
+					//int page  = Integer.parseInt((String) jsonData.get("page"));
+					//int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -165,14 +171,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-	
-	private boolean isHavingValidGetAllProductDetailKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 
 	/**
 	 * This will return json of all live products in pagination format corresponding to their category Id
@@ -183,10 +181,10 @@ public class ProductResource {
 	@GET
 	@Path("/products/category/{categoryId}")
 	@Timed
-	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId){		
+	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailByCategoryKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -195,6 +193,11 @@ public class ProductResource {
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListByCategory function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
 						return invalidRequestReply;
 					}
 					String stock = "";
@@ -223,8 +226,8 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Give valid values corresponding to keys (categoryId/stock/sellerId/cityId)");
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -284,14 +287,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-	
-	private boolean isHavingValidGetProductDetailByCategoryKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 
 	/**
 	 * This function returns the product details of single product based on their id 
@@ -304,7 +299,7 @@ public class ProductResource {
 	@Timed
 	public Object getProductDetail(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -399,13 +394,6 @@ public class ProductResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
 			return invalidRequestReply;
 		}
-	}
-
-	private boolean isValidJson(String accessParam) {
-		if(helper.isValidJson(accessParam)){
-			return true;
-		}else
-			return false;
 	}
 
 	private boolean ishavingValidGetProductDetailKeys(String accessParam) {
@@ -533,7 +521,7 @@ public class ProductResource {
 	@Timed
 	public Object getSellingPrice(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -593,7 +581,7 @@ public class ProductResource {
 	@Timed
 	public Object getProductReviews(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -650,7 +638,7 @@ public class ProductResource {
 	@Timed
 	public Object getProdDesc(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -708,7 +696,7 @@ public class ProductResource {
 	@Timed
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -766,7 +754,7 @@ public class ProductResource {
 	@Timed
 	public Object getProdFeature(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -823,7 +811,7 @@ public class ProductResource {
 	@Timed
 	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
@@ -897,10 +885,10 @@ public class ProductResource {
 	@GET
 	@Path("/products/seller/{manufacturerId}")
 	@Timed
-	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId){		
+	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailBySellerKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -911,9 +899,14 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
 					int manufId = Integer.parseInt(manufacturerId);
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -975,14 +968,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-
-	private boolean isHavingValidGetProductDetailBySellerKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 	
 	/**
 	 * This will return json of all live products in pagination format corresponding to their category Id
@@ -993,10 +978,10 @@ public class ProductResource {
 	@GET
 	@Path("/products/outofstock")
 	@Timed
-	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam){		
+	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailBySellerKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -1007,8 +992,13 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -1082,7 +1072,7 @@ public class ProductResource {
 	@Timed
 	public Object getTopProducts(@HeaderParam("accessParam") String accessParam) {
 		try {
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetTopProductKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
@@ -1153,7 +1143,7 @@ public class ProductResource {
 	@Timed
 	public Object getProdFaq(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);

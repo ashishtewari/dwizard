@@ -1,6 +1,7 @@
 package com.mebelkart.api.admin.v1.resources;
 
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.ws.rs.core.Response;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.skife.jdbi.v2.exceptions.UnableToExecuteStatementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,7 @@ import com.mebelkart.api.admin.v1.core.UserStatus;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
+import com.mysql.jdbc.CommunicationsException;
 
 /**
  * @author Tinku
@@ -180,12 +183,13 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in login function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
 			}else{
-				log.warn(e.getMessage());
+				e.printStackTrace();
+				//log.warn(e.getMessage());
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.EXPECTATION_FAILED.getStatusCode(), Response.Status.EXPECTATION_FAILED.getReasonPhrase(),"unknown exception caused");
 				return invalidRequestReply;
 			}
@@ -336,7 +340,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in registerUser function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
@@ -476,7 +480,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in updatePermissions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
@@ -610,7 +614,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in changeUserActiveStatus function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
@@ -701,7 +705,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in changeRateLimit function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
@@ -797,7 +801,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in getUsersStatus function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(),"Connection refused server stopped");
 				return invalidRequestReply;
@@ -918,7 +922,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in getUserPrivileges function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
 				return invalidRequestReply;
@@ -998,7 +1002,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		} catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in getFunctions function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
 				return invalidRequestReply;
@@ -1078,7 +1082,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(),"give valid values");
 			return invalidRequestReply;
 		} catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in getResources function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
 				return invalidRequestReply;
@@ -1172,7 +1176,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in addNewResource function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
 				return invalidRequestReply;
@@ -1324,7 +1328,7 @@ public class AdminResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid values provided");
 			return invalidRequestReply;
 		}catch(Exception e){
-			if(e instanceof ConnectException){
+			if(e instanceof ConnectException || e instanceof UnableToExecuteStatementException || e instanceof CommunicationsException || e instanceof SocketException){
 				log.warn("Connection refused server stopped in addNewFunction function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Connection refused server stopped");
 				return invalidRequestReply;
