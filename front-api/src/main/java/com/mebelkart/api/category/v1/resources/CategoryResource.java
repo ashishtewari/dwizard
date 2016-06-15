@@ -75,35 +75,41 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
-			String accessToken = headerInputJsonData.get("accessToken").toString();
-			String userName = headerInputJsonData.get("userName").toString();
-				/*
-				 * validating the accesstoken given by user
-				 */
-			try {
-				authenticate.validate(userName,accessToken, "category", "get", "getCategories");
-			} catch(Exception e) {
-				errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-				return invalidRequestReply;
-			}
-					FoldingList<CategoryWrapper> categoryIdFoldingList = categoryDao.getCategoryId(1);
-					List<CategoryWrapper> categoryIdList = categoryIdFoldingList.getValues();
-					List<Object> categoryList = new ArrayList<Object>();
-					for(int i=0;i<categoryIdList.size();i++){
+			if(headerInputJsonData.containsKey("accessToken") && headerInputJsonData.containsKey("userName")) {
+				String accessToken = headerInputJsonData.get("accessToken").toString();
+				String userName = headerInputJsonData.get("userName").toString();
+					/*
+					 * validating the accesstoken given by user
+					 */
+				try {
+					authenticate.validate(userName,accessToken, "category", "get", "getCategories");
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access getCategories function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
+						FoldingList<CategoryWrapper> categoryIdFoldingList = categoryDao.getCategoryId(1);
+						List<CategoryWrapper> categoryIdList = categoryIdFoldingList.getValues();
+						List<Object> categoryList = new ArrayList<Object>();
+						for(int i=0;i<categoryIdList.size();i++){
+							
+						BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+					            .must(QueryBuilders.termQuery("_id", categoryIdList.get(i).getCategoryId()));
 						
-					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
-				            .must(QueryBuilders.termQuery("_id", categoryIdList.get(i).getCategoryId()));
-					
-					SearchResponse response = client.prepareSearch("mkcategories")
-							   .setTypes("category")
-							   .setQuery(categoryQuery)									
-							   .execute()
-							   .actionGet();	
-					 SearchHit[] searchHits = response.getHits().getHits();
-						 categoryList.add(searchHits[0].getSource());
-				}		
-					return new Reply(200,"success",categoryList);
+						SearchResponse response = client.prepareSearch("mkcategories")
+								   .setTypes("category")
+								   .setQuery(categoryQuery)									
+								   .execute()
+								   .actionGet();	
+						 SearchHit[] searchHits = response.getHits().getHits();
+							 categoryList.add(searchHits[0].getSource());
+					}		
+						return new Reply(200,"success",categoryList);
+				} else {
+					errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
+					return invalidRequestReply;
+				}
 		}
 		catch (NullPointerException nullPointer) {
 			errorLog.info("accessToken or other fields spelled Incorrectly or mention necessary fields");
@@ -142,40 +148,46 @@ public class CategoryResource {
 		
 		try {
 			headerInputJsonData = (JSONObject) parser.parse(accessParam);
-			String accessToken = headerInputJsonData.get("accessToken").toString();
-			String userName = headerInputJsonData.get("userName").toString();
-			
-			try{
+			if(headerInputJsonData.containsKey("accessToken") && headerInputJsonData.containsKey("userName")) {
+				String accessToken = headerInputJsonData.get("accessToken").toString();
+				String userName = headerInputJsonData.get("userName").toString();
 				
-				authenticate.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+				try{
+					
+					authenticate.validate(userName,accessToken, "category", "get", "getCategoryDetails");
+					
+				}  catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access getCategoryDetails function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
 				
-			}  catch(Exception e) {
-				errorLog.info("Unautherized user "+userName+" tried to access getCategoryDetails function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-				return invalidRequestReply;
-			}
+					if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
+						List<Object> categoryList = new ArrayList<Object>();
+						BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+					            .must(QueryBuilders.termQuery("_id",categoryId));
+						
+						SearchResponse response = client.prepareSearch("mkcategories")
+								   .setTypes("category")
+								   .setQuery(categoryQuery)									
+								   .execute()
+								   .actionGet();	
+						
+						 SearchHit[] searchHits = response.getHits().getHits();
+						 for(int i=0;i<searchHits.length;i++){
+							 categoryList.add(searchHits[i].getSource());
+						 }
+						 
+				return new Reply(200,"success",categoryList);
 			
-				if(categoryHelperMethods.isCategoryIdValid(categoryId,client)){
-					List<Object> categoryList = new ArrayList<Object>();
-					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
-				            .must(QueryBuilders.termQuery("_id",categoryId));
-					
-					SearchResponse response = client.prepareSearch("mkcategories")
-							   .setTypes("category")
-							   .setQuery(categoryQuery)									
-							   .execute()
-							   .actionGet();	
-					
-					 SearchHit[] searchHits = response.getHits().getHits();
-					 for(int i=0;i<searchHits.length;i++){
-						 categoryList.add(searchHits[i].getSource());
-					 }
-					 
-			return new Reply(200,"success",categoryList);
-		
+				} else {
+					errorLog.info("categoryId "+ categoryId+" you mentioned was invalid");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "categoryId "+ categoryId+" you mentioned was invalid");
+					return invalidRequestReply;
+				}
 			} else {
-				errorLog.info("categoryId "+ categoryId+" you mentioned was invalid");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "categoryId "+ categoryId+" you mentioned was invalid");
+				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
 				return invalidRequestReply;
 			}
 		

@@ -295,7 +295,7 @@ public class CustomerHelperMethods {
 			 */
 		if(bodyInputJsonData.containsKey("postCode")){
 			if(bodyInputJsonData.get("postCode").toString().length()==6  && StringUtils.isNumeric(bodyInputJsonData.get("postCode").toString())){
-				updateDetails = updateDetails+"ps_address.id_postcode="+(long)bodyInputJsonData.get("postCode")+",";
+				updateDetails = updateDetails+"ps_address.postcode="+(String)bodyInputJsonData.get("postCode")+",";
 				updateFieldsCount++;
 			}else{
 				errorResponse = errorResponse+"postCode is needed and it should be 6 digits";
@@ -314,12 +314,24 @@ public class CustomerHelperMethods {
 				return errorResponse;
 			}
 		}
+		
+		if(bodyInputJsonData.containsKey("alias")){
+			jsonKeyValue = bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", "");
+			if(jsonKeyValue.toString().length()!=0){
+				updateDetails = updateDetails+"ps_address.alias='"+bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9-/, ]", "")+"',";
+				updateFieldsCount++;
+			}else{
+				errorResponse = errorResponse+"alias is needed and it should not be null";
+				return errorResponse;
+			}
+		}
 		/*
 		 * checking whether given fields are spelled correctly to update that address details.
-		 * Total size-3 is removing apikey,customerId,addressId from the count.because we 
-		 * should not consider those three fields.
+		 * Total size-2 is removing accessToken and userName from the count.because we 
+		 * should not consider those two fields.
 		 */
-		if(updateFieldsCount != (bodyInputJsonData.size()-3)){
+//		System.out.println("fields count = " + updateFieldsCount+"and json size = " + bodyInputJsonData.size());
+		if(updateFieldsCount != (bodyInputJsonData.size()-2)){
 			errorResponse = errorResponse+"please check the field names which you had given.Some of them are misspelled";
 			return errorResponse;
 		}
