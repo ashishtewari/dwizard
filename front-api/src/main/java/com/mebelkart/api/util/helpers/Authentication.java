@@ -8,6 +8,10 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.exceptions.JedisException;
+
 import com.mebelkart.api.util.factories.JDBCFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -27,13 +31,11 @@ public class Authentication {
 	
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		try {
-			// checks whether the user is super admin or not, If he is super admin then we gonna give him access permission
-			if(isSuperAdmin(user,apikey) == 1){
-				return;
-			}
+			// Inside, It checks whether the user is super admin or not, If he is super admin then we gonna give him access permission else we gonna authenticate him
 			jedisAuthentication.validate(user,apikey, resourceName, method,functionName);
 		} catch (Exception e) {	
-			if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
+			//if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
+			if(e instanceof JedisException || e instanceof JedisConnectionException || e instanceof JedisDataException){
 				log.info("Redis server responded with "+e.getMessage());
 				try{
 					sqlValidate(user, apikey, resourceName, method,functionName);
@@ -106,6 +108,7 @@ public class Authentication {
         while(userDetailsResultSet.next()){
            	return userDetailsResultSet.getInt("a_admin_level");
         }
+        sqlConnection.close();
 		return 0;
 	}
 
@@ -135,6 +138,7 @@ public class Authentication {
         		return true;
         	}
         }
+        sqlConnection.close();
         return false;
 	}
 
@@ -167,6 +171,7 @@ public class Authentication {
         		return true;
         	}
         }
+        sqlConnection.close();
         return false;
 	}
 
@@ -186,6 +191,7 @@ public class Authentication {
         		return (long)userDetailsResultSet.getInt("id");
         	}
         }
+        sqlConnection.close();
         return 0;
 	}
 
@@ -206,6 +212,7 @@ public class Authentication {
         		return "consumer";
         	}
         }
+        sqlConnection.close();
 		return null;
 	}
 }
