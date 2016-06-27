@@ -36,7 +36,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.github.rkmk.container.FoldingList;
 import com.mebelkart.api.mkApiApplication;
-import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
@@ -64,7 +63,6 @@ public class CustomerResource {
 	 */
 	Authentication authenticate = new Authentication();
 	//JedisFactory jedisCustomerAuthentication = new JedisFactory();
-	MD5Encoding encode = new MD5Encoding();
 	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	
 	

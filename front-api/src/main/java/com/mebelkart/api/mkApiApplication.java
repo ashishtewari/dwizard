@@ -13,6 +13,8 @@ import com.mebelkart.api.order.v1.resources.OrderResource;
 
 
 
+
+
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -20,6 +22,8 @@ import com.github.rkmk.container.FoldingListContainerFactory;
 import com.github.rkmk.mapper.CustomMapperFactory;
 import com.mebelkart.api.admin.v1.dao.AdminDAO;
 import com.mebelkart.api.admin.v1.resources.AdminResource;
+import com.mebelkart.api.cart.v1.dao.CartOperationsDAO;
+import com.mebelkart.api.cart.v1.resources.CartResource;
 import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.resources.CategoryResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
@@ -80,6 +84,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final ProductDao productDao = mebelkartProductsDatabaseConfiguration.onDemand(ProductDao.class);
 		final ReviewDao reviewDao = reviewSystemDatabase.onDemand(ReviewDao.class);
 		final CategoryDao categoryDao = mebelkartProductsDatabaseConfiguration.onDemand(CategoryDao.class);
+		final CartOperationsDAO cartOperationsDao = mebelkartProductsDatabaseConfiguration.onDemand(CartOperationsDAO.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -95,6 +100,8 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 		environment.jersey().register(new CategoryResource(categoryDao));
+		environment.jersey().register(new CartResource(cartOperationsDao));
+		
 	}
 
 }

@@ -57,7 +57,7 @@ public class ManufacturerResource {
 	Helper utilHelper = new Helper();
 	InvalidInputReplyClass invalidRequestReply = null;
 	JSONParser parser = new JSONParser();
-	JSONObject headerInputJsonData = null;
+	JSONObject headerInputJsonData = null,bodyInputJsonData = null;
 	JSONArray requiredFields;
 	/**
 	 * Getting client to authenticate
@@ -472,7 +472,7 @@ public class ManufacturerResource {
 									String startDate = headerInputJsonData.get("startDate").toString();
 									String endDate = headerInputJsonData.get("endDate").toString();
 									BoolQueryBuilder ordersQuery = QueryBuilders.boolQuery()
-								            .must(QueryBuilders.matchQuery("address.addressDelivery.id_manufacturer", manufacturerId))
+								            .must(QueryBuilders.matchQuery("seller.address.id_manufacturer", manufacturerId))
 								            .must(QueryBuilders.rangeQuery("order.date_add").from(startDate).to(endDate));
 									
 									response = client.prepareSearch("order-status")
