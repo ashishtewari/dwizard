@@ -11,11 +11,6 @@ import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
-import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
-
-import com.github.rkmk.container.FoldingList;
-import com.github.rkmk.mapper.CustomMapperFactory;
-import com.mebelkart.api.cart.v1.core.CartProductDetailsWrapper;
 
 /**
  * @author Nikhil
@@ -38,10 +33,10 @@ public interface CartOperationsDAO {
 	 * @param productId
 	 * @return
 	 */
-	@RegisterMapperFactory(CustomMapperFactory.class)
-	@SqlQuery("select id_cart,id_product,id_product_attribute,quantity from ps_cart_product "
-			+ "where id_cart=:cartId and id_product=:productId")
-	FoldingList<CartProductDetailsWrapper> getCartProductDetails(@Bind("cartId")String cartId,@Bind("productId")String productId);
+//	@RegisterMapperFactory(CustomMapperFactory.class)
+	@SqlQuery("select count(id_cart) from ps_cart_product where id_cart=:cartId and id_product=:productId")
+//	FoldingList<CartProductDetailsWrapper> getCartProductDetails(@Bind("cartId")String cartId,@Bind("productId")String productId);
+	Integer getCartProductDetails(@Bind("cartId")String cartId,@Bind("productId")String productId);
 
 	/**
 	 * @param productId
@@ -77,7 +72,15 @@ public interface CartOperationsDAO {
 	 * @return
 	 */
 	@SqlUpdate("update ps_cart_product set quantity=quantity+1 where id_cart=:cartId and id_product=:productId")
-	Integer updateProductQuantityInCart(@Bind("cartId")String cartId, @Bind("productId")String productId);
+	Integer increaseProductQuantityInCart(@Bind("cartId")String cartId, @Bind("productId")String productId);
+	
+	/**
+	 * @param cartId
+	 * @param productId
+	 * @return
+	 */
+	@SqlUpdate("update ps_cart_product set quantity=quantity-1 where quantity>0 and id_cart=:cartId and id_product=:productId")
+	Integer reduceProductQuantityInCart(@Bind("cartId")String cartId, @Bind("productId")String productId);
 
 	/**
 	 * @param i
@@ -92,6 +95,13 @@ public interface CartOperationsDAO {
 	 */
 	@SqlQuery("select count(id_cart) from ps_cart where id_cart=:cartId")
 	Integer isCartIdValid(@Bind("cartId")String cartId);
+	
+	/**
+	 * @param i
+	 * @return
+	 */
+	@SqlQuery("select count(id_cart) from ps_cart_product where id_cart=:cartId")
+	Integer isProductsPresentCart(@Bind("cartId")String cartId);
 
 	/**
 	 * @param productId
@@ -111,6 +121,38 @@ public interface CartOperationsDAO {
 	Integer createCart(@Bind("langId")int langId, @Bind("currencyId")int currencyId,
 			@Bind("carrierId")int carrierId, @Bind("customerId")String customerId, 
 			@Bind("guestId")String guestId, @Bind("secureKey")String secureKey);
+
+	/**
+	 * @param cartId
+	 * @param productId
+	 * @return
+	 */
+	@SqlUpdate("DELETE from ps_cart_product where id_cart=:cartId and id_product=:productId")
+	Integer deleteProductFromCart(@Bind("cartId")String cartId,@Bind("productId") String productId);
+
+	/**
+	 * @param cartId
+	 * @param addressId 
+	 * @return
+	 */
+	@SqlUpdate("UPDATE ps_cart set id_address_delivery=:addressId where id_cart=:cartId")
+	Integer updateCartAddress(@Bind("cartId")String cartId, @Bind("addressId")String addressId);
+
+	/**
+	 * @param addressId
+	 * @return
+	 */
+	@SqlQuery("select count(id_address) from ps_address where id_address=:addressId")
+	Integer isAddressIdValid(@Bind("addressId")String addressId);
+
+//	/**
+//	 * @param customerId
+//	 * @return addressId of corresponding customerId
+//	 */
+//	@SqlQuery("select ps_address.id_address from ps_address join ps_cart on ps_address.id_customer=ps_cart.id_customer where ps_address.id_customer=:customerId")
+//	Integer getCustomerAddressId(@Bind("customerId")String customerId);
+
+
 	
 	
 }

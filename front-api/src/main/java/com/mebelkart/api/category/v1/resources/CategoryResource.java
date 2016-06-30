@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
-import com.github.rkmk.container.FoldingList;
-import com.mebelkart.api.category.v1.core.CategoryWrapper;
 import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.helper.CategoryHelperMethods;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
@@ -88,23 +86,27 @@ public class CategoryResource {
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 					return invalidRequestReply;
 				}
-						FoldingList<CategoryWrapper> categoryIdFoldingList = categoryDao.getCategoryId(1);
-						List<CategoryWrapper> categoryIdList = categoryIdFoldingList.getValues();
-						List<Object> categoryList = new ArrayList<Object>();
-						for(int i=0;i<categoryIdList.size();i++){
-							
-						BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
-					            .must(QueryBuilders.termQuery("_id", categoryIdList.get(i).getCategoryId()));
-						
-						SearchResponse response = client.prepareSearch("mkcategories")
-								   .setTypes("category")
-								   .setQuery(categoryQuery)									
-								   .execute()
-								   .actionGet();	
-						 SearchHit[] searchHits = response.getHits().getHits();
-							 categoryList.add(searchHits[0].getSource());
-					}		
-						return new Reply(200,"success",categoryList);
+				
+				List<Object>categoriesBasedOnDepth = categoryHelperMethods.getCategoriesBasedOnDepth(1,client);
+//				Map<String,Object>totalCategoriesMap = new HashMap<String,Object>();
+//				totalCategoriesMap.put("id", categoriesBasedOnDepth.get(0));
+//						FoldingList<CategoryWrapper> categoryIdFoldingList = categoryDao.getCategoryId(1);
+//						List<CategoryWrapper> categoryIdList = categoryIdFoldingList.getValues();
+//						List<Object> categoryList = new ArrayList<Object>();
+//						for(int i=0;i<categoryIdList.size();i++){
+//							
+//						BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
+//					            .must(QueryBuilders.termQuery("_id", categoryIdList.get(i).getCategoryId()));
+//						
+//						SearchResponse response = client.prepareSearch("mkcategories")
+//								   .setTypes("category")
+//								   .setQuery(categoryQuery)									
+//								   .execute()
+//								   .actionGet();	
+//						 SearchHit[] searchHits = response.getHits().getHits();
+//							 categoryList.add(searchHits[0].getSource());
+//					}		
+						return new Reply(200,"success",categoriesBasedOnDepth);
 				} else {
 					errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
