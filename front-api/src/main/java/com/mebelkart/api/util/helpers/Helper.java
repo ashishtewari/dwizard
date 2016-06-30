@@ -115,7 +115,7 @@ public class Helper {
     
     /**
      * This function returns the current date and time
-     * @return the previous days date 
+     * @return the current days date 
      */
     public String getCurrentDateString() {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -126,7 +126,7 @@ public class Helper {
     
     /**
      * This function returns the current date and time in other format
-     * @return the previous days date 
+     * @return the current days date 
      */
     public String getCurrentDateTime() {
     	String dayNumberSuffix = getDayNumberSuffix(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
