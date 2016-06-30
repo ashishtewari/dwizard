@@ -13,6 +13,9 @@ import com.mebelkart.api.order.v1.resources.OrderResource;
 
 
 
+import com.mebelkart.api.other.v1.dao.OtherApiDao;
+import com.mebelkart.api.other.v1.resources.OtherApiResource;
+
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.skife.jdbi.v2.DBI;
 
@@ -80,6 +83,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final ProductDao productDao = mebelkartProductsDatabaseConfiguration.onDemand(ProductDao.class);
 		final ReviewDao reviewDao = reviewSystemDatabase.onDemand(ReviewDao.class);
 		final CategoryDao categoryDao = mebelkartProductsDatabaseConfiguration.onDemand(CategoryDao.class);
+		final OtherApiDao otherApiDao = mebelkartProductsDatabaseConfiguration.onDemand(OtherApiDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -95,6 +99,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new HandleNullRequest());
 		environment.jersey().register(new OrderResource(orderDaoForOrderResource));
 		environment.jersey().register(new CategoryResource(categoryDao));
+		environment.jersey().register(new OtherApiResource(otherApiDao));
 	}
 
 }
