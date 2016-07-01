@@ -11,7 +11,6 @@ import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -120,9 +119,9 @@ public class OtherApiResource {
 	 * @return will return json of best deals
 	 */
 	@GET
-	@Path("deals/{categoryId}")
+	@Path("deals")
 	@Timed
-	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId,@QueryParam("id") int customerId){
+	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@QueryParam("catId") int categoryId,@QueryParam("cusId") int customerId){
 		try{
 			if(helper.isValidJson(accessParam)){
 				if(isHavingValidAccessParamKeys(accessParam)){
@@ -137,10 +136,10 @@ public class OtherApiResource {
 						return invalidRequestReply;
 					}
 					
-					if(Integer.parseInt(categoryId) == 0 || categoryId.equals("") || categoryId.length() == 0 || categoryId == null){
+					if(categoryId == 0 ){
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId));
 					}else{
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals(Integer.parseInt(categoryId)));
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals(categoryId));
 					}
 				}
 			}
