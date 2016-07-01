@@ -42,6 +42,11 @@ public class JedisFactory {
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
+		if(user.equals("") || user == null){
+			throw new Exception("Your user name is empty");
+		}else if(apikey.equals("") || apikey == null){
+			throw new Exception("Your access token is empty");
+		}
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
 		user = encode.encrypt(user);
@@ -50,6 +55,10 @@ public class JedisFactory {
 			if (isValidUser(user)) {
 				// checks if this particular user is having valid apikey or not
 				if(isValidAccessToken(user,apikey)){
+					// checks if user is superadmin or not
+					if(isUserSuperAdmin(user)){
+						return;
+					}
 					// checks whether the user is in active state or not
 					if (isActive(user)) {
 						// checks if he had access to that particular resource
@@ -104,6 +113,35 @@ public class JedisFactory {
 		} catch(SocketException e){
 			// If server is Down
 			throw new Exception(e.getMessage());
+		}
+	}
+
+	/**
+	 * @param user
+	 * @return
+	 */
+	private boolean isUserSuperAdmin(String userName) {
+		// get a jedis connection jedis connection pool
+		Jedis jedis = pool.getResource();
+		jedis.auth(mkApiConfiguration.getRedisPassword());
+		try {
+			if (jedis.hget(userName, "adminLevel").equals("1")) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (JedisException e) {
+			// if something wrong happen, return it back to the pool
+			if (null != jedis) {
+				pool.returnBrokenResource(jedis);
+				jedis = null;
+			}
+			return false;
+		} finally {
+			// it's important to return the Jedis instance to the pool once
+			// you've finished using it
+			if (null != jedis)
+				pool.returnResource(jedis);
 		}
 	}
 

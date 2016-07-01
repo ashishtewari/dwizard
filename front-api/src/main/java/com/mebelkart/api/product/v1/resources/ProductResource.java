@@ -4,20 +4,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.product.v1.api.CategoryFeatured;
-import com.mebelkart.api.product.v1.core.AttributeGroupsInnerPOJO;
-import com.mebelkart.api.product.v1.core.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsInnerPOJO;
+import com.mebelkart.api.product.v1.api.AttributeGroupsOuterPOJO;
+import com.mebelkart.api.product.v1.core.ProductReviewsWrapper;
 import com.mebelkart.api.product.v1.core.TopProductsWrapper;
 import com.mebelkart.api.product.v1.dao.ProductDao;
+import com.mebelkart.api.product.v1.dao.ReviewDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.PaginationReply;
 
@@ -47,14 +52,21 @@ import com.mebelkart.api.util.helpers.Helper;
 public class ProductResource {
 
 	ProductDao productDao;
+	ReviewDao reviewDao;
 
-	public ProductResource(ProductDao productDao) {
+	public ProductResource(ProductDao productDao,ReviewDao reviewDao) {
 		this.productDao = productDao;
+		this.reviewDao = reviewDao;
 	}
 	/**
 	 * Getting products elastic client connection
 	 */
 	Client client = ElasticFactory.getProductsElasticClient();
+	
+	/**
+	 * Getting products faq elastic client connection
+	 */
+	Client localClient = ElasticFactory.getElasticClient();
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -80,10 +92,11 @@ public class ProductResource {
 	@SuppressWarnings("unchecked")
 	@GET
 	@Path("/products")
-	public Object getAllProducts(@HeaderParam("accessParam") String accessParam){		
+	@Timed
+	public Object getAllProducts(@HeaderParam("accessParam") String accessParam, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetAllProductDetailKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -94,8 +107,13 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
+					//int page  = Integer.parseInt((String) jsonData.get("page"));
+					//int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -137,7 +155,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getAllProducts function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -153,14 +171,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-	
-	private boolean isHavingValidGetAllProductDetailKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 
 	/**
 	 * This will return json of all live products in pagination format corresponding to their category Id
@@ -170,10 +180,11 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/category/{categoryId}")
-	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId){		
+	@Timed
+	public Object getProductsListByCategory(@HeaderParam("accessParam") String accessParam,@PathParam("categoryId") String categoryId, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailByCategoryKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -182,6 +193,11 @@ public class ProductResource {
 					} catch (Exception e) {
 						log.info("Unautherized user "+userName+" tried to access getProductsListByCategory function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
 						return invalidRequestReply;
 					}
 					String stock = "";
@@ -210,8 +226,8 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Give valid values corresponding to keys (categoryId/stock/sellerId/cityId)");
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -255,7 +271,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductsListByCategory function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -271,14 +287,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-	
-	private boolean isHavingValidGetProductDetailByCategoryKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 
 	/**
 	 * This function returns the product details of single product based on their id 
@@ -288,9 +296,10 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}")
+	@Timed
 	public Object getProductDetail(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -306,6 +315,10 @@ public class ProductResource {
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
 					ProductDetailsResponse prodDetails = new ProductDetailsResponse();
 					Map<String,Object> prodFilteredDetails = new HashMap<String,Object>();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> info = (Map<String, Object>) source.get("info");
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -366,7 +379,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductDetail function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -381,13 +394,6 @@ public class ProductResource {
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
 			return invalidRequestReply;
 		}
-	}
-
-	private boolean isValidJson(String accessParam) {
-		if(helper.isValidJson(accessParam)){
-			return true;
-		}else
-			return false;
 	}
 
 	private boolean ishavingValidGetProductDetailKeys(String accessParam) {
@@ -428,6 +434,7 @@ public class ProductResource {
 	private Object setAttributeGroups(Map<String, Object> source){
 		Map<String,Object> groupKeys = new HashMap<String,Object>();
 		Map<String,Map<String,Integer>> attributeMappings = new HashMap<String,Map<String,Integer>>();
+		Map<String,String> mapping = new HashMap<String,String>();
 		List<Map<String,Object>> attributeGroups = (List<Map<String, Object>>) source.get("attribute_groups");
 		Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
 		for(int i = 0; i < attributeGroups.size(); i++){
@@ -439,22 +446,34 @@ public class ProductResource {
 						innerPojo.setDefaultAttribute(Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString()));
 					}
 				}
-				List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
-				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
+				//List<Map<String,Map<String,Object>>> attributesList = innerPojo.getAttributes();
+				Map<String,Map<String,Object>> attributes = innerPojo.getAttributes();
 				Map<String,Object> innerAttributes = new HashMap<String,Object>();
+				int attributeId = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
 				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
 				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
 				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
-				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
-				attributesList.add(attributes);
-				innerPojo.setAttributes(attributesList);
-				groupKeys.put(attributeGroupId, innerPojo);
-				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
-				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
-				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
-				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
-				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
 				
+				if(attributes.containsKey(attributeId+"")){
+					Map<String,Object> tempInnerAttributes = attributes.get(attributeId+"");
+					int prevQuantity = Integer.parseInt((String)tempInnerAttributes.get("attributeQuantity"));
+					if(prevQuantity < Integer.parseInt(attributeGroups.get(i).get("quantity").toString())){
+						attributes.put(attributeId+"", innerAttributes);
+						innerPojo.setAttributes(attributes);
+						groupKeys.put(attributeGroupId, innerPojo);
+					}
+				}else{
+					attributes.put(attributeId+"", innerAttributes);
+					innerPojo.setAttributes(attributes);
+					groupKeys.put(attributeGroupId, innerPojo);
+				}
+				
+				if(mapping.containsKey(attributeGroups.get(i).get("id_product_attribute").toString())){
+					String temp = mapping.get(attributeGroups.get(i).get("id_product_attribute").toString());
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), temp+","+attributeGroups.get(i).get("id_attribute").toString());
+				}else{
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), attributeGroups.get(i).get("id_attribute").toString());
+				}
 			}else{
 				String name = attributeGroups.get(i).get("group_name").toString();
 				String colorGroup = attributeGroups.get(i).get("is_color_group").toString();
@@ -462,22 +481,31 @@ public class ProductResource {
 				if((attributeGroups.get(i).get("default_on").toString()).equalsIgnoreCase("1")){
 					defaultAttribute = Integer.parseInt(attributeGroups.get(i).get("id_attribute").toString());
 				}
-				List<Map<String,Map<String,Object>>> attributesList = new ArrayList<Map<String,Map<String,Object>>>();
+				
 				Map<String,Map<String,Object>> attributes = new HashMap<String,Map<String,Object>>();
 				Map<String,Object> innerAttributes = new HashMap<String,Object>();
 				innerAttributes.put("attributeName", attributeGroups.get(i).get("attribute_name").toString());
 				innerAttributes.put("attributeQuantity", attributeGroups.get(i).get("quantity").toString());
 				innerAttributes.put("colorValue", attributeGroups.get(i).get("attribute_color").toString());
 				attributes.put(attributeGroups.get(i).get("id_attribute").toString(), innerAttributes);
-				attributesList.add(attributes);
-				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributesList);
+				AttributeGroupsInnerPOJO innerPojo = new AttributeGroupsInnerPOJO(name,colorGroup,defaultAttribute,attributes);
 				groupKeys.put(attributeGroupId, innerPojo);
-				Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
-				attributeMapping.put("productAttributeId", Integer.parseInt(attributeGroups.get(i).get("id_product_attribute").toString()));
-				attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
-				attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
-				attributeMappings.put(attributeGroups.get(i).get("id_attribute").toString(), attributeMapping);
+				
+				if(mapping.containsKey(attributeGroups.get(i).get("id_product_attribute").toString())){
+					String temp = mapping.get(attributeGroups.get(i).get("id_product_attribute").toString());
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), temp+","+attributeGroups.get(i).get("id_attribute").toString());
+				}else{
+					mapping.put(attributeGroups.get(i).get("id_product_attribute").toString(), attributeGroups.get(i).get("id_attribute").toString());
+				}
 			}
+		}
+		Set<String> mappings = mapping.keySet();
+		for(String map : mappings){
+			Map<String,Integer> attributeMapping = new HashMap<String,Integer>();
+			attributeMapping.put("productAttributeId", Integer.parseInt(map));
+			attributeMapping.put("ourPrice", (Integer)categoryVars.get("price_tax_exc"));
+			attributeMapping.put("mktPrice", (Integer)categoryVars.get("price_without_reduction"));
+			attributeMappings.put(mapping.get(map), attributeMapping);
 		}
 		return new AttributeGroupsOuterPOJO(groupKeys,attributeMappings);
 	}
@@ -490,9 +518,10 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}/price")
+	@Timed
 	public Object getSellingPrice(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -506,6 +535,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -520,12 +553,69 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getSellingPrice function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
 			e.printStackTrace();
 			log.info("Invalid product id given in getSellingPrice functions");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
+			return invalidRequestReply;
+		}
+		catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in getSellingPrice function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
+	/**
+	 * This function returns all the reviews of the product based on its id 
+	 * @param id
+	 * @return
+	 */
+	@SuppressWarnings({ "unused" })
+	@GET
+	@Path("/product/{productId}/reviews")
+	@Timed
+	public Object getProductReviews(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
+		try{
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
+					int productId = Integer.parseInt(id);
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "products", "get", "getProductReviews");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access getSellingPrice function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					Map<String,Object> reviews = new HashMap<String,Object>();
+					List<ProductReviewsWrapper> reviewsList = this.reviewDao.getProductReviews(id);
+					if(reviewsList.size() == 0){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "review details not found for this productId");
+						return invalidRequestReply;
+					}
+					reviews.put("ProductId", id);
+					reviews.put("reviews", reviewsList);
+					return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), reviews);
+				}else{
+					log.info("Invalid header keys provided to access getProductReviews function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access getProductReviews function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(NumberFormatException e){
+			e.printStackTrace();
+			log.info("Invalid product id given in getProductReviews functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid product id provided");
 			return invalidRequestReply;
 		}
@@ -545,9 +635,10 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked", "unused" })
 	@GET
 	@Path("/product/{productId}/description")
+	@Timed
 	public Object getProdDesc(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -561,6 +652,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,String> productsDetails = new HashMap<String,String>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -574,7 +669,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdDesc function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -598,9 +693,10 @@ public class ProductResource {
 	@SuppressWarnings({ "unused", "unchecked" })
 	@GET
 	@Path("/product/{productId}/attributes")
+	@Timed
 	public Object getProdAttr(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -614,6 +710,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
@@ -627,7 +727,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdAttr function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -651,9 +751,10 @@ public class ProductResource {
 	@SuppressWarnings("unused")
 	@GET
 	@Path("/product/{productId}/feature")
+	@Timed
 	public Object getProdFeature(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -667,6 +768,10 @@ public class ProductResource {
 						return invalidRequestReply;
 					}
 					GetResponse response = client.prepareGet("mkproducts", "product", id).get();
+					if(!response.isExists()){
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+						return invalidRequestReply;
+					}	
 					Map<String,Object> productsDetails = new HashMap<String,Object>();
 					Map<String,Object> source = response.getSource();
 					productsDetails.put("features",getProductFeatures(source));
@@ -678,7 +783,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdFeature function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -703,9 +808,10 @@ public class ProductResource {
 	@GET
 	@Path("/products/featured")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Timed
 	public Object getFeaturedProduct(@HeaderParam("accessParam") String accessParam) {
 		try {
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
@@ -724,6 +830,10 @@ public class ProductResource {
 						GetResponse response = client.prepareGet("mkcategories", "categoryPopularProducts", catId)
 								.execute()
 								.actionGet();
+						if(!response.isExists()){
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.NOT_FOUND.getStatusCode(), Response.Status.NOT_FOUND.getReasonPhrase(), "product details not found");
+							return invalidRequestReply;
+						}
 						String catName=productDao.getNameOfCategory(catId);
 
 						Map<String,Object> source = response.getSource();
@@ -754,7 +864,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access featured function in products resource");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		} catch (Exception e) {
@@ -774,10 +884,11 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/seller/{manufacturerId}")
-	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId){		
+	@Timed
+	public Object getProductsListBySeller(@HeaderParam("accessParam") String accessParam,@PathParam("manufacturerId") String manufacturerId, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailBySellerKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -788,9 +899,14 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
 					int manufId = Integer.parseInt(manufacturerId);
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -836,12 +952,12 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProductsListBySeller function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
 			e.printStackTrace();
-			log.info("Invalid pageNumber/limit given in getProductsListBySeller functions");
+			log.info("Invalid pageNumber/limit/manufacturerId given in getProductsListBySeller functions");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid pageNumber/limit");
 			return invalidRequestReply;
 		}
@@ -852,14 +968,6 @@ public class ProductResource {
 			return invalidRequestReply;
 		}
 	}
-
-	private boolean isHavingValidGetProductDetailBySellerKeys(String accessParam) {
-		JSONObject jsonData = helper.jsonParser(accessParam);
-		if(jsonData.containsKey("userName") && jsonData.containsKey("accessToken") && jsonData.containsKey("page") && jsonData.containsKey("limit"))
-			return true;
-		else
-			return false;
-	}
 	
 	/**
 	 * This will return json of all live products in pagination format corresponding to their category Id
@@ -869,10 +977,11 @@ public class ProductResource {
 	@SuppressWarnings({ "unchecked" })
 	@GET
 	@Path("/products/outofstock")
-	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam){		
+	@Timed
+	public Object getAllOutOfStock(@HeaderParam("accessParam") String accessParam, @QueryParam("page") int page, @QueryParam("limit") int perPage){		
 		try{
-			if(isValidJson(accessParam)){
-				if(isHavingValidGetProductDetailBySellerKeys(accessParam)){
+			if(helper.isValidJson(accessParam)){
+				if(ishavingValidGetProductDetailKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
 					String accessToken = (String) jsonData.get("accessToken");
@@ -883,8 +992,13 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					int page  = Integer.parseInt((String) jsonData.get("page"));
-					int perPage = Integer.parseInt((String) jsonData.get("limit"));
+					if(page <= 0 || perPage <= 0){
+						log.info("Provide valid pagination details i.e, page > 0 and limit > 0");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Provide valid pagination details in URL i.e, page > 0 and limit > 0");
+						return invalidRequestReply;
+					}
+//					int page  = Integer.parseInt((String) jsonData.get("page"));
+//					int perPage = Integer.parseInt((String) jsonData.get("limit"));
 					int start = ((page - 1) * perPage) + 1;
 					int end = page * perPage;
 					String[] includes = new String[]
@@ -930,7 +1044,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getAllOutOfStock function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){
@@ -955,9 +1069,10 @@ public class ProductResource {
 	@GET
 	@Path("/products/top")
 	@Produces(MediaType.APPLICATION_JSON)
+	@Timed
 	public Object getTopProducts(@HeaderParam("accessParam") String accessParam) {
 		try {
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetTopProductKeys(accessParam)){
 					JSONObject jsonData = helper.jsonParser(accessParam);
 					String userName = (String) jsonData.get("userName");
@@ -993,7 +1108,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getTopProducts function in products resource");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		} catch(NumberFormatException e){
@@ -1025,9 +1140,10 @@ public class ProductResource {
 	 */
 	@GET
 	@Path("/product/{productId}/faq")
+	@Timed
 	public Object getProdFaq(@HeaderParam("accessParam") String accessParam,@PathParam("productId") String id){
 		try{
-			if(isValidJson(accessParam)){
+			if(helper.isValidJson(accessParam)){
 				if(ishavingValidGetProductDetailKeys(accessParam)){
 					int productId = Integer.parseInt(id);
 					JSONObject jsonData = helper.jsonParser(accessParam);
@@ -1040,7 +1156,6 @@ public class ProductResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
-					Client localClient = ElasticFactory.getElasticClient();
 					BoolQueryBuilder categoryQuery = QueryBuilders.boolQuery()
 							.must(QueryBuilders.matchQuery("idProduct",productId));
 					SearchResponse response = localClient.prepareSearch("product")
@@ -1059,7 +1174,7 @@ public class ProductResource {
 				}
 			}else{
 				log.info("Invalid header json provided to access getProdFaq function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(NumberFormatException e){

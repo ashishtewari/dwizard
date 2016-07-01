@@ -1,9 +1,8 @@
 /**
  * 
  */
-package com.mebelkart.api.product.v1.core;
+package com.mebelkart.api.product.v1.api;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,12 +14,12 @@ public class AttributeGroupsInnerPOJO {
 	private String name;
 	private String colorGroup;
 	private int defaultAttribute;
-	private List<Map<String,Map<String,Object>>> attributes;
+	private Map<String,Map<String,Object>> attributes;
 
 	/**
 	 * Parameterised Constructer
 	 */
-	public AttributeGroupsInnerPOJO(String name, String colorGroup, int defaultAttribute, List<Map<String,Map<String,Object>>> attributes) {
+	public AttributeGroupsInnerPOJO(String name, String colorGroup, int defaultAttribute, Map<String,Map<String,Object>> attributes) {
 		this.setName(name);
 		this.setColorGroup(colorGroup);
 		this.setDefaultAttribute(defaultAttribute);
@@ -51,11 +50,11 @@ public class AttributeGroupsInnerPOJO {
 		this.defaultAttribute = defaultAttribute;
 	}
 
-	public List<Map<String,Map<String,Object>>> getAttributes() {
+	public Map<String,Map<String,Object>> getAttributes() {
 		return attributes;
 	}
 
-	public void setAttributes(List<Map<String,Map<String,Object>>> attributes) {
+	public void setAttributes(Map<String,Map<String,Object>> attributes) {
 		this.attributes = attributes;
 	}
 

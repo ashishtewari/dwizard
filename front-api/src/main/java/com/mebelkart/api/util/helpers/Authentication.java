@@ -8,6 +8,10 @@ import java.sql.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.exceptions.JedisException;
+
 import com.mebelkart.api.util.factories.JDBCFactory;
 import com.mebelkart.api.util.factories.JedisFactory;
 
@@ -27,10 +31,11 @@ public class Authentication {
 	
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		try {
+			// Inside, It checks whether the user is super admin or not, If he is super admin then we gonna give him access permission else we gonna authenticate him
 			jedisAuthentication.validate(user,apikey, resourceName, method,functionName);
 		} catch (Exception e) {	
-			e.printStackTrace();
-			if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
+			//if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
+			if(e instanceof JedisException || e instanceof JedisConnectionException || e instanceof JedisDataException){
 				log.info("Redis server responded with "+e.getMessage());
 				try{
 					sqlValidate(user, apikey, resourceName, method,functionName);
@@ -45,9 +50,20 @@ public class Authentication {
 
 	private void sqlValidate(String user, String apikey, String resourceName,String method, String functionName) throws Exception{
 		try{
+			if(user.equals("") || user == null){
+				throw new Exception("Your user name is empty");
+			}else if(apikey.equals("") || apikey == null){
+				throw new Exception("Your access token is empty");
+			}
 			String userType = getUserType(user);
 			// checks if the userName exists in SQL or not
 			if (userType != null) {
+				// checks whether the user is super admin or not, If he is super admin then we gonna give him access permission
+				if(userType.equals("admin")){
+					if(isSuperAdmin(user,apikey) == 1){
+						return;
+					}
+				}
 				// checks if this particular user is having valid apikey or not and also checks whether the user is in active state or not
 				long userId = isHavingValidAccessTokenAndActive(user,apikey,userType);
 				if(userId != 0){
@@ -77,6 +93,25 @@ public class Authentication {
 		}		
 	}
 
+	/**
+	 * Checks whether the user is super admin or not
+	 * @param user
+	 * @param apikey
+	 * @return
+	 */
+	private int isSuperAdmin(String user, String apikey) throws ClassNotFoundException, SQLException{
+		String query = "";
+		sqlConnection = JDBCFactory.getMkAuthJDBCInstance();
+		Statement getUserDetails = sqlConnection.createStatement();
+		query = "SELECT a_admin_level FROM mk_api_user_admin WHERE a_user_name = \""+user+"\" AND a_access_token = \""+apikey+"\" AND a_is_active = 1";
+        ResultSet userDetailsResultSet = getUserDetails.executeQuery(query);
+        while(userDetailsResultSet.next()){
+           	return userDetailsResultSet.getInt("a_admin_level");
+        }
+        sqlConnection.close();
+		return 0;
+	}
+
 	private boolean containsFunction(long userId,String resourceName, String method,
 			String functionName, String userType) throws ClassNotFoundException, SQLException{
 		String query = "";
@@ -103,6 +138,7 @@ public class Authentication {
         		return true;
         	}
         }
+        sqlConnection.close();
         return false;
 	}
 
@@ -135,6 +171,7 @@ public class Authentication {
         		return true;
         	}
         }
+        sqlConnection.close();
         return false;
 	}
 
@@ -154,6 +191,7 @@ public class Authentication {
         		return (long)userDetailsResultSet.getInt("id");
         	}
         }
+        sqlConnection.close();
         return 0;
 	}
 
@@ -174,6 +212,7 @@ public class Authentication {
         		return "consumer";
         	}
         }
+        sqlConnection.close();
 		return null;
 	}
 }

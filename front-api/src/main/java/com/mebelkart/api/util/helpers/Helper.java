@@ -103,6 +103,7 @@ public class Helper {
     }
     
     /**
+     * This function returns the previous days date and time
      * @return the previous days date 
      */
     public String getYesterdayDateString() {
@@ -111,4 +112,48 @@ public class Helper {
         cal.add(Calendar.DATE, -1);    
         return dateFormat.format(cal.getTime());
 	}
+    
+    /**
+     * This function returns the current date and time
+     * @return the current days date 
+     */
+    public String getCurrentDateString() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, 0);    
+        return dateFormat.format(cal.getTime());
+	}
+    
+    /**
+     * This function returns the current date and time in other format
+     * @return the current days date 
+     */
+    public String getCurrentDateTime() {
+    	String dayNumberSuffix = getDayNumberSuffix(Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+        DateFormat dateFormat = new SimpleDateFormat("d'" + dayNumberSuffix + ",'MMM y HH:mm:ss");
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, 0);    
+        return dateFormat.format(cal.getTime());
+	}
+    
+    /**
+     * This function will return day suffix
+     * @param day
+     * @return
+     */
+    private String getDayNumberSuffix(int day) {
+        if (day >= 11 && day <= 13) {
+            return "th";
+        }
+        switch (day % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
+        }
+    }
 }

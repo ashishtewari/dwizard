@@ -31,11 +31,11 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.github.rkmk.container.FoldingList;
 import com.mebelkart.api.mkApiApplication;
-import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.customer.v1.core.CustomerDetailsWrapper;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.helper.CustomerHelperMethods;
@@ -63,7 +63,6 @@ public class CustomerResource {
 	 */
 	Authentication authenticate = new Authentication();
 	//JedisFactory jedisCustomerAuthentication = new JedisFactory();
-	MD5Encoding encode = new MD5Encoding();
 	static Logger errorLog = LoggerFactory.getLogger(mkApiApplication.class);
 	
 	
@@ -79,60 +78,69 @@ public class CustomerResource {
 	@GET
 	@Path("/{id}")
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object getCustomerDetails(@HeaderParam("accessParam")String accessParam,@PathParam("id")long customerId) throws ParseException, ConnectException{
 		
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			if(helperMethods.isValidJson(accessParam)){ // validating the input json data
-				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values 
-				String accessToken = (String) headerInputJsonData.get("accessToken");
-				String userName = (String) headerInputJsonData.get("userName");
-				requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
-				try {
-						/*
-						 * validating the accesstoken given by user
-						 */
-					authenticate.validate(userName,accessToken, "customer", "get","getCustomerDetails");
-				} catch(Exception e) {
-					errorLog.info("Unautherized user "+userName+" tried to access getCustomerDetails function");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-					return invalidRequestReply;
-				}
-					    /*
-					     * checking whether the customerId is valid or not
-					     */
-					if(helperMethods.isCustomerIdValid(customerId)){ 
+				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
+				if(headerInputJsonData.containsKey("accessToken") && headerInputJsonData.containsKey("userName")) {
+					String accessToken = (String) headerInputJsonData.get("accessToken");
+					String userName = (String) headerInputJsonData.get("userName");
+					requiredFields =  (JSONArray)headerInputJsonData.get("requiredFields");
+					try {
+							/*
+							 * validating the accesstoken given by user
+							 */
+						authenticate.validate(userName,accessToken, "customer", "get","getCustomerDetails");
 						
-						FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
-						List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
-						List<String> customerRequiredDetails = null;
-						if(requiredFields.size()==0){ // if the user wants all the details
-							/*
-							 * Adding customerDetails resultSet to foldingList
-							 */
-							customerFoldingListResultSet = customerDetailsDao.getCustomerDetails(customerId);
-							/*
-							 * Retrieving values from foldingList and adding them to a list
-							 */
-							customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
-							return new Reply(200,"success",customerFoldingListResultSetValues);
-						}
-						else {
-							/*
-							 * getting required fields string to append directly to query in dao class
-							 */
-							customerRequiredDetails = helperMethods.getRequiredDetailsString(requiredFields);
-						
-							customerFoldingListResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
-							
-							customerFoldingListResultSetValues =  customerFoldingListResultSet.getValues();
-							return new Reply(200,"success",customerFoldingListResultSetValues);
-						}
-					} else{
-						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
+					} catch(Exception e) {
+//						e.printStackTrace();
+						errorLog.warn("Unautherized user "+userName+" tried to access getCustomerDetails function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
+						    /*
+						     * checking whether the customerId is valid or not
+						     */
+						if(helperMethods.isCustomerIdValid(customerId)){ 
+							
+							FoldingList<CustomerDetailsWrapper>customerFoldingListResultSet = null; // folding list is to fold database resultset for dynamic mapping.
+							List<CustomerDetailsWrapper> customerFoldingListResultSetValues = null; // url for resource jdbi folder http://manikandan-k.github.io/jdbi_folder/
+							List<String> customerRequiredDetails = null;
+							if(requiredFields.size()==0){ // if the user wants all the details
+								/*
+								 * Adding customerDetails resultSet to foldingList
+								 */
+								customerFoldingListResultSet = customerDetailsDao.getCustomerDetails(customerId);
+								/*
+								 * Retrieving values from foldingList and adding them to a list
+								 */
+								customerFoldingListResultSetValues = customerFoldingListResultSet.getValues();
+								return new Reply(200,"success",customerFoldingListResultSetValues);
+							}
+							else {
+								/*
+								 * getting required fields string to append directly to query in dao class
+								 */
+								customerRequiredDetails = helperMethods.getRequiredDetailsString(requiredFields);
+							
+								customerFoldingListResultSet = customerDetailsDao.getRequiredCustomerDetails(customerId,customerRequiredDetails.get(0),customerRequiredDetails.get(1),customerRequiredDetails.get(2));
+								
+								customerFoldingListResultSetValues =  customerFoldingListResultSet.getValues();
+								return new Reply(200,"success",customerFoldingListResultSetValues);
+							}
+						} else{
+							errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
+							return invalidRequestReply;
+						}
+				} else {
+					errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
+					return invalidRequestReply;
+				}
 			} else {
 				errorLog.warn("The parameter which you specified is not in json format");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "The parameter which you specified is not in json format");
@@ -154,13 +162,19 @@ public class CustomerResource {
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct data type for the values as mentioned in instructions");
 				return invalidRequestReply;
 			}
+			catch(StringIndexOutOfBoundsException indexOutOfBounds){
+				errorLog.warn("Specify your requirement in requiredFields array correctly");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify your requirement in requiredFields array correctly");
+				return invalidRequestReply;
+			}
 			catch (Exception e) {
 				if(e instanceof IllegalArgumentException){
+//					e.printStackTrace();
 					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct keys for the values as mentioned in instructions");
 					return invalidRequestReply;
-				} else {
-					e.printStackTrace();
+				}else {
+//					e.printStackTrace();
 					errorLog.warn("Internal server error");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server error");
 					return invalidRequestReply;
@@ -171,50 +185,57 @@ public class CustomerResource {
 	
 	@SuppressWarnings("unused")
 	@POST
-	@Path("{customerId}/address")
+	@Path("/{customerId}/address")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object addNewAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request);
-			String accessToken = (String) bodyInputJsonData.get("accessToken");
-			String userName = (String) bodyInputJsonData.get("userName");
-			int isAddressAdded=0;
-			try{
-				authenticate.validate(userName,accessToken, "customer", "put","addNewAddress");
-				
-			} catch(Exception e) {
-				errorLog.warn("Unautherized user "+userName+" tried to access addNewAddress function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), "Unautherized user "+userName+" tried to access addNewAddress function");
-				return invalidRequestReply;
-			}
-			
-					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
-						String isValidInputValues = helperMethods.validateInputValues(bodyInputJsonData);
-						     /*
-						      * validating input data given by the user
-						      */
-						if(isValidInputValues.equals("success")){ 
-								/*
-								 * adding all the new address details to the query
-								 */
-							isAddressAdded = customerDetailsDao.addNewAddress((long)bodyInputJsonData.get("countryId"),(long)bodyInputJsonData.get("stateId"),customerId,bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", ""),bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), (String)bodyInputJsonData.get("postCode"), bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("mobile"));
-							    /*
-							     * adding response info to the log file
-							     */
-							errorLog.info("New address added for customerId:"+ customerId+" by consumer:"+userName+" on "+ helperMethods.getDateTime());
-							return new Reply(201,"success","New address added succesfully to customerId " + customerId);
-							
+			if(bodyInputJsonData.containsKey("accessToken") && bodyInputJsonData.containsKey("userName")) {
+				String accessToken = (String) bodyInputJsonData.get("accessToken");
+				String userName = (String) bodyInputJsonData.get("userName");
+				int isAddressAdded=0;
+				try{
+					authenticate.validate(userName,accessToken, "customer", "put","addNewAddress");
+					
+				} catch(Exception e) {
+					errorLog.warn("Unautherized user "+userName+" tried to access addNewAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
+						if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+							String isValidInputValues = helperMethods.validateInputValues(bodyInputJsonData);
+							     /*
+							      * validating input data given by the user
+							      */
+							if(isValidInputValues.equals("success")){ 
+									/*
+									 * adding all the new address details to the query
+									 */
+								isAddressAdded = customerDetailsDao.addNewAddress((long)bodyInputJsonData.get("countryId"),(long)bodyInputJsonData.get("stateId"),customerId,bodyInputJsonData.get("alias").toString().replaceAll("[^a-zA-Z0-9 ]", ""),bodyInputJsonData.get("firstName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("lastName").toString().replaceAll("[^a-zA-Z0-9 ]", ""), bodyInputJsonData.get("address1").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), bodyInputJsonData.get("address2").toString().replaceAll("[^a-zA-Z0-9-/, ]", ""), (String)bodyInputJsonData.get("postCode"), bodyInputJsonData.get("city").toString().replaceAll("[^a-zA-Z0-9 ]", ""), (String)bodyInputJsonData.get("mobile"));
+								    /*
+								     * adding response info to the log file
+								     */
+								errorLog.info("New address added for customerId:"+ customerId+" by consumer:"+userName+" on "+ helperMethods.getDateTime());
+								return new Reply(201,"success","New address added succesfully to customerId " + customerId);
+								
+							} else {
+								errorLog.warn(isValidInputValues);
+								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), isValidInputValues);
+								return invalidRequestReply;
+							}
 						} else {
-							errorLog.warn(isValidInputValues);
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), isValidInputValues);
+							errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
 							return invalidRequestReply;
 						}
 					} else {
-						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
+						errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
 						return invalidRequestReply;
+						
 					}
 			} 	
 		catch (NullPointerException nullPointer) {
@@ -223,6 +244,7 @@ public class CustomerResource {
 			return invalidRequestReply;
 		}	
 		catch (ClassCastException classCast) {
+			classCast.printStackTrace();
 			errorLog.warn("Please check the values data types");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please check the values data types");
 			return invalidRequestReply;
@@ -242,65 +264,72 @@ public class CustomerResource {
 }
 	
 	@PUT
-	@Path("{customerId}/address/{addressId}")
+	@Path("/{customerId}/address/{addressId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object updateAddress(@Context HttpServletRequest request,@PathParam("customerId")long customerId,@PathParam("addressId")long addressId) throws ParseException{
 		try {
 			String getUpdateDetails = "";
 			String splitUpdateDetails[]=null;
 			int isAddressUpdated = 0;
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
-			bodyInputJsonData = helperMethods.contextRequestParser(request); 
-			String accessToken = (String) bodyInputJsonData.get("accessToken");
-			String userName = (String) bodyInputJsonData.get("userName");
-			try {
-					/*
-					 * validating the accesstoken given by user
-					 */
-				authenticate.validate(userName,accessToken, "customer", "put","updateAddress");
-				
-			} catch(Exception e) {
-				errorLog.info("Unautherized user "+userName+" tried to access updateAddress function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-				return invalidRequestReply;
-			}
+			bodyInputJsonData = helperMethods.contextRequestParser(request);
+			if(bodyInputJsonData.containsKey("accessToken") && bodyInputJsonData.containsKey("userName")) {
+				String accessToken = (String) bodyInputJsonData.get("accessToken");
+				String userName = (String) bodyInputJsonData.get("userName");
+				try {
 						/*
-						 * checking whether the customerId is valid or not
+						 * validating the accesstoken given by user
 						 */
-					if (helperMethods.isCustomerIdValid(customerId)) { 
-						/*
-						 * getting update query if the given values pass the validations else error message.
-						 */
-						getUpdateDetails = helperMethods.getUpdateDetailsString(bodyInputJsonData);
-							
-							// splitting the returned string.
-						splitUpdateDetails = getUpdateDetails.split(" "); 
+					authenticate.validate(userName,accessToken, "customer", "put","updateAddress");
+					
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access updateAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
 							/*
-							 * checking whether the string has error in it.
+							 * checking whether the customerId is valid or not
 							 */
-						if(!splitUpdateDetails[0].trim().equals("Error")){
-							isAddressUpdated = customerDetailsDao.updateAddress(addressId,customerId,getUpdateDetails);
-									/*
-									 * if the given addressId and customerId matches then query runs and return 1 else return 0.
-									 */
-								if (isAddressUpdated == 1) { 
-									errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" updated successfully by user:"+userName+" on "+ helperMethods.getDateTime());
-									return new Reply(201,"success","Address of addressId "+addressId+" updated succesfully" );
-								} else {
-									errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
-									invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
-									return invalidRequestReply;
-								}
-									
+						if (helperMethods.isCustomerIdValid(customerId)) { 
+							/*
+							 * getting update query if the given values pass the validations else error message.
+							 */
+							getUpdateDetails = helperMethods.getUpdateDetailsString(bodyInputJsonData);
+								
+								// splitting the returned string.
+							splitUpdateDetails = getUpdateDetails.split(" "); 
+								/*
+								 * checking whether the string has error in it.
+								 */
+							if(!splitUpdateDetails[0].trim().equals("Error")){
+								isAddressUpdated = customerDetailsDao.updateAddress(addressId,customerId,getUpdateDetails);
+										/*
+										 * if the given addressId and customerId matches then query runs and return 1 else return 0.
+										 */
+									if (isAddressUpdated == 1) { 
+										errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" updated successfully by user:"+userName+" on "+ helperMethods.getDateTime());
+										return new Reply(201,"success","Address of addressId "+addressId+" updated succesfully" );
+									} else {
+										errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
+										invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
+										return invalidRequestReply;
+									}
+										
+							} else {
+								errorLog.warn(getUpdateDetails);
+								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), getUpdateDetails);
+								return invalidRequestReply;
+							}
 						} else {
-							errorLog.warn(getUpdateDetails);
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), getUpdateDetails);
+							errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
 							return invalidRequestReply;
 						}
 					} else {
-						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
+						errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
 						return invalidRequestReply;
 					}
 				} 	
@@ -310,6 +339,7 @@ public class CustomerResource {
 			return invalidRequestReply;
 		}	
 		catch (ClassCastException classCast) {
+			classCast.printStackTrace();
 			errorLog.warn("Please check the values data types");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please check the values data types");
 			return invalidRequestReply;
@@ -331,43 +361,50 @@ public class CustomerResource {
 	@Path("/deleteAddress")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
+	@Timed
 	public Object deleteAddress(@Context HttpServletRequest request) throws ParseException{
 		try {
 			helperMethods = new CustomerHelperMethods(customerDetailsDao);
 			bodyInputJsonData = helperMethods.contextRequestParser(request); 
-			String accessToken = (String) bodyInputJsonData.get("accessToken");
-			String userName = (String) bodyInputJsonData.get("userName");
-			int isAddressDeleted=0;
-			try{
-				authenticate.validate(userName,accessToken, "customer", "put", "deleteAddress");
-			} catch(Exception e) {
-				errorLog.info("Unautherized user "+userName+" tried to access deleteAddress function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-				return invalidRequestReply;
-			}
-				long customerId = (long) bodyInputJsonData.get("customerId");
-				long addressId = (long)bodyInputJsonData.get("addressId");
-					if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
-						/*
-						 * Below method if given addressId and customerId matches then  query runs and return 1 else return 0.
-						 */
-						isAddressDeleted = customerDetailsDao.deleteAddress(addressId,customerId);
+			if(bodyInputJsonData.containsKey("accessToken") && bodyInputJsonData.containsKey("userName")) {
+				String accessToken = (String) bodyInputJsonData.get("accessToken");
+				String userName = (String) bodyInputJsonData.get("userName");
+				int isAddressDeleted=0;
+				try{
+					authenticate.validate(userName,accessToken, "customer", "put", "deleteAddress");
+				} catch(Exception e) {
+					errorLog.info("Unautherized user "+userName+" tried to access deleteAddress function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+					return invalidRequestReply;
+				}
+					long customerId = (long) bodyInputJsonData.get("customerId");
+					long addressId = (long)bodyInputJsonData.get("addressId");
+						if(helperMethods.isCustomerIdValid(customerId)){ // checking whether the customerId is valid or not
+							/*
+							 * Below method if given addressId and customerId matches then  query runs and return 1 else return 0.
+							 */
+							isAddressDeleted = customerDetailsDao.deleteAddress(addressId,customerId);
+								
+							if (isAddressDeleted == 1) { 
+								errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" deleted successfully by user:"+userName+" on "+ helperMethods.getDateTime());
+								return new Reply(201,"success","Address of addressId "+addressId+" deleted succesfully" );
+								
+							} else { // return customerId and addressId not matched exception
+								errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
+								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
+								return invalidRequestReply;
+							}
 							
-						if (isAddressDeleted == 1) { 
-							errorLog.info("Address of addressId:"+addressId+" and customerId:"+ customerId+" deleted successfully by user:"+userName+" on "+ helperMethods.getDateTime());
-							return new Reply(201,"success","Address of addressId "+addressId+" deleted succesfully" );
-							
-						} else { // return customerId and addressId not matched exception
-							errorLog.warn("AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "AddressId "+addressId+" was not matched to the addressId's of customerId "+ customerId+"");
+						} else {
+							errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
 							return invalidRequestReply;
 						}
-						
-					} else {
-						errorLog.warn("CustomerId "+ customerId+" you mentioned was invalid");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "CustomerId "+ customerId+" you mentioned was invalid");
-						return invalidRequestReply;
-					}
+				} else {
+					errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields of address");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields of address");
+					return invalidRequestReply;
+				}
 			} 	
 		catch (NullPointerException nullPointer) {
 			errorLog.warn("accessToken or customerId or addressId spelled Incorrectly");
