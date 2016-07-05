@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
@@ -21,6 +22,8 @@ import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,9 +122,9 @@ public class OtherApiResource {
 	 * @return will return json of best deals
 	 */
 	@GET
-	@Path("deals")
+	@Path("{deals}")
 	@Timed
-	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@QueryParam("catId") int categoryId,@QueryParam("cusId") int customerId){
+	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId){
 		try{
 			if(helper.isValidJson(accessParam)){
 				if(isHavingValidAccessParamKeys(accessParam)){
@@ -136,14 +139,24 @@ public class OtherApiResource {
 						return invalidRequestReply;
 					}
 					
-					if(categoryId == 0 ){
+					if(deals.equalsIgnoreCase("deals")){
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId));
+					}else if(deals.equalsIgnoreCase("dealsoftheday")){
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals());
 					}else{
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals(categoryId));
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid API Request, Please provide valid URL");
+						return invalidRequestReply;
 					}
+				}else{
+					log.info("Invalid header keys provided to access getBestDeals function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
 				}
+			}else{
+				log.info("Invalid header json provided to access getBestDeals function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
 			}
-			return null;
 		}catch(Exception e){
 			e.printStackTrace();
 			log.warn("Internal error occured in getBestDeals function");
@@ -156,28 +169,36 @@ public class OtherApiResource {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private Object bestdeals(int categoryId) {
+	private Object bestdeals() {
+		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
+		int nbr = this.dao.getDataFromConfiguration("HOME_DOTD_PRODUCT_NBR");
+		
 		BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
 		filterQuery.must(QueryBuilders.matchQuery("all_category_ids",categoryId))
 		.must(QueryBuilders.matchQuery("deals.isFlashSaleEnabled",1))
 		.must(QueryBuilders.rangeQuery("deals.isFlashSaleValidForProductInt").gte(1))
-		.must(QueryBuilders.rangeQuery("deals.flash_sale_product_active_int").gte(1))
+		.must(QueryBuilders.rangeQuery("deals.flash_sale_product_active_int").gte(0))
 		.must(QueryBuilders.rangeQuery("deals.is_fs_product_int").gte(1))
 		.must(QueryBuilders.rangeQuery("info.quantity").gt(0))
 		.must(QueryBuilders.rangeQuery("info.available_for_order").gt(0))
 		.must(QueryBuilders.rangeQuery("info.show_price").gt(0));
+		
+		
 		String[] includes = new String[]
 				{"info.id_product","info.name","info.id_category_default","info.name_category_default"
 				,"categoryVars.price_without_reduction","categoryVars.price_tax_exc"
-				,"product_rating","deals.flashSaleDateEnd","info.id_image","images","info.link_rewrite"};
+				,"product_rating","deals.flashSaleDateEnd","info.id_image","images","info.link_rewrite","param3.popularityNetScore"};
+		
 		List<Map<String, Object>> productsList = new ArrayList<Map<String,Object>>();
 		SearchResponse response = client.prepareSearch("mkproducts")
 				.setTypes("product")
 		        .setFetchSource(includes, null)
 		        .setQuery(filterQuery)
+		        //.addSort(SortBuilders.fieldSort("param3.popularityNetScore").order(SortOrder.DESC))
+		        .addSort(SortBuilders.fieldSort("deals.flash_sale_date_end_analyzed").order(SortOrder.DESC))
 		        .setFrom(0).setSize(20).setExplain(true)
-		        //.addSort(field, order)
 		        .execute().actionGet();
+		
 		SearchHit[] searchHits = response.getHits().getHits();
 		for(int i=0;i<searchHits.length;i++){
 			Map<String,Object> productsDetails = new HashMap<String,Object>();
@@ -187,6 +208,7 @@ public class OtherApiResource {
 			productsDetails.put("productId",(String)info.get("id_product"));
 			productsDetails.put("productName",(String)info.get("name"));
 			System.out.println("Product name: "+(String)info.get("name"));
+			System.out.println("Popularity is: "+(Integer)((Map<String, Object>) searchHits[i].getSource().get("param3")).get("popularityNetScore"));
 			productsDetails.put("categoryId",(String)info.get("id_category_default"));
 			productsDetails.put("categoryName",(String)info.get("name_category_default"));
 			productsDetails.put("mktPrice",(Integer)categoryVars.get("price_without_reduction")+"");
@@ -222,8 +244,12 @@ public class OtherApiResource {
 		List<Object> results = new ArrayList<Object>();
 		for(int i = 0; i < catIds.size(); i++){
 			System.out.println("CategoryID is: "+catIds.get(i));
+			Map<String,Object> temp = new HashMap<String,Object>();
+			temp.put("categoryId",catIds.get(i));
+			//bestdeals(Integer.parseInt(catIds.get(i)));
 			List<DealsWrapper> result = getFlashSalesProductsByCategory(Integer.parseInt(catIds.get(i)),lang,1,(nb > 0 ? nb : 4),"","",custId);
-			results.add(result);
+			temp.put("products",result);
+			results.add(temp);
 		}
 //		List<String> data = new ArrayList<String>();
 //		int cityId = 0; // Here zero means null, made it null to exclude based on cityId
