@@ -18,6 +18,7 @@ public class WishListProductsWrapper {
 	private String linkRewrite;
 	private String categoryRewrite;
 	private int attributeQuantity;
+	private String attributeSmall;
 	/**
 	 * Constructor
 	 */
@@ -84,6 +85,12 @@ public class WishListProductsWrapper {
 	}
 	public void setAttributeQuantity(int attributeQuantity) {
 		this.attributeQuantity = attributeQuantity;
+	}
+	public String getAttributeSmall() {
+		return attributeSmall;
+	}
+	public void setAttributeSmall(String attributeSmall) {
+		this.attributeSmall = attributeSmall;
 	}
 
 }

@@ -134,7 +134,7 @@ public class OtherApiResource {
 					try {
 						authenticate.validate(userName,accessToken, "other", "get", "getBestDeals");
 					} catch (Exception e) {
-						log.info("Unautherized user "+userName+" tried to access getMenu function");
+						log.info("Unautherized user "+userName+" tried to access getBestDeals function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
@@ -144,7 +144,7 @@ public class OtherApiResource {
 					}else if(deals.equalsIgnoreCase("dealsoftheday")){
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals());
 					}else{
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid API Request, Please provide valid URL");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "URL doesn't exist, Please provide valid URL");
 						return invalidRequestReply;
 					}
 				}else{
