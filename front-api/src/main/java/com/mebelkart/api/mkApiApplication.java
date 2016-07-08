@@ -30,6 +30,8 @@ import com.mebelkart.api.category.v1.dao.CategoryDao;
 import com.mebelkart.api.category.v1.resources.CategoryResource;
 import com.mebelkart.api.customer.v1.dao.CustomerDetailsDAO;
 import com.mebelkart.api.customer.v1.resources.CustomerResource;
+import com.mebelkart.api.ideaboard.v1.dao.IdeaBoardDao;
+import com.mebelkart.api.ideaboard.v1.resources.IdeaBoardResource;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
 import com.mebelkart.api.product.v1.resources.ProductResource;
@@ -87,6 +89,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final ReviewDao reviewDao = reviewSystemDatabase.onDemand(ReviewDao.class);
 		final CategoryDao categoryDao = mebelkartProductsDatabaseConfiguration.onDemand(CategoryDao.class);
 		final CartOperationsDAO cartOperationsDao = mebelkartProductsDatabaseConfiguration.onDemand(CartOperationsDAO.class);
+		final IdeaBoardDao ideaBoardDao = mebelkartProductsDatabaseConfiguration.onDemand(IdeaBoardDao.class);
 		final OtherApiDao otherApiDao = mebelkartProductsDatabaseConfiguration.onDemand(OtherApiDao.class);
 		/*
 		 * Registering the database mapper classes
@@ -105,6 +108,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new CategoryResource(categoryDao));
 		environment.jersey().register(new CartResource(cartOperationsDao));
 		environment.jersey().register(new OtherApiResource(otherApiDao));
+		environment.jersey().register(new IdeaBoardResource(ideaBoardDao));
 	}
 
 }
