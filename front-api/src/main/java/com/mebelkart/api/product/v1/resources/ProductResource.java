@@ -58,6 +58,10 @@ public class ProductResource {
 		this.productDao = productDao;
 		this.reviewDao = reviewDao;
 	}
+	
+	public ProductResource(){
+		
+	}
 	/**
 	 * Getting products elastic client connection
 	 */
