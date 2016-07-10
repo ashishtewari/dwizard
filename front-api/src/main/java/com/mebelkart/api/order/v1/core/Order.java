@@ -27,8 +27,8 @@ public class Order {
         this.currencyId = currencyId;
         this.paymentMode = paymentMode;
         this.module = module;
-        this.idAddressDelivery = idAddressDelivery;
-        this.idAddressInvoice = idAddressInvoice;
+        this.setIdAddressDelivery(idAddressDelivery);
+        this.setIdAddressInvoice(idAddressInvoice);
         this.customer=customer;
         this.addressDelivery=addressDelivery;
         this.addressInvoice=addressInvoice;
@@ -113,6 +113,22 @@ public class Order {
     public void setModule(String module) {
         this.module = module;
     }
+
+	public Integer getIdAddressDelivery() {
+		return idAddressDelivery;
+	}
+
+	public void setIdAddressDelivery(Integer idAddressDelivery) {
+		this.idAddressDelivery = idAddressDelivery;
+	}
+
+	public Integer getIdAddressInvoice() {
+		return idAddressInvoice;
+	}
+
+	public void setIdAddressInvoice(Integer idAddressInvoice) {
+		this.idAddressInvoice = idAddressInvoice;
+	}
 
 
 }
