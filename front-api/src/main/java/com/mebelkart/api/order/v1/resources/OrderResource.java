@@ -3,7 +3,6 @@ package com.mebelkart.api.order.v1.resources;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 import com.codahale.metrics.annotation.Timed;
-import com.mebelkart.api.admin.v1.api.AdminResponse;
 import com.mebelkart.api.order.v1.dao.OrderDao;
 import com.mebelkart.api.order.v1.core.Order;
 import com.mebelkart.api.order.v1.core.OrderDetailSellerStatuses;
@@ -57,7 +56,8 @@ public class OrderResource {
         this.orderDao = orderDao;
     }
 
-    @GET
+    @SuppressWarnings("unused")
+	@GET
     @Path("/orders")
     @Produces({ MediaType.APPLICATION_JSON })
     @Timed
