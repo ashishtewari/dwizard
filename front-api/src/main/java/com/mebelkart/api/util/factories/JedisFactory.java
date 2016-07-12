@@ -3,6 +3,7 @@
  */
 package com.mebelkart.api.util.factories;
 
+
 import java.net.SocketException;
 
 import com.mebelkart.api.mkApiConfiguration;
@@ -24,7 +25,11 @@ public class JedisFactory {
 
 	public JedisFactory() {
 		// configure our pool connection
-		pool = new JedisPool(mkApiConfiguration.getRedisHost(), mkApiConfiguration.getRedisPort());
+		pool = new JedisPool(com.mebelkart.api.mkApiConfiguration.getRedisHost(), com.mebelkart.api.mkApiConfiguration.getRedisPort());
+	}
+	
+	public JedisPool getPool(){
+		return pool;
 	}
 	
 	public Jedis getJedisConnection() throws JedisDataException{
@@ -115,7 +120,7 @@ public class JedisFactory {
 			throw new Exception(e.getMessage());
 		}
 	}
-
+	
 	/**
 	 * @param user
 	 * @return
