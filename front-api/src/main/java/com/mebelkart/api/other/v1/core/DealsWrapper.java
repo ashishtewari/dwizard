@@ -10,14 +10,18 @@ package com.mebelkart.api.other.v1.core;
 public class DealsWrapper {
 
 	private int productId;
-	private String timeLeft;
+	private String productName;
+	private String productImage;
+	private int mktPrice;
+	private int ourPrice;
+	private String flashSaleEndDate;
 	private String fsAvailability;
 	/**
 	 * Default Constructor
 	 */
-	public DealsWrapper(int productId,String timeLeft,String fsAvailability) {
+	public DealsWrapper(int productId,String flashSaleEndDate,String fsAvailability) {
 		this.setProductId(productId);
-		this.setTimeLeft(timeLeft);
+		this.setFlashSaleEndDate(flashSaleEndDate);
 		this.setFsAvailability(fsAvailability);
 	}
 	public int getProductId() {
@@ -26,17 +30,41 @@ public class DealsWrapper {
 	public void setProductId(int productId) {
 		this.productId = productId;
 	}
-	public String getTimeLeft() {
-		return timeLeft;
+	public String getFlashSaleEndDate() {
+		return flashSaleEndDate;
 	}
-	public void setTimeLeft(String timeLeft) {
-		this.timeLeft = timeLeft;
+	public void setFlashSaleEndDate(String flashSaleEndDate) {
+		this.flashSaleEndDate = flashSaleEndDate;
 	}
 	public String getFsAvailability() {
 		return fsAvailability;
 	}
 	public void setFsAvailability(String fsAvailability) {
 		this.fsAvailability = fsAvailability;
+	}
+	public String getProductName() {
+		return productName;
+	}
+	public void setProductName(String productName) {
+		this.productName = productName;
+	}
+	public String getProductImage() {
+		return productImage;
+	}
+	public void setProductImage(String productImage) {
+		this.productImage = productImage;
+	}
+	public int getOurPrice() {
+		return ourPrice;
+	}
+	public void setOurPrice(int ourPrice) {
+		this.ourPrice = ourPrice;
+	}
+	public int getMktPrice() {
+		return mktPrice;
+	}
+	public void setMktPrice(int mktPrice) {
+		this.mktPrice = mktPrice;
 	}
 
 }

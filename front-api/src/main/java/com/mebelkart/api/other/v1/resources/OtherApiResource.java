@@ -17,6 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.annotation.Timed;
+import com.mebelkart.api.other.v1.core.CategoryWrapper;
 import com.mebelkart.api.other.v1.core.DealsWrapper;
 import com.mebelkart.api.other.v1.dao.OtherApiDao;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
@@ -124,7 +126,7 @@ public class OtherApiResource {
 	@GET
 	@Path("{deals}")
 	@Timed
-	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId){
+	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId,@QueryParam("cityId") int cityId){
 		try{
 			if(helper.isValidJson(accessParam)){
 				if(isHavingValidAccessParamKeys(accessParam)){
@@ -140,7 +142,12 @@ public class OtherApiResource {
 					}
 					
 					if(deals.equalsIgnoreCase("deals")){
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId));
+						if(customerId > 0 && cityId > 0)
+							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId));
+						else{
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id");
+							return invalidRequestReply;
+						}							
 					}else if(deals.equalsIgnoreCase("dealsoftheday")){
 						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals());
 					}else{
@@ -171,7 +178,7 @@ public class OtherApiResource {
 	@SuppressWarnings("unchecked")
 	private Object bestdeals() {
 		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
-		int nbr = this.dao.getDataFromConfiguration("HOME_DOTD_PRODUCT_NBR");
+		//int nbr = this.dao.getDataFromConfiguration("HOME_DOTD_PRODUCT_NBR");
 		
 		BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
 		filterQuery.must(QueryBuilders.matchQuery("all_category_ids",categoryId))
@@ -225,41 +232,23 @@ public class OtherApiResource {
 	/**
 	 * @return
 	 */
-	private Object deals(int custId) {
-//		int requiredDepth = 0;
-//		int customerId = 0; // Here zero means null
-//		String groups = "";
-//		if(customerId != 0){
-//			groups = String.join(",", this.dao.getGroupsStatic(customerId));
-//		}else{
-//			// This is the default customer group id
-//			groups= "1";
-//		}
-//		//System.out.println("Customer group statics are "+groups);
-//		int isFlashSalesEnabled = this.dao.getDataFromConfiguration("PS_FLASH_SALES_ENABLED"); // pick up value from db table name is ps_configuration
+	private Object deals(int custId,int cityId) {
 		int flashSaleCatId = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORY_ID");
-		List<String> catIds = this.dao.getCategoryIds(flashSaleCatId);
+		List<CategoryWrapper> cat = this.dao.getCategoryIds(flashSaleCatId);
 		int nb = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORIES_NBR");
 		int lang = this.dao.getDataFromConfiguration("PS_LANG_DEFAULT"); // pick up value from db table name is ps_configuration
 		List<Object> results = new ArrayList<Object>();
-		for(int i = 0; i < catIds.size(); i++){
-			System.out.println("CategoryID is: "+catIds.get(i));
+		for(int i = 0; i < cat.size(); i++){
+			System.out.println("CategoryID is: "+cat.get(i).getCatId());
 			Map<String,Object> temp = new HashMap<String,Object>();
-			temp.put("categoryId",catIds.get(i));
-			//bestdeals(Integer.parseInt(catIds.get(i)));
-			List<DealsWrapper> result = getFlashSalesProductsByCategory(Integer.parseInt(catIds.get(i)),lang,1,(nb > 0 ? nb : 4),"","",custId);
-			temp.put("products",result);
-			results.add(temp);
+			List<DealsWrapper> result = getFlashSalesProductsByCategory(cat.get(i).getCatId(),lang,1,(nb > 0 ? nb : 4),"","",custId,cityId);
+			if(result.size() > 0){
+				temp.put("categoryId",cat.get(i).getCatId());
+				temp.put("catName", cat.get(i).getCatName());
+				temp.put("products",result);
+				results.add(temp);
+			}
 		}
-//		List<String> data = new ArrayList<String>();
-//		int cityId = 0; // Here zero means null, made it null to exclude based on cityId
-//		int idCityAllCities = this.dao.getDataFromConfiguration("ALL_CITIES_ID");
-//		
-//		int maxDepth = 0; // here zero means null
-//		if(requiredDepth == 0)
-//			maxDepth = this.dao.getDataFromConfiguration("BLOCK_CATEG_MAX_DEPTH") + 3;
-//		else
-//			maxDepth = 1;
 		return results;
 	}
 
@@ -269,9 +258,8 @@ public class OtherApiResource {
 	 * @param i
 	 * @param j
 	 */
-	private List<DealsWrapper> getFlashSalesProductsByCategory(int catId, int langId,int pageNumber, int nbProducts,String orderBy, String orderWay,int custId) {
+	private List<DealsWrapper> getFlashSalesProductsByCategory(int catId, int langId,int pageNumber, int nbProducts,String orderBy, String orderWay,int custId,int cityId) {
 		String currentTimeStamp = helper.getCurrentDateString();
-		int cityId = this.dao.getDataFromConfiguration("ID_OTHER_CITIES");
 		int cityIdAllCities = this.dao.getDataFromConfiguration("ALL_CITIES_ID");
 		int startLimit = (pageNumber - 1) * nbProducts;
 		if(pageNumber < 0) pageNumber = 0;
@@ -285,13 +273,27 @@ public class OtherApiResource {
 		String cityQuery = (cityId > 0 ? " AND prl.active=1 AND prl.id_city IN (\'"+cityId+"\',\'"+cityIdAllCities+"\')" : " ");
 		String lte = "<=";
 		List<DealsWrapper> result = this.dao.getFlashSaleProductsByCategorySQL(currentTimeStamp,langId,sqlGroups,orderBy,orderWay,startLimit,nbProducts,joinQuery,catQuery,cityQuery,lte);
-		
+		result = getProductDetailsFromElastic(result);
+		return result;		
+	} 
+
+	/**
+	 * @param result
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private List<DealsWrapper> getProductDetailsFromElastic(List<DealsWrapper> result) {
 		for(int i = 0; i < result.size(); i++){
-			System.out.println("The product ID is: "+result.get(i).getFsAvailability()+" for catId "+catId);
+			GetResponse response = client.prepareGet("mkproducts", "product", result.get(i).getProductId()+"").get();
+			Map<String,Object> source = response.getSource();
+			Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+			result.get(i).setProductName((String)categoryVars.get("name"));
+			result.get(i).setProductImage((String)((Map<String, Object>)((Map<String, Object>)source.get("product_name_suggest")).get("payload")).get("product_image_link"));
+			result.get(i).setMktPrice((Integer)categoryVars.get("price_without_reduction"));
+			result.get(i).setOurPrice((Integer)categoryVars.get("price_tax_exc"));
 		}
 		return result;
-		
-	} 
+	}
 
 	private Object getGallery(String imageId,String imageName) {
 		Map<Object,Object> images = new HashMap<Object,Object>();

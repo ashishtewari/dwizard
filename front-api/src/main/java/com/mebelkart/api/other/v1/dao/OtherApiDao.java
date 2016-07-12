@@ -11,7 +11,9 @@ import org.skife.jdbi.v2.sqlobject.customizers.Define;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
+import com.mebelkart.api.other.v1.core.CategoryWrapper;
 import com.mebelkart.api.other.v1.core.DealsWrapper;
+import com.mebelkart.api.other.v1.mapper.CategoryMapper;
 import com.mebelkart.api.other.v1.mapper.DealsMapper;
 
 /**
@@ -38,8 +40,9 @@ public interface OtherApiDao {
 	/**
 	 * @return All category Ids corresponding to parent Id
 	 */
-	@SqlQuery("select id_category from ps_category where id_parent = :id and active = 1")
-	List<String> getCategoryIds(@Bind("id") int flashSaleCatId);
+	@SqlQuery("select c.id_category,cl.name from ps_category c join ps_category_lang cl on c.id_category = cl.id_category where c.id_parent = :id and c.active = 1")
+	@Mapper(CategoryMapper.class)
+	List<CategoryWrapper> getCategoryIds(@Bind("id") int flashSaleCatId);
 
 	/**
 	 * @param custId
@@ -60,22 +63,22 @@ public interface OtherApiDao {
 	 * @param catQuery
 	 * @param cityQuery
 	 */
-	@SqlQuery("SELECT fsp.id_product, TIMESTAMPDIFF(HOUR, '<now>', fs.flash_sale_date_end) as time_left ,"
+	@SqlQuery("SELECT fsp.id_product, fs.flash_sale_date_end ,"
 			+ " (IF((fs.flash_sale_date_start = '0000-00-00 00:00:00' OR '<now>' >= fs.flash_sale_date_start)"
 			+ " AND"
 			+ " (fs.flash_sale_date_end = '0000-00-00 00:00:00' OR '<now>' <lte> fs.flash_sale_date_end),1,0)) as fs_availability"
 			+ " FROM ps_flash_sale_products fsp"
 			+ " LEFT JOIN ps_flash_sale fs ON fsp.id_flash_sale = fs.id_flash_sale"
-//			+ " LEFT JOIN ps_product p ON fsp.id_product = p.id_product"
-//			+ " LEFT JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_lang = :langId)"
-//			+ " <joinQuery>"
-//			+ " LEFT JOIN ps_image i ON (i.id_product = p.id_product AND i.cover = 1)"
-//			+ " LEFT JOIN ps_image_lang il ON (i.id_image = il.id_image AND il.id_lang = :langId)"
-//			+ " LEFT JOIN ps_manufacturer m ON (m.id_manufacturer = p.id_manufacturer)"
-//			+ " LEFT JOIN ps_tax_rule tr ON (p.id_tax_rules_group = tr.id_tax_rules_group"
-//			+ " AND tr.id_country = 110"
-//			+ " AND tr.id_state = 0)"
-//			+ " LEFT JOIN ps_tax t ON (t.id_tax = tr.id_tax)"
+			+ " LEFT JOIN ps_product p ON fsp.id_product = p.id_product"
+			+ " LEFT JOIN ps_product_lang pl ON (p.id_product = pl.id_product AND pl.id_lang = :langId)"
+			+ " <joinQuery>"
+			+ " LEFT JOIN ps_image i ON (i.id_product = p.id_product AND i.cover = 1)"
+			+ " LEFT JOIN ps_image_lang il ON (i.id_image = il.id_image AND il.id_lang = :langId)"
+			+ " LEFT JOIN ps_manufacturer m ON (m.id_manufacturer = p.id_manufacturer)"
+			+ " LEFT JOIN ps_tax_rule tr ON (p.id_tax_rules_group = tr.id_tax_rules_group"
+			+ " AND tr.id_country = 110"
+			+ " AND tr.id_state = 0)"
+			+ " LEFT JOIN ps_tax t ON (t.id_tax = tr.id_tax)"
 			+ " WHERE fsp.active = 1"
 			+ " AND fsp.id_product IN ("
 			+ " SELECT cp.id_product FROM ps_category_group cg"
@@ -85,7 +88,7 @@ public interface OtherApiDao {
 			+ " (fs.flash_sale_date_start = '0000-00-00 00:00:00' OR '<now>' >= fs.flash_sale_date_start)"
 			+ " AND"
 			+ " (fs.flash_sale_date_end = '0000-00-00 00:00:00' OR '<now>' <lte> fs.flash_sale_date_end))"
-//			+ " <cityQuery>"
+			+ " <cityQuery>"
 			+ " GROUP BY fsp.id_product"
 			+ " ORDER BY fs.flash_sale_active DESC ,fsp.active DESC, <orderBy> <orderWay> LIMIT :startLimit, :endLimit")
 	@Mapper(DealsMapper.class)

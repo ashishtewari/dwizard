@@ -19,7 +19,7 @@ public class DealsMapper implements ResultSetMapper<DealsWrapper>{
 	
 	public DealsWrapper map(int i, ResultSet resultSet,
 			StatementContext statementContext) throws SQLException{
-		return new DealsWrapper(resultSet.getInt("id_product"),resultSet.getString("time_left"),
+		return new DealsWrapper(resultSet.getInt("id_product"),resultSet.getString("flash_sale_date_end"),
 				resultSet.getString("fs_availability"));
 	}
 }
