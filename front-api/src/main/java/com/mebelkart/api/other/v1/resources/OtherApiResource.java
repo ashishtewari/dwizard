@@ -29,13 +29,17 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import redis.clients.jedis.Jedis;
+
 import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.other.v1.core.CategoryWrapper;
 import com.mebelkart.api.other.v1.core.DealsWrapper;
 import com.mebelkart.api.other.v1.dao.OtherApiDao;
+import com.mebelkart.api.other.v1.helper.HelperMethods;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
 import com.mebelkart.api.util.factories.ElasticFactory;
+import com.mebelkart.api.util.factories.JedisFactory;
 import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
@@ -68,11 +72,15 @@ public class OtherApiResource {
 	 * Getting client to authenticate
 	 */
 	Authentication authenticate = new Authentication();
+	
+	JedisFactory jedisFactory = new JedisFactory();
 
 	/**
 	 * Helper class from utils
 	 */
 	Helper helper = new Helper();
+	
+	HelperMethods internalHelper = new HelperMethods(); 
 	
 	/**
 	 * Getting products elastic client connection
@@ -126,7 +134,7 @@ public class OtherApiResource {
 	@GET
 	@Path("{deals}")
 	@Timed
-	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId,@QueryParam("cityId") int cityId){
+	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId,@QueryParam("cityId") int cityId,@QueryParam("refresh") String refresh){
 		try{
 			if(helper.isValidJson(accessParam)){
 				if(isHavingValidAccessParamKeys(accessParam)){
@@ -143,7 +151,14 @@ public class OtherApiResource {
 					
 					if(deals.equalsIgnoreCase("deals")){
 						if(customerId > 0 && cityId > 0)
-							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId));
+							if("yes".equalsIgnoreCase(refresh))
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,"yes"));
+							else if("no".equalsIgnoreCase(refresh))
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh));
+							else{
+								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
+								return invalidRequestReply;
+							}
 						else{
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id");
 							return invalidRequestReply;
@@ -232,14 +247,20 @@ public class OtherApiResource {
 	/**
 	 * @return
 	 */
-	private Object deals(int custId,int cityId) {
+	private Object deals(int custId,int cityId, String refresh) {
+		Jedis jedis = jedisFactory.getJedisConnection();
+		if(jedis.exists("dealsPage") && !refresh.equalsIgnoreCase("yes")){
+			Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsPage");
+			if(!categoriesWithProductDetails.isEmpty()){
+				return internalHelper.getDealsPage(categoriesWithProductDetails);
+			}
+		}
 		int flashSaleCatId = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORY_ID");
 		List<CategoryWrapper> cat = this.dao.getCategoryIds(flashSaleCatId);
 		int nb = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORIES_NBR");
 		int lang = this.dao.getDataFromConfiguration("PS_LANG_DEFAULT"); // pick up value from db table name is ps_configuration
 		List<Object> results = new ArrayList<Object>();
 		for(int i = 0; i < cat.size(); i++){
-			System.out.println("CategoryID is: "+cat.get(i).getCatId());
 			Map<String,Object> temp = new HashMap<String,Object>();
 			List<DealsWrapper> result = getFlashSalesProductsByCategory(cat.get(i).getCatId(),lang,1,(nb > 0 ? nb : 4),"","",custId,cityId);
 			if(result.size() > 0){
@@ -249,6 +270,8 @@ public class OtherApiResource {
 				results.add(temp);
 			}
 		}
+		jedis.del("dealsPage");
+		jedis.hmset("dealsPage", internalHelper.convertDealsPageDataIntoMap(results));
 		return results;
 	}
 

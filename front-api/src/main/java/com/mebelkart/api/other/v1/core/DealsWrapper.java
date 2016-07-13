@@ -24,6 +24,9 @@ public class DealsWrapper {
 		this.setFlashSaleEndDate(flashSaleEndDate);
 		this.setFsAvailability(fsAvailability);
 	}
+	public DealsWrapper(){
+		// empty constructor;
+	}
 	public int getProductId() {
 		return productId;
 	}
