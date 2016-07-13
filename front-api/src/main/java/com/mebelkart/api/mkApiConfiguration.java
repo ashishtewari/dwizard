@@ -42,6 +42,15 @@ public class mkApiConfiguration extends Configuration {
 	private static String apiInterfaceAdmin;
 	private static String apiInterfaceSuperAdmin;
 	
+	private static String cookieKey;
+	
+	public static String getCookieKey() {
+		return cookieKey;
+	}
+	public void setCookieKey(String cookieKey) {
+		mkApiConfiguration.cookieKey = cookieKey;
+	}
+	
 	public void setApiInterfaceSuperAdmin(String user){
 		mkApiConfiguration.apiInterfaceSuperAdmin = user;
 	}
