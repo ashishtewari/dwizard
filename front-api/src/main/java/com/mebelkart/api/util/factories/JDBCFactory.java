@@ -16,10 +16,6 @@ public class JDBCFactory {
     private static Connection sqlConnection;
     private JDBCFactory(){};
     public static Connection getJDBCInstance() throws ClassNotFoundException, SQLException {
-        System.out.println("-------------------------------");
-        System.out.println("JDBC Factory called");
-        System.out.println("-------------------------------");
-
         if(sqlConnection==null)
         {
             System.out.println("-------------------------------");

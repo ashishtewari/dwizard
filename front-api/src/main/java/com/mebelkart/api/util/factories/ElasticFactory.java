@@ -21,9 +21,6 @@ public class ElasticFactory {
         	/*
         	 *	Transport client
         	 */
-            System.out.println("elastic host from config :"+mkApiConfiguration.getElasticsearchHost());
-            System.out.println("elastic cluster name :"+mkApiConfiguration.getClusterName());
-            System.out.println("elastic port "+mkApiConfiguration.getElasticPort());
             Settings settings = Settings.settingsBuilder()
         	        .put("cluster.name", mkApiConfiguration.getClusterName())
         	        .build();
@@ -32,7 +29,7 @@ public class ElasticFactory {
         	return client;
         }
         catch (Exception e){
-            System.out.println("------------In factory----------");
+            System.out.println("------------In factory getElasticClient function----------");
             e.printStackTrace();
             return null;
         }
@@ -51,7 +48,7 @@ public class ElasticFactory {
         	return client;
         }
         catch (Exception e){
-            System.out.println("------------In remote factory----------");
+            System.out.println("------------In factory getProductsElasticClient function----------");
             e.printStackTrace();
             return null;
         }
