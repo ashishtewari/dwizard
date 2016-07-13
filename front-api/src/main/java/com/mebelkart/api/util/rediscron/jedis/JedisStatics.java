@@ -1,4 +1,4 @@
-package com.mebelkart.api.rediscron.jedis;
+package com.mebelkart.api.util.rediscron.jedis;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisDataException;
 
-import com.mebelkart.api.rediscron.dao.JedisDao;
+import com.mebelkart.api.util.rediscron.dao.JedisDao;
 import com.mebelkart.api.util.factories.JedisFactory;
 import com.mebelkart.api.util.helpers.Helper;
 

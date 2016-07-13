@@ -1,5 +1,5 @@
 
-package com.mebelkart.api.rediscron.dao;
+package com.mebelkart.api.util.rediscron.dao;
 
 import java.sql.*;
 

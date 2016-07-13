@@ -1,10 +1,10 @@
 /**
  * 
  */
-package com.mebelkart.api.rediscron.jedis;
+package com.mebelkart.api.util.rediscron.jedis;
 
 import com.mebelkart.api.mkApiConfiguration;
-import com.mebelkart.api.rediscron.dao.JedisDao;
+import com.mebelkart.api.util.rediscron.dao.JedisDao;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.util.factories.JedisFactory;
 
