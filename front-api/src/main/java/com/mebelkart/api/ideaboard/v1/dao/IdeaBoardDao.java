@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
+import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
@@ -77,6 +78,26 @@ public interface IdeaBoardDao {
 			+ "WHERE pac.id_product_attribute = :proAttrId")
 	@Mapper(AtrributeMapper.class)
 	List<AttributeWrapper> getAttributes(@Bind("proAttrId") int productAttributeId);
+
+	/**
+	 * @param customerId
+	 * @param ideaBoardName
+	 * @return
+	 */
+	@SqlQuery("select count(*) as total from ps_wishlist where name = :name and id_customer = :cusId")
+	Integer isExistsByNameForUser(@Bind("cusId") int customerId, @Bind("name") String ideaBoardName);
+
+	/**
+	 * @param customerId
+	 * @param token
+	 * @param ideaBoardName
+	 * @param counter
+	 * @param currentDateString
+	 * @param currentDateString2
+	 */
+	@SqlUpdate("insert into ps_wishlist (id_customer,token,name,counter,date_add,date_upd) values (:cusId,:token,:name,:counter,:dateAdd,:dateUpd)")
+	void createNewIB(@Bind("cusId")int customerId,@Bind("token") String token,@Bind("name") String ideaBoardName,
+			@Bind("counter") String counter,@Bind("dateAdd") String currentDate,@Bind("dateUpd") String updDate);
 
 	
 }
