@@ -77,3 +77,4 @@ logging:
       maxFileSize: 10MB
 apiInterfaceAdmin: apiInterfaceAdmin@mebelkart.com
 apiInterfaceSuperAdmin: apiInterfaceSuperAdmin@mebelkart.com
+cookieKey: zs6BCTqV8Vq5QmxKCS3hjmeDMHFZmvyK6RFonRfWwEuBZN8qGNJO7nK6
