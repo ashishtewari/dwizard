@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -112,6 +114,52 @@ public class IdeaBoardResource {
 		}
 	}
 	
+	@GET
+	@Path("ideaboard/products")
+	@Timed
+	public Object getIdeaBoardsProducts(@HeaderParam("accessParam") String accessParam,@QueryParam("cusId") int customerId,@QueryParam("wishListId") int wishListId,@QueryParam("pincode") int pincode){
+		try{
+			if(helper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "ideaboard", "get", "getIdeaBoardsProducts");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access getIdeaBoardsProducts function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					
+					if(customerId > 0 && wishListId > 0){
+//						List<WishListProductsWrapper> products = (List<WishListProductsWrapper>)getProductByIdCustomer(wishListId, customerId);
+//						for(int i = 0; i < products.size(); i++){
+//							
+//						}
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), getProductsOfIdeaboard(accessParam,customerId,wishListId));
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID");
+						return invalidRequestReply;
+					}
+				}else{
+					log.info("Invalid header keys provided to access getIdeaBoardsProducts function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access getIdeaBoardsProducts function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in getIdeaBoardsProducts function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
 	@POST
 	@Path("ideaboard/new")
 	@Timed
@@ -125,35 +173,190 @@ public class IdeaBoardResource {
 					try {
 						authenticate.validate(userName,accessToken, "ideaboard", "get", "createNewIdeaBoards");
 					} catch (Exception e) {
-						log.info("Unautherized user "+userName+" tried to access getIdeaBoards function");
+						log.info("Unautherized user "+userName+" tried to access createNewIdeaBoards function");
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
 					
 					if(customerId > 0 && (ideaBoardName != null && !ideaBoardName.equals("") )){
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), createNewIB(customerId,ideaBoardName));
+						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), createNewIB(customerId,ideaBoardName));
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID and wish list name");
 						return invalidRequestReply;
 					}
 				}else{
-					log.info("Invalid header keys provided to access getIdeaBoards function");
+					log.info("Invalid header keys provided to access createNewIdeaBoards function");
 					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
 					return invalidRequestReply;
 				}
 			}else{
-				log.info("Invalid header json provided to access getIdeaBoards function");
+				log.info("Invalid header json provided to access createNewIdeaBoards function");
 				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
 				return invalidRequestReply;
 			}
 		}catch(Exception e){
 			e.printStackTrace();
-			log.warn("Internal error occured in getIdeaBoards function");
+			log.warn("Internal error occured in createNewIdeaBoards function");
 			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
 			return invalidRequestReply;
 		}
 	}
 	
+	@PUT
+	@Path("ideaboard/update")
+	@Timed
+	public Object updateIdeaBoards(@HeaderParam("accessParam") String accessParam,@QueryParam("cusId") int customerId,@QueryParam("name") String ideaBoardName,@QueryParam("wishlistId") int wishlistId){
+		try{
+			if(helper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "ideaboard", "get", "updateIdeaBoards");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access updateIdeaBoards function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					
+					if(customerId > 0 && (ideaBoardName != null && !ideaBoardName.equals("")) && wishlistId > 0){
+						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), updateIB(customerId,wishlistId,ideaBoardName));
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID and wishlist name and wishlist Id");
+						return invalidRequestReply;
+					}
+				}else{
+					log.info("Invalid header keys provided to access updateIdeaBoards function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access updateIdeaBoards function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in updateIdeaBoards function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
+	@DELETE
+	@Path("ideaboard/delete")
+	@Timed
+	public Object deleteIdeaBoard(@HeaderParam("accessParam") String accessParam,@QueryParam("cusId") int customerId,@QueryParam("wishlistId") int wishlistId){
+		try{
+			if(helper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "ideaboard", "get", "deleteIdeaBoard");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access deleteIdeaBoard function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}
+					
+					if(customerId > 0 && wishlistId > 0){
+						return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), deleteIB(customerId,wishlistId));
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID and wishlist Id");
+						return invalidRequestReply;
+					}
+				}else{
+					log.info("Invalid header keys provided to access deleteIdeaBoard function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access deleteIdeaBoard function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in deleteIdeaBoard function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@POST
+	@Path("ideaboard/additem")
+	@Timed
+	public Object addItemToIdeaBoard(@HeaderParam("accessParam") String accessParam,@QueryParam("cusId") int customerId,
+			@QueryParam("wishlistId") int wishlistId,@QueryParam("prodId") int prodId,@QueryParam("prodAttrId") int prodAttrId,
+			@QueryParam("quantity") int quantity){
+		try{
+			if(helper.isValidJson(accessParam)){
+				if(isHavingValidAccessParamKeys(accessParam)){
+					JSONObject jsonData = helper.jsonParser(accessParam);
+					String userName = (String) jsonData.get("userName");
+					String accessToken = (String) jsonData.get("accessToken");
+					try {
+						authenticate.validate(userName,accessToken, "ideaboard", "get", "addItemToIdeaBoard");
+					} catch (Exception e) {
+						log.info("Unautherized user "+userName+" tried to access addItemToIdeaBoard function");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+						return invalidRequestReply;
+					}					
+					if(customerId > 0 && wishlistId > 0 && prodId > 0 && prodAttrId >= 0 && quantity > 0){
+						String response = ((Map<String,String>)addItemToIB(wishlistId,customerId,prodId,prodAttrId,quantity)).get("msg");
+						if(response.equals("Added Successfully"))
+							return new Reply(Response.Status.CREATED.getStatusCode(), Response.Status.CREATED.getReasonPhrase(), response);
+						else
+							return new Reply(Response.Status.NOT_MODIFIED.getStatusCode(), Response.Status.NOT_MODIFIED.getReasonPhrase(), response);
+					}else{
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customerID, wishlistId, productId, productAttributeId and quantity");
+						return invalidRequestReply;
+					}
+				}else{
+					log.info("Invalid header keys provided to access addItemToIdeaBoard function");
+					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
+					return invalidRequestReply;
+				}
+			}else{
+				log.info("Invalid header json provided to access addItemToIdeaBoard function");
+				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
+				return invalidRequestReply;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+			log.warn("Internal error occured in addItemToIdeaBoard function");
+			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
+			return invalidRequestReply;
+		}
+	}
+	
+	/**
+	 * @param wishlistId
+	 * @param customerId
+	 * @param prodId
+	 * @param prodAttrId
+	 * @param quantity
+	 * @return
+	 */
+	private Object addItemToIB(int wishlistId, int customerId, int prodId,int prodAttrId, int quantity) {
+		Map<String,String> response = new HashMap<String,String>();
+		List<Integer> result = this.ideaBoardDao.checkIfItemExists(wishlistId,customerId,prodId,prodAttrId);
+		if(!result.isEmpty() && result.size() > 0){
+			response.put("msg", "You already have this item in your WishBoard");
+			return response;
+		}else if(this.ideaBoardDao.addWishBoard(wishlistId,prodId,prodAttrId,quantity) > 0){
+			response.put("msg", "Added Successfully");
+			return response;
+		}else{
+			response.put("msg", "WishBoard not added");
+			return response;
+		}
+	}
+
 	/**
 	 * @param customerId
 	 * @param ideaBoardName
@@ -193,51 +396,64 @@ public class IdeaBoardResource {
 			wishList.put("msg", errors.get(0));
 		return wishList;
 	}
-
-	@GET
-	@Path("ideaboard/products")
-	@Timed
-	public Object getIdeaBoardsProducts(@HeaderParam("accessParam") String accessParam,@QueryParam("cusId") int customerId,@QueryParam("wishListId") int wishListId,@QueryParam("pincode") int pincode){
-		try{
-			if(helper.isValidJson(accessParam)){
-				if(isHavingValidAccessParamKeys(accessParam)){
-					JSONObject jsonData = helper.jsonParser(accessParam);
-					String userName = (String) jsonData.get("userName");
-					String accessToken = (String) jsonData.get("accessToken");
-					try {
-						authenticate.validate(userName,accessToken, "ideaboard", "get", "getIdeaBoardsProducts");
-					} catch (Exception e) {
-						log.info("Unautherized user "+userName+" tried to access getIdeaBoards function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-						return invalidRequestReply;
-					}
-					
-					if(customerId > 0 && wishListId > 0){
-//						List<WishListProductsWrapper> products = (List<WishListProductsWrapper>)getProductByIdCustomer(wishListId, customerId);
-//						for(int i = 0; i < products.size(); i++){
-//							
-//						}
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), getProductsOfIdeaboard(accessParam,customerId,wishListId));
-					}else{
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID");
-						return invalidRequestReply;
-					}
-				}else{
-					log.info("Invalid header keys provided to access getIdeaBoards function");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Invalid keys provided");
-					return invalidRequestReply;
-				}
-			}else{
-				log.info("Invalid header json provided to access getIdeaBoards function");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Header data is invalid json/You may have not passed header details");
-				return invalidRequestReply;
-			}
-		}catch(Exception e){
-			e.printStackTrace();
-			log.warn("Internal error occured in getIdeaBoards function");
-			invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Unknown exception caused");
-			return invalidRequestReply;
+	
+	/**
+	 * @param customerId
+	 * @param wishlistId
+	 * @param ideaBoardName
+	 * @return
+	 */
+	private Object updateIB(int customerId, int wishlistId, String ideaBoardName) {
+		List<String> errors = new ArrayList<String>();
+		if(this.ideaBoardDao.isExistsByNameForUser(customerId,ideaBoardName) > 0)
+			errors.add("This name is already used by another list.");
+		if(errors.size() == 0){
+			String uniqId = (UUID.randomUUID().toString())+mkApiConfiguration.getCookieKey()+customerId;
+			String sha1 = DigestUtils.sha1Hex(uniqId);
+			String token = sha1.substring(0, 16).toUpperCase();
+			String counter = null;
+			this.ideaBoardDao.updateIB(wishlistId,customerId,token,ideaBoardName,counter,helper.getCurrentDateString());
 		}
+		List<Object> wishLists = new ArrayList<Object>();
+		Map<String,Object> wishList = new HashMap<String,Object>();
+		List<WishListWrapper> wishListData = this.ideaBoardDao.getWishListByCustId(customerId);
+		List<NBProductsWrapper> nbProducts = this.ideaBoardDao.getInfosByIdCustomer(customerId);
+		for(int i = 0; i < wishListData.size(); i++){
+			for(int j = 0; j < nbProducts.size(); j++){
+				if(nbProducts.get(j).getWishListId() == wishListData.get(i).getWishListId()){
+					wishListData.get(i).setTotalProducts(nbProducts.get(j).getNbProducts());
+				}else{
+					wishListData.get(i).setTotalProducts(0);
+				}
+			}
+			wishLists.add(wishListData.get(i));
+		}
+		wishList.put("wishLists", wishLists);
+		wishList.put("customerId", customerId);
+		wishList.put("errors", errors.size() > 0 ? errors.size() : "");
+		if(errors.size() == 0 && wishLists.size() > 0)
+			wishList.put("msg", "Updated Successfully");
+		else if(errors.size() > 0)
+			wishList.put("msg", errors.get(0));
+		else
+			wishList.put("msg", "WishBoard not updated");
+		return wishList;
+	}
+	
+	/**
+	 * @param customerId
+	 * @param wishlistId
+	 * @return
+	 */
+	private Object deleteIB(int customerId, int wishlistId) {
+		Map<String,Object> wishList = new HashMap<String,Object>();
+		if(this.ideaBoardDao.isValidWishlistIdWithRespectiveToCustId(customerId,wishlistId) > 0){
+			this.ideaBoardDao.deleteFromWishlist(wishlistId);
+			this.ideaBoardDao.deleteFromWishlistEmail(wishlistId);
+			this.ideaBoardDao.deleteFromWishlistProduct(wishlistId);
+			return wishList.put("msg", "Deleted Successfully");
+		}else
+			return wishList.put("msg", "Cannot delete this WishBoard");
 	}
 	
 	/**

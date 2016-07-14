@@ -6,6 +6,7 @@ package com.mebelkart.api.ideaboard.v1.dao;
 import java.util.List;
 
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.GetGeneratedKeys;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Mapper;
@@ -99,5 +100,70 @@ public interface IdeaBoardDao {
 	void createNewIB(@Bind("cusId")int customerId,@Bind("token") String token,@Bind("name") String ideaBoardName,
 			@Bind("counter") String counter,@Bind("dateAdd") String currentDate,@Bind("dateUpd") String updDate);
 
+	/**
+	 * @param customerId
+	 * @param customerId2 
+	 * @param token
+	 * @param ideaBoardName
+	 * @param counter
+	 * @param currentDateString
+	 */
+	@SqlUpdate("update ps_wishlist set id_customer = :cusId,token = :token,"
+			+ "name = :name, counter = :counter,date_upd = :dateUpd where id_wishlist = :wishlistId")
+	void updateIB(@Bind("wishlistId")int wishlistId,@Bind("cusId")int customerId,@Bind("token") String token,
+			@Bind("name") String ideaBoardName,@Bind("counter")String counter,@Bind("dateUpd") String updDate);
+	
+	/**
+	 * @param wishlistId
+	 * @param customerId
+	 * @param prodId
+	 * @param prodAttrId
+	 * @return
+	 */
+	@SqlQuery("select wp.quantity from ps_wishlist_product wp join ps_wishlist w on (w.id_wishlist = wp.id_wishlist)"
+			+ " where wp.id_wishlist = :wishListId"
+			+ " and w.id_customer = :cusId"
+			+ " and wp.id_product = :prodId"
+			+ " and wp.id_product_attribute = :prodAttrId")
+	List<Integer> checkIfItemExists(@Bind("wishListId") int wishlistId,@Bind("cusId") int customerId,
+			@Bind("prodId")int prodId,@Bind("prodAttrId")int prodAttrId);
+
+	/**
+	 * @param wishlistId
+	 * @param prodId
+	 * @param prodAttrId
+	 * @param quantity
+	 */
+	@SqlUpdate("insert into ps_wishlist_product (id_wishlist,id_product,id_product_attribute,quantity,priority) "
+			+ "values (:wishListId, :prodId, :prodAttrId, :quantity, 1)")
+	@GetGeneratedKeys
+	Integer addWishBoard(@Bind("wishListId")int wishlistId,@Bind("prodId")int prodId,@Bind("prodAttrId")int prodAttrId,
+			@Bind("quantity") int quantity);
+
+	/**
+	 * @param customerId
+	 * @param wishlistId
+	 * @return
+	 */
+	@SqlQuery("select id_wishlist from ps_wishlist where id_customer = :cusId and id_wishlist = :wishlistId")
+	int isValidWishlistIdWithRespectiveToCustId(@Bind("cusId") int customerId,@Bind("wishlistId") int wishlistId);
+
+	/**
+	 * @param wishlistId
+	 */
+	@SqlUpdate("delete from ps_wishlist where id_wishlist = :it")
+	void deleteFromWishlist(@Bind int wishlistId);
+
+	/**
+	 * @param wishlistId
+	 */
+	@SqlUpdate("delete from ps_wishlist_email where id_wishlist = :it")
+	void deleteFromWishlistEmail(@Bind int wishlistId);
+
+	/**
+	 * @param wishlistId
+	 */
+	@SqlUpdate("delete from ps_wishlist_product where id_wishlist = :it")
+	void deleteFromWishlistProduct(@Bind int wishlistId);
 	
 }
