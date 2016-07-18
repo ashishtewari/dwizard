@@ -12,6 +12,7 @@ public class DealsWrapper {
 	private int productId;
 	private String productName;
 	private String productImage;
+	private int catId;
 	private int mktPrice;
 	private int ourPrice;
 	private String flashSaleEndDate;
@@ -68,6 +69,12 @@ public class DealsWrapper {
 	}
 	public void setMktPrice(int mktPrice) {
 		this.mktPrice = mktPrice;
+	}
+	public int getCatId() {
+		return catId;
+	}
+	public void setCatId(int catId) {
+		this.catId = catId;
 	}
 
 }

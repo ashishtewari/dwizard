@@ -49,10 +49,11 @@ public class HelperMethods {
 			temp.setProductId(Integer.parseInt(prodInner[0]));
 			temp.setProductName(prodInner[1]);
 			temp.setProductImage(prodInner[2]);
-			temp.setMktPrice(Integer.parseInt(prodInner[3]));
-			temp.setOurPrice(Integer.parseInt(prodInner[4]));
-			temp.setFlashSaleEndDate(prodInner[5]);
-			temp.setFsAvailability(prodInner[6]);
+			temp.setCatId(Integer.parseInt(prodInner[3]));
+			temp.setMktPrice(Integer.parseInt(prodInner[4]));
+			temp.setOurPrice(Integer.parseInt(prodInner[5]));
+			temp.setFlashSaleEndDate(prodInner[6]);
+			temp.setFsAvailability(prodInner[7]);
 			prod.add(temp);
 		}
 		return prod;
@@ -75,11 +76,12 @@ public class HelperMethods {
 				int pId = products.get(j).getProductId();
 				String pName = products.get(j).getProductName();
 				String pImage = products.get(j).getProductImage();
+				int catagoryId = products.get(j).getCatId();
 				int pMktPrice = products.get(j).getMktPrice();
 				int pOurPrice = products.get(j).getOurPrice();
 				String pFlashSaleEndDate = products.get(j).getFlashSaleEndDate();
 				String pFlashSaleAvailability = products.get(j).getFsAvailability();
-				value = value+pId+"|"+pName+"|"+pImage+"|"+pMktPrice+"|"+pOurPrice+"|"+pFlashSaleEndDate+"|"+pFlashSaleAvailability;
+				value = value+pId+"|"+pName+"|"+pImage+"|"+catagoryId+"|"+pMktPrice+"|"+pOurPrice+"|"+pFlashSaleEndDate+"|"+pFlashSaleAvailability;
 				if(j == products.size() - 1){					
 				}else{
 					value = value+"||";

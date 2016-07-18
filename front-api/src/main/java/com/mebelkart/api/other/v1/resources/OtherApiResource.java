@@ -314,6 +314,7 @@ public class OtherApiResource {
 			result.get(i).setProductImage((String)((Map<String, Object>)((Map<String, Object>)source.get("product_name_suggest")).get("payload")).get("product_image_link"));
 			result.get(i).setMktPrice((Integer)categoryVars.get("price_without_reduction"));
 			result.get(i).setOurPrice((Integer)categoryVars.get("price_tax_exc"));
+			result.get(i).setCatId(Integer.parseInt((String)((Map<String, Object>) source.get("info")).get("id_category_default")));
 		}
 		return result;
 	}
