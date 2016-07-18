@@ -21,6 +21,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.elasticsearch.action.get.GetResponse;
+import org.elasticsearch.client.Client;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +33,11 @@ import com.mebelkart.api.ideaboard.v1.core.NBProductsWrapper;
 import com.mebelkart.api.ideaboard.v1.core.WishListProductsWrapper;
 import com.mebelkart.api.ideaboard.v1.core.WishListWrapper;
 import com.mebelkart.api.ideaboard.v1.dao.IdeaBoardDao;
+import com.mebelkart.api.product.v1.api.ProductDetailsResponse;
 import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.classes.InvalidInputReplyClass;
 import com.mebelkart.api.util.classes.Reply;
+import com.mebelkart.api.util.factories.ElasticFactory;
 import com.mebelkart.api.util.helpers.Authentication;
 import com.mebelkart.api.util.helpers.Helper;
 
@@ -71,6 +75,11 @@ public class IdeaBoardResource {
 	 * Helper class from utils
 	 */
 	Helper helper = new Helper();
+	
+	/**
+	 * Getting products elastic client connection
+	 */
+	Client client = ElasticFactory.getProductsElasticClient();
 	
 	@GET
 	@Path("ideaboards")
@@ -133,11 +142,7 @@ public class IdeaBoardResource {
 					}
 					
 					if(customerId > 0 && wishListId > 0){
-//						List<WishListProductsWrapper> products = (List<WishListProductsWrapper>)getProductByIdCustomer(wishListId, customerId);
-//						for(int i = 0; i < products.size(); i++){
-//							
-//						}
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), getProductsOfIdeaboard(accessParam,customerId,wishListId));
+						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), getProductsOfIdeaboard(wishListId,customerId));
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid customer ID");
 						return invalidRequestReply;
@@ -159,7 +164,7 @@ public class IdeaBoardResource {
 			return invalidRequestReply;
 		}
 	}
-	
+
 	@POST
 	@Path("ideaboard/new")
 	@Timed
@@ -461,18 +466,62 @@ public class IdeaBoardResource {
 	 * @param customerId
 	 * @return
 	 */
-	private Object getProductsOfIdeaboard(String accessParam,int wishListId, int customerId) {
-		List<Reply> product = new ArrayList<Reply>();
-		List<WishListProductsWrapper> products = this.ideaBoardDao.getProductsByIdCustomer(wishListId,customerId);
+	@SuppressWarnings("unchecked")
+	private Object getProductsOfIdeaboard(int wishListId, int customerId) {
+		List<ProductDetailsResponse> product = new ArrayList<ProductDetailsResponse>();
 		ProductResource prod = new ProductResource();
-		for(int i = 0; i < products.size(); i++){
-			System.out.println(products.get(i).getProductId());
-			product.add((Reply)prod.getProductDetail(accessParam,products.get(i).getProductId()+""));
-		}
+		//List<WishListProductsWrapper> products = getWishlitProduct(wishListId,customerId);
+ 		List<WishListProductsWrapper> products = this.ideaBoardDao.getProductsByIdCustomer(wishListId,customerId);
+ 		for(int i = 0; i < products.size(); i++){
+ 			GetResponse response = client.prepareGet("mkproducts", "product", products.get(i).getProductId()+"").get();
+			ProductDetailsResponse prodDetails = new ProductDetailsResponse();
+			if(response.isExists()){
+				Map<String,Object> source = response.getSource();
+				Map<String,Object> info = (Map<String, Object>) source.get("info");
+				Map<String,Object> categoryVars = (Map<String, Object>) source.get("categoryVars");
+				
+				prodDetails = new ProductDetailsResponse();
+				prodDetails.setProductId((String)info.get("id_product"));
+				prodDetails.setCategoryId((String)info.get("id_category_default"));
+				prodDetails.setCategoryName((String)info.get("name_category_default"));
+				prodDetails.setProductName((String)info.get("name"));
+				prodDetails.setProductDesc((String)info.get("description"));
+				prodDetails.setAvailLocation((String) source.get("all_locations"));
+				prodDetails.setBrandId(null);
+				prodDetails.setBrandName(null);
+				prodDetails.setTotalViews((String)source.get("views_count"));
+				prodDetails.setShippingCost((String)info.get("additional_shipping_cost"));
+				prodDetails.setShippingAvailable((String)info.get("available_now"));
+				prodDetails.setGallery(prod.getGallery(source));
+				prodDetails.setOfferText(null);
+				prodDetails.setMktPrice((Integer)categoryVars.get("price_without_reduction"));
+				prodDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));
+				prodDetails.setEmiPrice("https://www.mebelkart.com/getEMIForProduct/"+(String)info.get("id_product")+"?mode=json");
+				prodDetails.setRating((Integer) source.get("product_rating"));
+				prodDetails.setAttributes((String) categoryVars.get("id_product_attribute"));
+				prodDetails.setProductFeatures(prod.getProductFeatures(source));
+				prodDetails.setIsSoldOut(0);
+				prodDetails.setAttributeGroups(prod.setAttributeGroups(source));
+				prodDetails.setReviews(null);
+				prodDetails.setTotalReviews(0);
+				prodDetails.setTotalReviewsCount(0);
+				product.add(prodDetails);
+			}
+		}		
+		return product;
+	}
+	
+//	/**
+//	 * @param wishListId
+//	 * @param customerId
+//	 * @return
+//	 */
+//	private List<WishListProductsWrapper> getWishlitProduct(int wishListId,int customerId) {
+//		List<WishListProductsWrapper> products = this.ideaBoardDao.getProductsByIdCustomer(wishListId,customerId);
 //		if(	products.size() == 0)
 //			return null;
 //		for(int i = 0; i < products.size(); i++){
-//			if(products.get(i).getProductAttributeId() > 0){
+//			if(products.get(i).getProductAttributeId() >= 0){
 //				List<AttributeWrapper> result = this.ideaBoardDao.getAttributes(products.get(i).getProductAttributeId());
 //				String temp = "";
 //				for(int j = 0; j < result.size(); j++){
@@ -488,9 +537,9 @@ public class IdeaBoardResource {
 //				products.get(i).setAttributeQuantity(products.get(i).getProductQuantity());
 //			}
 //		}
-		return product;
-	}
-	
+//		return products;
+//	}
+
 	/**
 	 * @param customerId
 	 * @return
