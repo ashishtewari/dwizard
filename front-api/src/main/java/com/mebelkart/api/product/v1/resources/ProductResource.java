@@ -409,7 +409,7 @@ public class ProductResource {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object getProductFeatures(Map<String, Object> source) {
+	public Object getProductFeatures(Map<String, Object> source) {
 		List<Map<String,Object>> featuresInfo = (List<Map<String, Object>>) source.get("features");
 		Map<Object,Object> features = new HashMap<Object,Object>();
 		for(int i = 0; i < featuresInfo.size(); i++){
@@ -419,7 +419,7 @@ public class ProductResource {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object[] getGallery(Map<String, Object> source) {
+	public Object[] getGallery(Map<String, Object> source) {
 		List<Map<String,Object>> imagesInfo = (List<Map<String, Object>>) source.get("images");
 		List<JSONObject> gallery = new ArrayList<JSONObject>();
 		String imageName = (String)((Map<String, Object>)source.get("info")).get("link_rewrite");
@@ -435,7 +435,7 @@ public class ProductResource {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private Object setAttributeGroups(Map<String, Object> source){
+	public Object setAttributeGroups(Map<String, Object> source){
 		Map<String,Object> groupKeys = new HashMap<String,Object>();
 		Map<String,Map<String,Integer>> attributeMappings = new HashMap<String,Map<String,Integer>>();
 		Map<String,String> mapping = new HashMap<String,String>();
