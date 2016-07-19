@@ -5,6 +5,8 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 
+import com.mebelkart.api.payment.v1.dao.PaymentDao;
+import com.mebelkart.api.payment.v1.resources.PaymentResource;
 import com.mebelkart.api.product.v1.dao.ProductDao;
 import com.mebelkart.api.product.v1.dao.ReviewDao;
 import com.mebelkart.api.order.v1.dao.OrderDao;
@@ -102,6 +104,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final CartOperationsDAO cartOperationsDao = mebelkartProductsDatabaseConfiguration.onDemand(CartOperationsDAO.class);
 		final IdeaBoardDao ideaBoardDao = mebelkartProductsDatabaseConfiguration.onDemand(IdeaBoardDao.class);
 		final OtherApiDao otherApiDao = mebelkartProductsDatabaseConfiguration.onDemand(OtherApiDao.class);
+		final PaymentDao paymentDao = mebelkartProductsDatabaseConfiguration.onDemand(PaymentDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -120,6 +123,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new CartResource(cartOperationsDao));
 		environment.jersey().register(new OtherApiResource(otherApiDao));
 		environment.jersey().register(new IdeaBoardResource(ideaBoardDao));
+		environment.jersey().register(new PaymentResource(paymentDao));
 	}
 
 }
