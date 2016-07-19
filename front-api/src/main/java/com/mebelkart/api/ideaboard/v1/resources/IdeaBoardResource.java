@@ -510,35 +510,6 @@ public class IdeaBoardResource {
 		}		
 		return product;
 	}
-	
-//	/**
-//	 * @param wishListId
-//	 * @param customerId
-//	 * @return
-//	 */
-//	private List<WishListProductsWrapper> getWishlitProduct(int wishListId,int customerId) {
-//		List<WishListProductsWrapper> products = this.ideaBoardDao.getProductsByIdCustomer(wishListId,customerId);
-//		if(	products.size() == 0)
-//			return null;
-//		for(int i = 0; i < products.size(); i++){
-//			if(products.get(i).getProductAttributeId() >= 0){
-//				List<AttributeWrapper> result = this.ideaBoardDao.getAttributes(products.get(i).getProductAttributeId());
-//				String temp = "";
-//				for(int j = 0; j < result.size(); j++){
-//					if(j == (result.size() - 1))
-//						temp = temp + result.get(j).getAttributeName();
-//					else
-//						temp = temp + result.get(j).getAttributeName()+", ";
-//				}
-//				products.get(i).setAttributeSmall(temp);
-//				if(result.size() > 0)
-//					products.get(i).setAttributeQuantity(result.get(0).getAttributeQuantity());
-//			}else{
-//				products.get(i).setAttributeQuantity(products.get(i).getProductQuantity());
-//			}
-//		}
-//		return products;
-//	}
 
 	/**
 	 * @param customerId
