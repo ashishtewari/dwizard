@@ -152,7 +152,7 @@ public class OtherApiResource {
 					if(deals.equalsIgnoreCase("deals")){
 						if(customerId > 0 && cityId > 0)
 							if("yes".equalsIgnoreCase(refresh))
-								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,"yes"));
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh));
 							else if("no".equalsIgnoreCase(refresh))
 								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh));
 							else{
