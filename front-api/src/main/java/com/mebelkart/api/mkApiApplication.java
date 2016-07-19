@@ -61,6 +61,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 			 *  Registering jobs bundle to run all cron jobs
 			 */
 			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.rediscron.jedis"));
+			bootstrap.addBundle(new JobsBundle("com.mebelkart.api.util.rediscron.jediscache"));
 		}
 		catch (Exception e){
 			System.out.println("Initialization Not Done ...........");
