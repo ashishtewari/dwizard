@@ -59,7 +59,7 @@ public class OtherApiResource {
 	public OtherApiResource(OtherApiDao dao) {
 		this.dao = dao;
 	}
-	
+		
 	/**
 	 * Get actual class name to be printed on log files
 	 */
@@ -134,7 +134,7 @@ public class OtherApiResource {
 	@GET
 	@Path("{deals}")
 	@Timed
-	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId,@QueryParam("cityId") int cityId,@QueryParam("refresh") String refresh){
+	public Object getBestDeals(@HeaderParam("accessParam") String accessParam,@PathParam("deals") String deals,@QueryParam("cusId") int customerId,@QueryParam("cityId") int cityId,@QueryParam("nbr") int nbr,@QueryParam("refresh") String refresh){
 		try{
 			if(helper.isValidJson(accessParam)){
 				if(isHavingValidAccessParamKeys(accessParam)){
@@ -150,21 +150,26 @@ public class OtherApiResource {
 					}
 					
 					if(deals.equalsIgnoreCase("deals")){
-						if(customerId > 0 && cityId > 0)
+						if(customerId > 0 && cityId > 0 && nbr > 0)
 							if("yes".equalsIgnoreCase(refresh))
-								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh));
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh,nbr));
 							else if("no".equalsIgnoreCase(refresh))
-								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh));
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh,nbr));
 							else{
 								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
 								return invalidRequestReply;
 							}
 						else{
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id and nbr");
 							return invalidRequestReply;
 						}							
 					}else if(deals.equalsIgnoreCase("dealsoftheday")){
-						return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals());
+						if(nbr > 0)
+							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals("web",nbr));
+						else{
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid nbr (number of products per row)");
+							return invalidRequestReply;
+						}							
 					}else{
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "URL doesn't exist, Please provide valid URL");
 						return invalidRequestReply;
@@ -186,12 +191,12 @@ public class OtherApiResource {
 			return invalidRequestReply;
 		}
 	}
-	
+
 	/**
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private Object bestdeals() {
+	public Object bestdeals(String callType, int nbr) {
 		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
 		//int nbr = this.dao.getDataFromConfiguration("HOME_DOTD_PRODUCT_NBR");
 		
@@ -211,43 +216,48 @@ public class OtherApiResource {
 				,"categoryVars.price_without_reduction","categoryVars.price_tax_exc"
 				,"product_rating","deals.flashSaleDateEnd","info.id_image","images","info.link_rewrite","param3.popularityNetScore"};
 		
-		List<Map<String, Object>> productsList = new ArrayList<Map<String,Object>>();
+		List<DealsWrapper> productsList = new ArrayList<DealsWrapper>();
 		SearchResponse response = client.prepareSearch("mkproducts")
 				.setTypes("product")
 		        .setFetchSource(includes, null)
 		        .setQuery(filterQuery)
 		        //.addSort(SortBuilders.fieldSort("param3.popularityNetScore").order(SortOrder.DESC))
 		        .addSort(SortBuilders.fieldSort("deals.flash_sale_date_end_analyzed").order(SortOrder.DESC))
-		        .setFrom(0).setSize(20).setExplain(true)
+		        .setFrom(0).setSize(nbr).setExplain(true)
 		        .execute().actionGet();
 		
 		SearchHit[] searchHits = response.getHits().getHits();
 		for(int i=0;i<searchHits.length;i++){
-			Map<String,Object> productsDetails = new HashMap<String,Object>();
+			DealsWrapper productsDetails = new DealsWrapper();
 			Map<String,Object> info = (Map<String, Object>) searchHits[i].getSource().get("info");
 			Map<String,Object> categoryVars = (Map<String, Object>) searchHits[i].getSource().get("categoryVars");
 			Map<String,Object> deals = (Map<String,Object>) searchHits[i].getSource().get("deals");
-			productsDetails.put("productId",(String)info.get("id_product"));
-			productsDetails.put("productName",(String)info.get("name"));
-			System.out.println("Product name: "+(String)info.get("name"));
-			System.out.println("Popularity is: "+(Integer)((Map<String, Object>) searchHits[i].getSource().get("param3")).get("popularityNetScore"));
-			productsDetails.put("categoryId",(String)info.get("id_category_default"));
-			productsDetails.put("categoryName",(String)info.get("name_category_default"));
-			productsDetails.put("mktPrice",(Integer)categoryVars.get("price_without_reduction")+"");
-			productsDetails.put("ourPrice",(Integer)categoryVars.get("price_tax_exc")+"");
-			productsDetails.put("rating",(Integer)searchHits[i].getSource().get("product_rating"));
-			productsDetails.put("gallery",getGallery((String)info.get("id_image"),(String)info.get("link_rewrite")));
-			productsDetails.put("flashSaleEndDate",(String)deals.get("flashSaleDateEnd"));
+			productsDetails.setProductId(Integer.parseInt((String)info.get("id_product")));
+			//productsDetails.put("productId",Integer.parseInt((String)info.get("id_product")));
+			productsDetails.setProductName((String)info.get("name"));
+			//productsDetails.put("productName",(String)info.get("name"));
+			if(callType.equalsIgnoreCase("mobile"))
+				productsDetails.setProductImage("https://cdn1.mebelkart.com/"+(String)info.get("id_image")+"-home/"+(String)info.get("link_rewrite")+".jpg");
+			else if(callType.equalsIgnoreCase("web"))
+				productsDetails.setProductImage("https://cdn1.mebelkart.com/"+(String)info.get("id_image")+"-home/"+(String)info.get("link_rewrite")+".jpg");
+			productsDetails.setCatId(Integer.parseInt((String)info.get("id_category_default")));
+			//productsDetails.put("categoryName",(String)info.get("name_category_default"));
+			productsDetails.setMktPrice((Integer)categoryVars.get("price_without_reduction"));
+			productsDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));
+			//productsDetails.put("rating",(Integer)searchHits[i].getSource().get("product_rating"));
+			
+			productsDetails.setFlashSaleEndDate((String)deals.get("flashSaleDateEnd"));
+			productsDetails.setFsAvailability("1");
 			productsList.add(productsDetails);
 		}
-		System.out.println("Number of products in best deals: "+searchHits.length);
+		//System.out.println("Number of products in best deals: "+searchHits.length);
 		return productsList;
 	}
 
 	/**
 	 * @return
 	 */
-	private Object deals(int custId,int cityId, String refresh) {
+	public Object deals(int custId,int cityId, String refresh, int nbr) {
 		Jedis jedis = jedisFactory.getJedisConnection();
 		if(jedis.exists("dealsPage") && !refresh.equalsIgnoreCase("yes")){
 			Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsPage");
@@ -258,6 +268,9 @@ public class OtherApiResource {
 		int flashSaleCatId = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORY_ID");
 		List<CategoryWrapper> cat = this.dao.getCategoryIds(flashSaleCatId);
 		int nb = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORIES_NBR");
+		if(nb > nbr){
+			nb = nbr;
+		}
 		int lang = this.dao.getDataFromConfiguration("PS_LANG_DEFAULT"); // pick up value from db table name is ps_configuration
 		List<Object> results = new ArrayList<Object>();
 		for(int i = 0; i < cat.size(); i++){
@@ -319,11 +332,11 @@ public class OtherApiResource {
 		return result;
 	}
 
-	private Object getGallery(String imageId,String imageName) {
-		Map<Object,Object> images = new HashMap<Object,Object>();
-		images.put("homeImage", "https://cdn1.mebelkart.com/"+imageId+"-home/"+imageName+".jpg");
-		images.put("largeImage", "https://cdn1.mebelkart.com/"+imageId+"-large/"+imageName+".jpg");
-		images.put("largerImage", "https://cdn1.mebelkart.com/"+imageId+"-larger/"+imageName+".jpg");			
-		return images;
-	}
+//	private Object getGallery(String imageId,String imageName) {
+//		Map<Object,Object> images = new HashMap<Object,Object>();
+//		images.put("homeImage", "https://cdn1.mebelkart.com/"+imageId+"-home/"+imageName+".jpg");
+//		images.put("largeImage", "https://cdn1.mebelkart.com/"+imageId+"-large/"+imageName+".jpg");
+//		images.put("largerImage", "https://cdn1.mebelkart.com/"+imageId+"-larger/"+imageName+".jpg");			
+//		return images;
+//	}
 }
