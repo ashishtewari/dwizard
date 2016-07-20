@@ -36,6 +36,8 @@ import com.mebelkart.api.ideaboard.v1.dao.IdeaBoardDao;
 import com.mebelkart.api.ideaboard.v1.resources.IdeaBoardResource;
 import com.mebelkart.api.manufacturer.v1.dao.ManufacturerDetailsDAO;
 import com.mebelkart.api.manufacturer.v1.resources.ManufacturerResource;
+import com.mebelkart.api.mobile.v1.dao.MobileDao;
+import com.mebelkart.api.mobile.v1.resources.MobileResource;
 import com.mebelkart.api.product.v1.resources.ProductResource;
 import com.mebelkart.api.util.exceptions.HandleNullRequest;
 
@@ -105,6 +107,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		final IdeaBoardDao ideaBoardDao = mebelkartProductsDatabaseConfiguration.onDemand(IdeaBoardDao.class);
 		final OtherApiDao otherApiDao = mebelkartProductsDatabaseConfiguration.onDemand(OtherApiDao.class);
 		final PaymentDao paymentDao = mebelkartProductsDatabaseConfiguration.onDemand(PaymentDao.class);
+		final MobileDao mobileDao = mebelkartProductsDatabaseConfiguration.onDemand(MobileDao.class);
 		/*
 		 * Registering the database mapper classes
 		 */
@@ -124,6 +127,7 @@ public class mkApiApplication extends Application<mkApiConfiguration> {
 		environment.jersey().register(new OtherApiResource(otherApiDao));
 		environment.jersey().register(new IdeaBoardResource(ideaBoardDao));
 		environment.jersey().register(new PaymentResource(paymentDao));
+		environment.jersey().register(new MobileResource(mobileDao,otherApiDao));
 	}
 
 }
