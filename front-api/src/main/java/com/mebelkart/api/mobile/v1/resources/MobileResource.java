@@ -89,10 +89,10 @@ public class MobileResource {
 						return invalidRequestReply;
 					}
 					if(customerId > 0 && cityId > 0 && nbr > 0){
-						if("yes".equalsIgnoreCase(refresh))
+						if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
 							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(customerId,cityId,refresh,nbr));
-						else if("no".equalsIgnoreCase(refresh))
-							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(customerId,cityId,refresh,nbr));
+//						else if("no".equalsIgnoreCase(refresh))
+//							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(customerId,cityId,refresh,nbr));
 						else{
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
 							return invalidRequestReply;
@@ -130,46 +130,37 @@ public class MobileResource {
 	@SuppressWarnings("unchecked")
 	private Object mobileDeals(int customerId, int cityId, String refresh, int nbr) {					
 		OtherApiResource otherResource = new OtherApiResource(this.otherDao);
+		List<MobileDealsWrapper> dealsWrapper = new ArrayList<MobileDealsWrapper>();
 		// Here we are getting deals of the day data
-		List<DealsWrapper> bestDeals = (List<DealsWrapper>)otherResource.bestdeals("mobile",nbr);
+		List<Object> bestDeals = (List<Object>)otherResource.bestdeals("mobile",nbr,refresh);
 		// This part of code is to wrap the deals of the day data into mobile compatable
-		List<MobileDealsWrapper> dealsWrapper = new ArrayList<MobileDealsWrapper>();	
-		MobileDealsWrapper wrapper = new MobileDealsWrapper();
-		wrapper.setType("Deals");
-		wrapper.setCategory_id("0");
-		wrapper.setCategory_name("BEST DEALS");
-		List<ProductDetailsWrapper> prodWrapper = new ArrayList<ProductDetailsWrapper>();
-		for(int i = 0; i < bestDeals.size(); i++){
-			ProductDetailsWrapper wrap = new ProductDetailsWrapper();
-			wrap.setType("Product");
-			wrap.setProduct_id(bestDeals.get(i).getProductId()+"");
-			wrap.setCategory_id(bestDeals.get(i).getCatId()+"");
-			wrap.setBrand_id(0);
-			wrap.setImag_url(bestDeals.get(i).getProductImage());
-			wrap.setTitle(bestDeals.get(i).getProductName());
-			wrap.setOffer_text("");
-			wrap.setIs_sold_out(0);
-			wrap.setMkt_price(bestDeals.get(i).getMktPrice());
-			wrap.setOur_price(bestDeals.get(i).getOurPrice());
-			wrap.setFlash_sale_date_end(bestDeals.get(i).getFlashSaleEndDate());
-			prodWrapper.add(wrap);
-		}
-		wrapper.setChildren(prodWrapper);
-		dealsWrapper.add(wrapper);
+		dealsWrapper = wrap(dealsWrapper,bestDeals);
 		// Here we are getting deals page data 
 		List<Object> dealsPage = (List<Object>)otherResource.deals(customerId,cityId,refresh,nbr);
 		// This part of code is to wrap the deals of the day data into mobile compatable
+		dealsWrapper = wrap(dealsWrapper,dealsPage);
+		return dealsWrapper;
+	}
+
+	/**
+	 * @param dealsWrapper
+	 * @param bestDeals
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private List<MobileDealsWrapper> wrap(List<MobileDealsWrapper> dealsWrapper, List<Object> dealsPage) {
+		// This part of code is to wrap the deals of the day data into mobile compatable
 		for(int i = 0; i < dealsPage.size(); i++){
 			Map<String,Object> dealsWrap = (Map<String,Object>) dealsPage.get(i);
-			wrapper = new MobileDealsWrapper();
-			wrapper.setType("Deals");
+			MobileDealsWrapper wrapper = new MobileDealsWrapper();
+			wrapper.setType("deals");
 			wrapper.setCategory_id((Integer)dealsWrap.get("categoryId")+"");
 			wrapper.setCategory_name((String) dealsWrap.get("catName"));
 			List<DealsWrapper> proWrap = (List<DealsWrapper>) dealsWrap.get("products");
 			List<ProductDetailsWrapper> innerProdWrapper = new ArrayList<ProductDetailsWrapper>();
 			for(int j = 0; j < proWrap.size(); j++){
 				ProductDetailsWrapper wrap = new ProductDetailsWrapper();
-				wrap.setType("Product");
+				wrap.setType("product");
 				wrap.setProduct_id(proWrap.get(j).getProductId()+"");
 				wrap.setCategory_id(proWrap.get(j).getCatId()+"");
 				wrap.setBrand_id(0);
