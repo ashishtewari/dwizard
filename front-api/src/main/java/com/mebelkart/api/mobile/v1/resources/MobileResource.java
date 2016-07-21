@@ -41,6 +41,7 @@ public class MobileResource {
 	
 	MobileDao mobileDao;
 	OtherApiDao otherDao;
+	OtherApiResource otherResource;
 	/**
 	 * Default Constructer
 	 */
@@ -88,11 +89,11 @@ public class MobileResource {
 						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
 						return invalidRequestReply;
 					}
+					if(otherResource == null)
+						otherResource = new OtherApiResource(this.otherDao);
 					if(customerId > 0 && cityId > 0 && nbr > 0){
 						if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
-							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(customerId,cityId,refresh,nbr));
-//						else if("no".equalsIgnoreCase(refresh))
-//							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(customerId,cityId,refresh,nbr));
+							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(otherResource,customerId,cityId,refresh,nbr));
 						else{
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
 							return invalidRequestReply;
@@ -128,8 +129,7 @@ public class MobileResource {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private Object mobileDeals(int customerId, int cityId, String refresh, int nbr) {					
-		OtherApiResource otherResource = new OtherApiResource(this.otherDao);
+	private Object mobileDeals(OtherApiResource otherResource,int customerId, int cityId, String refresh, int nbr) {
 		List<MobileDealsWrapper> dealsWrapper = new ArrayList<MobileDealsWrapper>();
 		// Here we are getting deals of the day data
 		List<Object> bestDeals = (List<Object>)otherResource.bestdeals("mobile",nbr,refresh);

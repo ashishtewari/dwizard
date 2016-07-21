@@ -206,7 +206,7 @@ public class OtherApiResource {
 			if(!categoriesWithProductDetails.isEmpty()){
 				return internalHelper.getDealsPage(categoriesWithProductDetails);
 			}
-		}		
+		}
 		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
 		
 		BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
