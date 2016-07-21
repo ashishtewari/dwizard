@@ -342,12 +342,4 @@ public class OtherApiResource {
 		}
 		return result;
 	}
-
-//	private Object getGallery(String imageId,String imageName) {
-//		Map<Object,Object> images = new HashMap<Object,Object>();
-//		images.put("homeImage", "https://cdn1.mebelkart.com/"+imageId+"-home/"+imageName+".jpg");
-//		images.put("largeImage", "https://cdn1.mebelkart.com/"+imageId+"-large/"+imageName+".jpg");
-//		images.put("largerImage", "https://cdn1.mebelkart.com/"+imageId+"-larger/"+imageName+".jpg");			
-//		return images;
-//	}
 }
