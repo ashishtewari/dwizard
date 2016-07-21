@@ -151,9 +151,7 @@ public class OtherApiResource {
 					
 					if(deals.equalsIgnoreCase("deals")){
 						if(customerId > 0 && cityId > 0 && nbr > 0)
-							if("yes".equalsIgnoreCase(refresh))
-								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh,nbr));
-							else if("no".equalsIgnoreCase(refresh))
+							if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
 								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh,nbr));
 							else{
 								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
@@ -165,7 +163,12 @@ public class OtherApiResource {
 						}							
 					}else if(deals.equalsIgnoreCase("dealsoftheday")){
 						if(nbr > 0)
-							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals("web",nbr));
+							if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
+								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), bestdeals("web",nbr,refresh));
+							else{
+								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid refresh param, i.e, yes or no");
+								return invalidRequestReply;
+							}	
 						else{
 							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid nbr (number of products per row)");
 							return invalidRequestReply;
@@ -196,9 +199,15 @@ public class OtherApiResource {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Object bestdeals(String callType, int nbr) {
+	public Object bestdeals(String callType, int nbr, String refresh) {
+		Jedis jedis = jedisFactory.getJedisConnection();
+		if(jedis.exists("dealsOfTheDay") && !refresh.equalsIgnoreCase("yes")){
+			Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsOfTheDay");
+			if(!categoriesWithProductDetails.isEmpty()){
+				return internalHelper.getDealsPage(categoriesWithProductDetails);
+			}
+		}		
 		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
-		//int nbr = this.dao.getDataFromConfiguration("HOME_DOTD_PRODUCT_NBR");
 		
 		BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
 		filterQuery.must(QueryBuilders.matchQuery("all_category_ids",categoryId))
@@ -233,25 +242,27 @@ public class OtherApiResource {
 			Map<String,Object> categoryVars = (Map<String, Object>) searchHits[i].getSource().get("categoryVars");
 			Map<String,Object> deals = (Map<String,Object>) searchHits[i].getSource().get("deals");
 			productsDetails.setProductId(Integer.parseInt((String)info.get("id_product")));
-			//productsDetails.put("productId",Integer.parseInt((String)info.get("id_product")));
 			productsDetails.setProductName((String)info.get("name"));
-			//productsDetails.put("productName",(String)info.get("name"));
 			if(callType.equalsIgnoreCase("mobile"))
 				productsDetails.setProductImage("https://cdn1.mebelkart.com/"+(String)info.get("id_image")+"-home/"+(String)info.get("link_rewrite")+".jpg");
 			else if(callType.equalsIgnoreCase("web"))
 				productsDetails.setProductImage("https://cdn1.mebelkart.com/"+(String)info.get("id_image")+"-home/"+(String)info.get("link_rewrite")+".jpg");
 			productsDetails.setCatId(Integer.parseInt((String)info.get("id_category_default")));
-			//productsDetails.put("categoryName",(String)info.get("name_category_default"));
 			productsDetails.setMktPrice((Integer)categoryVars.get("price_without_reduction"));
-			productsDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));
-			//productsDetails.put("rating",(Integer)searchHits[i].getSource().get("product_rating"));
-			
+			productsDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));			
 			productsDetails.setFlashSaleEndDate((String)deals.get("flashSaleDateEnd"));
 			productsDetails.setFsAvailability("1");
 			productsList.add(productsDetails);
 		}
-		//System.out.println("Number of products in best deals: "+searchHits.length);
-		return productsList;
+		List<Object> prodDet = new ArrayList<Object>();
+		Map<String,Object> prod = new HashMap<String,Object>();
+		prod.put("categoryId", 0);
+		prod.put("catName", "Best Deals");
+		prod.put("products", productsList);
+		prodDet.add(prod);
+		jedis.del("dealsOfTheDay");
+		jedis.hmset("dealsOfTheDay", internalHelper.convertDealsPageDataIntoMap(prodDet));
+		return prodDet;
 	}
 
 	/**
