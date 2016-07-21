@@ -46,22 +46,18 @@ public class JedisFactory {
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
 		// encrypting the apikey to match with the apikey in the redis, which is
 		// MD5 encrypted
-		System.out.println("Enterd in jedisFactory 1");
 		if(user.equals("") || user == null){
 			throw new Exception("Your user name is empty");
 		}else if(apikey.equals("") || apikey == null){
 			throw new Exception("Your access token is empty");
 		}
-		System.out.println("Enterd in jedisFactory 2");
 		MD5Encoding encode = new MD5Encoding();
 		apikey = encode.encrypt(apikey);
 		user = encode.encrypt(user);
 		try{
 			// checks if the userName key exists in redis database or not
-			System.out.println("Enterd in jedisFactory 2");
 			if (isValidUser(user)) {
 				// checks if this particular user is having valid apikey or not
-				System.out.println("Enterd in jedisFactory 3");
 				if(isValidAccessToken(user,apikey)){
 					// checks if user is superadmin or not
 					if(isUserSuperAdmin(user)){
