@@ -40,6 +40,9 @@ public class JedisCache extends Job {
 			if(jedis.exists("dealsPage")){
 				jedis.del("dealsPage");
 			}
+			if(jedis.exists("dealsOfTheDay")){
+				jedis.del("dealsOfTheDay");
+			}
 		}catch(JedisDataException e){
 			e.printStackTrace();
 		}
