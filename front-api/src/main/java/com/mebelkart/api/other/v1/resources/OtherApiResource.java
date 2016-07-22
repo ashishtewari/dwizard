@@ -150,7 +150,7 @@ public class OtherApiResource {
 					}
 					
 					if(deals.equalsIgnoreCase("deals")){
-						if(customerId > 0 && cityId > 0 && nbr > 0)
+						if( nbr > 0)
 							if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
 								return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), deals(customerId,cityId,refresh,nbr));
 							else{
@@ -158,7 +158,7 @@ public class OtherApiResource {
 								return invalidRequestReply;
 							}
 						else{
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id and nbr");
+							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid nbr");
 							return invalidRequestReply;
 						}							
 					}else if(deals.equalsIgnoreCase("dealsoftheday")){

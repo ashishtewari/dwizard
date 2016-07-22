@@ -91,7 +91,7 @@ public class MobileResource {
 					}
 					if(otherResource == null)
 						otherResource = new OtherApiResource(this.otherDao);
-					if(customerId > 0 && cityId > 0 && nbr > 0){
+					if( nbr > 0){
 						if("yes".equalsIgnoreCase(refresh) || "no".equalsIgnoreCase(refresh))
 							return new Reply(Response.Status.OK.getStatusCode(), Response.Status.OK.getReasonPhrase(), mobileDeals(otherResource,customerId,cityId,refresh,nbr));
 						else{
@@ -99,7 +99,7 @@ public class MobileResource {
 							return invalidRequestReply;
 						}
 					}else{
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid Customer Id and City Id");
+						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Please provide valid nbr");
 						return invalidRequestReply;
 					}
 					
@@ -134,11 +134,11 @@ public class MobileResource {
 		// Here we are getting deals of the day data
 		List<Object> bestDeals = (List<Object>)otherResource.bestdeals("mobile",nbr,refresh);
 		// This part of code is to wrap the deals of the day data into mobile compatable
-		dealsWrapper = wrap(dealsWrapper,bestDeals);
+		dealsWrapper = wrap(dealsWrapper,bestDeals,nbr);
 		// Here we are getting deals page data 
 		List<Object> dealsPage = (List<Object>)otherResource.deals(customerId,cityId,refresh,nbr);
 		// This part of code is to wrap the deals of the day data into mobile compatable
-		dealsWrapper = wrap(dealsWrapper,dealsPage);
+		dealsWrapper = wrap(dealsWrapper,dealsPage,nbr);
 		return dealsWrapper;
 	}
 
@@ -148,7 +148,7 @@ public class MobileResource {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private List<MobileDealsWrapper> wrap(List<MobileDealsWrapper> dealsWrapper, List<Object> dealsPage) {
+	private List<MobileDealsWrapper> wrap(List<MobileDealsWrapper> dealsWrapper, List<Object> dealsPage, int nbr) {
 		// This part of code is to wrap the deals of the day data into mobile compatable
 		for(int i = 0; i < dealsPage.size(); i++){
 			Map<String,Object> dealsWrap = (Map<String,Object>) dealsPage.get(i);
@@ -158,7 +158,7 @@ public class MobileResource {
 			wrapper.setCategory_name((String) dealsWrap.get("catName"));
 			List<DealsWrapper> proWrap = (List<DealsWrapper>) dealsWrap.get("products");
 			List<ProductDetailsWrapper> innerProdWrapper = new ArrayList<ProductDetailsWrapper>();
-			for(int j = 0; j < proWrap.size(); j++){
+			for(int j = 0; j < proWrap.size() && j < nbr; j++){
 				ProductDetailsWrapper wrap = new ProductDetailsWrapper();
 				wrap.setType("product");
 				wrap.setProduct_id(proWrap.get(j).getProductId()+"");
