@@ -251,6 +251,7 @@ public class OtherApiResource {
 			productsDetails.setMktPrice((Integer)categoryVars.get("price_without_reduction"));
 			productsDetails.setOurPrice((Integer)categoryVars.get("price_tax_exc"));			
 			productsDetails.setFlashSaleEndDate((String)deals.get("flashSaleDateEnd"));
+			productsDetails.setFlashSaleEndsIn(internalHelper.getRemainingTime(helper.getCurrentDateString(),(String)deals.get("flashSaleDateEnd")));
 			productsDetails.setFsAvailability("1");
 			productsList.add(productsDetails);
 		}
@@ -339,6 +340,7 @@ public class OtherApiResource {
 			result.get(i).setMktPrice((Integer)categoryVars.get("price_without_reduction"));
 			result.get(i).setOurPrice((Integer)categoryVars.get("price_tax_exc"));
 			result.get(i).setCatId(Integer.parseInt((String)((Map<String, Object>) source.get("info")).get("id_category_default")));
+			result.get(i).setFlashSaleEndsIn(internalHelper.getRemainingTime(helper.getCurrentDateString(), result.get(i).getFlashSaleEndDate()));
 		}
 		return result;
 	}

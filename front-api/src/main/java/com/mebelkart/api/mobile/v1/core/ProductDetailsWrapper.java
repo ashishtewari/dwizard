@@ -19,6 +19,7 @@ public class ProductDetailsWrapper {
 	private int mkt_price;
 	private int our_price;
 	private String flash_sale_date_end;
+	private String flash_sale_ends_in;
 	
 	public ProductDetailsWrapper(){
 		
@@ -89,5 +90,13 @@ public class ProductDetailsWrapper {
 	}
 	public void setFlash_sale_date_end(String flash_sale_date_end) {
 		this.flash_sale_date_end = flash_sale_date_end;
+	}
+
+	public String getFlash_sale_ends_in() {
+		return flash_sale_ends_in;
+	}
+
+	public void setFlash_sale_ends_in(String flash_sale_ends_in) {
+		this.flash_sale_ends_in = flash_sale_ends_in;
 	}
 }

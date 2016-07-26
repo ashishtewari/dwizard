@@ -3,13 +3,17 @@
  */
 package com.mebelkart.api.other.v1.helper;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.mebelkart.api.other.v1.core.DealsWrapper;
+import com.mebelkart.api.util.helpers.Helper;
 
 /**
  * @author Tinku
@@ -17,6 +21,10 @@ import com.mebelkart.api.other.v1.core.DealsWrapper;
  */
 public class HelperMethods {
 
+	/**
+	 * Helper class from utils
+	 */
+	Helper helper = new Helper();
 	/**
 	 * @param categoriesWithProductDetails
 	 * @return
@@ -41,11 +49,9 @@ public class HelperMethods {
 	private List<DealsWrapper> getProducts(String products) {
 		List<DealsWrapper> prod = new ArrayList<DealsWrapper>();
 		String[] prods = products.split("\\|\\|");
-		//System.out.println(products);
 		for(int i = 0; i < prods.length; i++){
 			DealsWrapper temp = new DealsWrapper();
 			String[] prodInner = prods[i].split("\\|");
-			//System.out.println(prods[i]);
 			temp.setProductId(Integer.parseInt(prodInner[0]));
 			temp.setProductName(prodInner[1]);
 			temp.setProductImage(prodInner[2]);
@@ -53,6 +59,7 @@ public class HelperMethods {
 			temp.setMktPrice(Integer.parseInt(prodInner[4]));
 			temp.setOurPrice(Integer.parseInt(prodInner[5]));
 			temp.setFlashSaleEndDate(prodInner[6]);
+			temp.setFlashSaleEndsIn(getRemainingTime(helper.getCurrentDateString(),prodInner[6]));
 			temp.setFsAvailability(prodInner[7]);
 			prod.add(temp);
 		}
@@ -91,6 +98,45 @@ public class HelperMethods {
 			dealsPageData.put(field, value);
 		}
 		return dealsPageData;
+	}
+
+	/**
+	 * @param currentDateString
+	 * @param string
+	 * @return
+	 */
+	public String getRemainingTime(String currentDate, String endDate) {
+		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date date1;
+		Date date2;
+		try {
+			date1 = simpleDateFormat.parse(currentDate);
+			date2 = simpleDateFormat.parse(endDate);
+			//milliseconds
+			long different = date2.getTime() - date1.getTime();
+			
+			if(different < 0)
+				return "0d 0h 0m";
+			
+			long secondsInMilli = 1000;
+			long minutesInMilli = secondsInMilli * 60;
+			long hoursInMilli = minutesInMilli * 60;
+			long daysInMilli = hoursInMilli * 24;
+
+			long elapsedDays = different / daysInMilli;
+			different = different % daysInMilli;
+			
+			long elapsedHours = different / hoursInMilli;
+			different = different % hoursInMilli;
+			
+			long elapsedMinutes = different / minutesInMilli;
+			different = different % minutesInMilli;
+			
+			return elapsedDays+"d "+elapsedHours+"h "+elapsedMinutes+"m";
+		} catch (ParseException e) {
+			return "0d 0h 0m";
+		}
 	}
 	
 	

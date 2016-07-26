@@ -171,6 +171,7 @@ public class MobileResource {
 				wrap.setMkt_price(proWrap.get(j).getMktPrice());
 				wrap.setOur_price(proWrap.get(j).getOurPrice());
 				wrap.setFlash_sale_date_end(proWrap.get(j).getFlashSaleEndDate());
+				wrap.setFlash_sale_ends_in(proWrap.get(j).getFlashSaleEndsIn());
 				innerProdWrapper.add(wrap);
 			}
 			wrapper.setChildren(innerProdWrapper);

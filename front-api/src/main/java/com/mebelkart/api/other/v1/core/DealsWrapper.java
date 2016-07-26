@@ -16,6 +16,7 @@ public class DealsWrapper {
 	private int mktPrice;
 	private int ourPrice;
 	private String flashSaleEndDate;
+	private String flashSaleEndsIn;
 	private String fsAvailability;
 	/**
 	 * Default Constructor
@@ -75,6 +76,12 @@ public class DealsWrapper {
 	}
 	public void setCatId(int catId) {
 		this.catId = catId;
+	}
+	public String getFlashSaleEndsIn() {
+		return flashSaleEndsIn;
+	}
+	public void setFlashSaleEndsIn(String flashSaleEndsIn) {
+		this.flashSaleEndsIn = flashSaleEndsIn;
 	}
 
 }
