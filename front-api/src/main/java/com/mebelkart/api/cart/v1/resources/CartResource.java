@@ -62,7 +62,7 @@ public class CartResource {
 
 	@SuppressWarnings("unused")
 	@POST
-	@Path("/addProduct")
+	@Path("/updateCart")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces({ MediaType.APPLICATION_JSON })
 	@Timed
@@ -115,8 +115,8 @@ public class CartResource {
 								int isCartHavingThisProductBefore = cartDao.getCartProductDetails(cartId,productId);
 								Map<String,Object>cartResultMap = new HashMap<String, Object>();
 								if(isCartHavingThisProductBefore > 0){
-									cartResultMap = increaseProductQuantityInCart(cartId,productId,productAttributeId,operator);
-									return new Reply(200,"SuccessFully Added",cartResultMap);
+									cartResultMap = updateProductQuantityInCart(cartId,productId,productAttributeId,operator);
+									return new Reply(200,"Success",cartResultMap);
 								} else {
 									cartResultMap = addProductToCart(cartId,productId,productAttributeId);
 									return new Reply(200,"SuccessFully Added",cartResultMap);
@@ -201,115 +201,115 @@ public class CartResource {
 			}
 	}
 	
-	
-	@POST
-	@Path("/decreaseProduct")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces({ MediaType.APPLICATION_JSON })
-	@Timed
-	public Object decreaseProductFromCart(@HeaderParam("accessParam")String accessParam,@Context HttpServletRequest request){
-		try {
-			cartHelper = new CartHelper(cartDao);	
-			if(utilHelper.isValidJson(accessParam)){ // validating the input json data
-				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
-				bodyInputJsonData = utilHelper.contextRequestParser(request);
-				if(headerInputJsonData.containsKey("accessToken") && headerInputJsonData.containsKey("userName")) {
-					String accessToken = headerInputJsonData.get("accessToken").toString();
-					String userName = headerInputJsonData.get("userName").toString();
-					try {
-							/*
-							 * validating the accesstoken given by user
-							 */
-						authenticate.validate(userName,accessToken, "customer", "get","addProductToCart");
-						
-					} catch(Exception e) {
-//						e.printStackTrace();
-						errorLog.warn("Unautherized user "+userName+" tried to access addProduct function");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
-						return invalidRequestReply;
-					}
-					
-					if(bodyInputJsonData.containsKey("id_product") && bodyInputJsonData.containsKey("id_product_attribute") && bodyInputJsonData.containsKey("id_customer") && bodyInputJsonData.containsKey("secure_key") && bodyInputJsonData.containsKey("id_cart") && bodyInputJsonData.containsKey("operator")){
-						String cartId = bodyInputJsonData.get("id_cart").toString();
-						String productId = bodyInputJsonData.get("id_product").toString();
-						String productAttributeId = bodyInputJsonData.get("id_product_attribute").toString();
-						String operator = bodyInputJsonData.get("operator").toString();
-						
-						if(((!cartId.equals("0") && !cartId.equals("") && !cartId.equals(null)) || (!productId.equals("0") && !productId.equals("") && !productId.equals(null)))){
-							if(cartDao.isProductIdValid(productId) > 0 && cartDao.isCartIdValid(cartId) > 0){
-								int isCartHavingThisProductBefore = cartDao.getCartProductDetails(cartId,productId);
-								Map<String,Object>cartResultMap = new HashMap<String, Object>();
-									if(isCartHavingThisProductBefore > 0){
-										cartResultMap = increaseProductQuantityInCart(cartId,productId,productAttributeId,operator);
-										return new Reply(200,"SuccessFully Added",cartResultMap);
-									} else {
-										errorLog.warn("This product is not in the given cart. Give valid productId and cartId");
-										invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "This product is not in the given cart. Give valid productId and cartId");
-										return invalidRequestReply;
-									}
-								} else {
-									errorLog.warn("productId or cartId is not valid. Give valid productId and cartId");
-									invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "productId or cartId is not valid. Give valid productId and cartId");
-									return invalidRequestReply;
-								}
-							
-							} else {
-								errorLog.warn("Specify cartId and productId to reduce the product in cart");
-								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify cartId and productId to reduce the product in cart");
-								return invalidRequestReply;
-							}	
-						
-						} else {
-							errorLog.warn("Some of the required fields are missing, specify necessary fields");
-							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Some of the required fields are missing, specify necessary fields");
-							return invalidRequestReply;
-						}
-				
-					} else {
-						errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
-						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
-						return invalidRequestReply;
-					}
-					
-				} else {
-					errorLog.warn("The parameter which you specified is not in json format");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "The parameter which you specified is not in json format");
-					return invalidRequestReply;
-				}	
-			}
-			catch (NullPointerException nullPointer) {
-				nullPointer.printStackTrace();
-				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
-				return invalidRequestReply;
-			}
-			catch (UnableToExecuteStatementException mysqlException) {
-				mysqlException.printStackTrace();
-				errorLog.warn("Specify all required values for fields in request");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify all required values for fields in request");
-				return invalidRequestReply;
-			}
-			catch (ParseException parse) {
-				parse.printStackTrace();
-				errorLog.warn("Specify correct data type for the values as mentioned in instructions");
-				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct data type for the values as mentioned in instructions");
-				return invalidRequestReply;
-			}
-			catch (Exception e) {
-				if(e instanceof IllegalArgumentException){
-					e.printStackTrace();
-					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct keys for the values as mentioned in instructions");
-					return invalidRequestReply;
-				}else {
-					e.printStackTrace();
-					errorLog.warn("Internal server error");
-					invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server error");
-					return invalidRequestReply;
-				}
-			}
-		
-	}
+//	
+//	@POST
+//	@Path("/decreaseProduct")
+//	@Consumes(MediaType.APPLICATION_JSON)
+//	@Produces({ MediaType.APPLICATION_JSON })
+//	@Timed
+//	public Object decreaseProductFromCart(@HeaderParam("accessParam")String accessParam,@Context HttpServletRequest request){
+//		try {
+//			cartHelper = new CartHelper(cartDao);	
+//			if(utilHelper.isValidJson(accessParam)){ // validating the input json data
+//				headerInputJsonData = (JSONObject) parser.parse(accessParam); // parsing header parameter values
+//				bodyInputJsonData = utilHelper.contextRequestParser(request);
+//				if(headerInputJsonData.containsKey("accessToken") && headerInputJsonData.containsKey("userName")) {
+//					String accessToken = headerInputJsonData.get("accessToken").toString();
+//					String userName = headerInputJsonData.get("userName").toString();
+//					try {
+//							/*
+//							 * validating the accesstoken given by user
+//							 */
+//						authenticate.validate(userName,accessToken, "customer", "get","addProductToCart");
+//						
+//					} catch(Exception e) {
+////						e.printStackTrace();
+//						errorLog.warn("Unautherized user "+userName+" tried to access addProduct function");
+//						invalidRequestReply = new InvalidInputReplyClass(Response.Status.UNAUTHORIZED.getStatusCode(), Response.Status.UNAUTHORIZED.getReasonPhrase(), e.getMessage());
+//						return invalidRequestReply;
+//					}
+//					
+//					if(bodyInputJsonData.containsKey("id_product") && bodyInputJsonData.containsKey("id_product_attribute") && bodyInputJsonData.containsKey("id_customer") && bodyInputJsonData.containsKey("secure_key") && bodyInputJsonData.containsKey("id_cart") && bodyInputJsonData.containsKey("operator")){
+//						String cartId = bodyInputJsonData.get("id_cart").toString();
+//						String productId = bodyInputJsonData.get("id_product").toString();
+//						String productAttributeId = bodyInputJsonData.get("id_product_attribute").toString();
+//						String operator = bodyInputJsonData.get("operator").toString();
+//						
+//						if(((!cartId.equals("0") && !cartId.equals("") && !cartId.equals(null)) || (!productId.equals("0") && !productId.equals("") && !productId.equals(null)))){
+//							if(cartDao.isProductIdValid(productId) > 0 && cartDao.isCartIdValid(cartId) > 0){
+//								int isCartHavingThisProductBefore = cartDao.getCartProductDetails(cartId,productId);
+//								Map<String,Object>cartResultMap = new HashMap<String, Object>();
+//									if(isCartHavingThisProductBefore > 0){
+//										cartResultMap = updateProductQuantityInCart(cartId,productId,productAttributeId,operator);
+//										return new Reply(200,"SuccessFully Added",cartResultMap);
+//									} else {
+//										errorLog.warn("This product is not in the given cart. Give valid productId and cartId");
+//										invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "This product is not in the given cart. Give valid productId and cartId");
+//										return invalidRequestReply;
+//									}
+//								} else {
+//									errorLog.warn("productId or cartId is not valid. Give valid productId and cartId");
+//									invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "productId or cartId is not valid. Give valid productId and cartId");
+//									return invalidRequestReply;
+//								}
+//							
+//							} else {
+//								errorLog.warn("Specify cartId and productId to reduce the product in cart");
+//								invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify cartId and productId to reduce the product in cart");
+//								return invalidRequestReply;
+//							}	
+//						
+//						} else {
+//							errorLog.warn("Some of the required fields are missing, specify necessary fields");
+//							invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Some of the required fields are missing, specify necessary fields");
+//							return invalidRequestReply;
+//						}
+//				
+//					} else {
+//						errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
+//						invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
+//						return invalidRequestReply;
+//					}
+//					
+//				} else {
+//					errorLog.warn("The parameter which you specified is not in json format");
+//					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "The parameter which you specified is not in json format");
+//					return invalidRequestReply;
+//				}	
+//			}
+//			catch (NullPointerException nullPointer) {
+//				nullPointer.printStackTrace();
+//				errorLog.warn("accessToken or userName spelled Incorrectly or mention necessary fields");
+//				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "accessToken or userName spelled Incorrectly or mention necessary fields");
+//				return invalidRequestReply;
+//			}
+//			catch (UnableToExecuteStatementException mysqlException) {
+//				mysqlException.printStackTrace();
+//				errorLog.warn("Specify all required values for fields in request");
+//				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify all required values for fields in request");
+//				return invalidRequestReply;
+//			}
+//			catch (ParseException parse) {
+//				parse.printStackTrace();
+//				errorLog.warn("Specify correct data type for the values as mentioned in instructions");
+//				invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct data type for the values as mentioned in instructions");
+//				return invalidRequestReply;
+//			}
+//			catch (Exception e) {
+//				if(e instanceof IllegalArgumentException){
+//					e.printStackTrace();
+//					errorLog.warn("Specify correct keys for the values as mentioned in instructions");
+//					invalidRequestReply = new InvalidInputReplyClass(Response.Status.BAD_REQUEST.getStatusCode(), Response.Status.BAD_REQUEST.getReasonPhrase(), "Specify correct keys for the values as mentioned in instructions");
+//					return invalidRequestReply;
+//				}else {
+//					e.printStackTrace();
+//					errorLog.warn("Internal server error");
+//					invalidRequestReply = new InvalidInputReplyClass(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase(), "Internal server error");
+//					return invalidRequestReply;
+//				}
+//			}
+//		
+//	}
 	
 	
 	@SuppressWarnings("unused")
@@ -677,21 +677,26 @@ public class CartResource {
 	 * @return
 	 */
 	@SuppressWarnings("unused")
-	private Map<String, Object> increaseProductQuantityInCart(String cartId,String productId, String productAttributeId, String operator) {
+	private Map<String, Object> updateProductQuantityInCart(String cartId,String productId, String productAttributeId, String operator) {
 		
 		Map<String,Object>cartResultMap = new HashMap<String, Object>();
-		int totalCartQuantity = 0,increaseProductQuantityInCart = 0,productQuantity = 0;
+		int totalCartQuantity = 0,increaseProductQuantityInCart = 0,productQuantity = 0,deleteProductFromCart = 0;
 		double totalCartPrice = 0.0;
 		String productName = "";
 		if(operator.equals("up")) {
 			increaseProductQuantityInCart = cartDao.increaseProductQuantityInCart(cartId,productId);
+			productQuantity = cartDao.getProductQuantity(cartId,productId);
 		} else if(operator.equals("down")) {
 			increaseProductQuantityInCart = cartDao.reduceProductQuantityInCart(cartId,productId);
+			productQuantity = cartDao.getProductQuantity(cartId,productId);
+			if(!(productQuantity > 0)){
+				deleteProductFromCart = cartDao.deleteProductFromCart(cartId, productId);
+			}
 		}
 			totalCartPrice = cartHelper.getCartTotalPrice(cartId);
 			productName = cartHelper.getProductName(productId);
 			totalCartQuantity = cartDao.getCartTotalQuantity(cartId);
-			productQuantity = cartDao.getProductQuantity(cartId,productId);
+//			productQuantity = cartDao.getProductQuantity(cartId,productId);
 			cartResultMap = cartHelper.addResultValuesToMap(cartId,cartDao.getCartQuantity(cartId),totalCartPrice,totalCartQuantity,productId,productName,productQuantity);
 			return cartResultMap;
 	}

@@ -79,7 +79,8 @@ public interface CartOperationsDAO {
 	 * @param productId
 	 * @return
 	 */
-	@SqlUpdate("update ps_cart_product set quantity=quantity-1 where quantity>0 and id_cart=:cartId and id_product=:productId")
+//	@SqlQuery("select LAST_INSERT_ID()")
+	@SqlUpdate("update ps_cart_product set quantity = quantity-1 where quantity>0 and id_cart=:cartId and id_product=:productId")
 	Integer reduceProductQuantityInCart(@Bind("cartId")String cartId, @Bind("productId")String productId);
 
 	/**
