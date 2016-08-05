@@ -1,5 +1,6 @@
 package com.mebelkart.api.util.helpers;
 
+import java.net.SocketTimeoutException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,7 +36,7 @@ public class Authentication {
 			jedisAuthentication.validate(user,apikey, resourceName, method,functionName);
 		} catch (Exception e) {	
 			//if(e.getMessage().equals("java.net.SocketException: Connection reset by peer: socket write error") || e.getMessage().equals("Could not get a resource from the pool")|| e.getMessage().equals("ERR Client sent AUTH, but no password is set") || e.getMessage().equals("ERR invalid password")){
-			if(e instanceof JedisException || e instanceof JedisConnectionException || e instanceof JedisDataException){
+			if(e instanceof JedisException || e instanceof JedisConnectionException || e instanceof JedisDataException || e instanceof SocketTimeoutException){
 				log.info("Redis server responded with "+e.getMessage());
 				try{
 					sqlValidate(user, apikey, resourceName, method,functionName);
