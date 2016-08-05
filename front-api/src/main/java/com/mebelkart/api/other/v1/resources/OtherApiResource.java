@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisException;
 
 import com.codahale.metrics.annotation.Timed;
 import com.mebelkart.api.other.v1.core.CategoryWrapper;
@@ -200,13 +201,29 @@ public class OtherApiResource {
 	 */
 	@SuppressWarnings("unchecked")
 	public Object bestdeals(String callType, int nbr, String refresh) {
-		Jedis jedis = jedisFactory.getJedisConnection();
-		if(jedis.exists("dealsOfTheDay") && !refresh.equalsIgnoreCase("yes")){
-			Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsOfTheDay");
-			if(!categoriesWithProductDetails.isEmpty()){
-				return internalHelper.getDealsPage(categoriesWithProductDetails);
+		Jedis jedis = jedisFactory.getPool().getResource();
+		try{
+			if(jedis.exists("dealsOfTheDay") && !refresh.equalsIgnoreCase("yes")){
+				Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsOfTheDay");
+				if(!categoriesWithProductDetails.isEmpty()){
+					return internalHelper.getDealsPage(categoriesWithProductDetails);
+				}
 			}
+		} catch (JedisException e) {
+			// if something wrong happen, return it back to the pool
+			if (null != jedis) {
+				jedisFactory.getPool().returnBrokenResource(jedis);
+				jedis = null;
+			}
+			return false;
+		} finally {
+			// it's important to return the Jedis instance to the pool once
+			// you've finished using it
+			if (null != jedis)
+				jedisFactory.getPool().returnResource(jedis);
 		}
+		
+		
 		int categoryId = this.dao.getDataFromConfiguration("HOME_DOTD_CATEGORY");
 		
 		BoolQueryBuilder filterQuery = QueryBuilders.boolQuery();
@@ -270,13 +287,30 @@ public class OtherApiResource {
 	 * @return
 	 */
 	public Object deals(int custId,int cityId, String refresh, int nbr) {
-		Jedis jedis = jedisFactory.getJedisConnection();
-		if(jedis.exists("dealsPage") && !refresh.equalsIgnoreCase("yes")){
-			Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsPage");
-			if(!categoriesWithProductDetails.isEmpty()){
-				return internalHelper.getDealsPage(categoriesWithProductDetails);
+		Jedis jedis = jedisFactory.getPool().getResource();
+		try{
+			if(jedis.exists("dealsPage") && !refresh.equalsIgnoreCase("yes")){
+				Map<String,String> categoriesWithProductDetails = jedis.hgetAll("dealsPage");
+				if(!categoriesWithProductDetails.isEmpty()){
+					return internalHelper.getDealsPage(categoriesWithProductDetails);
+				}
 			}
+		} catch (JedisException e) {
+			// if something wrong happen, return it back to the pool
+			if (null != jedis) {
+				jedisFactory.getPool().returnBrokenResource(jedis);
+				jedis = null;
+			}
+			return false;
+		} finally {
+			// it's important to return the Jedis instance to the pool once
+			// you've finished using it
+			if (null != jedis)
+				jedisFactory.getPool().returnResource(jedis);
 		}
+		
+		
+		
 		int flashSaleCatId = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORY_ID");
 		List<CategoryWrapper> cat = this.dao.getCategoryIds(flashSaleCatId);
 		int nb = this.dao.getDataFromConfiguration("FLASHSALE_CATEGORIES_NBR");

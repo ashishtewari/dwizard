@@ -37,7 +37,7 @@ public class mkApiConfiguration extends Configuration {
 	@NotNull
 	private static Integer redisPort;
 	@NotNull
-	private static String redisPassword;
+//	private static String redisPassword;
 	
 	private static String apiInterfaceAdmin;
 	private static String apiInterfaceSuperAdmin;
@@ -65,13 +65,13 @@ public class mkApiConfiguration extends Configuration {
 		return apiInterfaceAdmin;
 	}
 	
-	public static String getRedisPassword(){
-		return redisPassword;
-	}
-	
-	public void setRedisPassword(String redisPassword){
-		mkApiConfiguration.redisPassword = redisPassword;
-	}
+//	public static String getRedisPassword(){
+//		return redisPassword;
+//	}
+//	
+//	public void setRedisPassword(String redisPassword){
+//		mkApiConfiguration.redisPassword = redisPassword;
+//	}
 	
 	public static Integer getRedisPort() {
 		return redisPort;

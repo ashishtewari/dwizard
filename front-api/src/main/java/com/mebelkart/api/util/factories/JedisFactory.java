@@ -6,10 +6,11 @@ package com.mebelkart.api.util.factories;
 
 import java.net.SocketException;
 
-import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.crypting.MD5Encoding;
+
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisDataException;
 import redis.clients.jedis.exceptions.JedisException;
 
@@ -24,23 +25,25 @@ public class JedisFactory {
 
 	public JedisFactory() {
 		// configure our pool connection
-		pool = new JedisPool(com.mebelkart.api.mkApiConfiguration.getRedisHost(), com.mebelkart.api.mkApiConfiguration.getRedisPort());
+		JedisPoolConfig poolConfig = new JedisPoolConfig();
+	    poolConfig.setTestOnBorrow(true);
+		pool = new JedisPool(poolConfig,com.mebelkart.api.mkApiConfiguration.getRedisHost(), com.mebelkart.api.mkApiConfiguration.getRedisPort());
 	}
 	
 	public JedisPool getPool(){
 		return pool;
 	}
-	
-	public Jedis getJedisConnection() throws JedisDataException{
-		// get a jedis connection
-		Jedis jedis = pool.getResource();
-		try{
-			jedis.auth(mkApiConfiguration.getRedisPassword());
-		} catch(JedisDataException e){
-			throw e ;
-		}
-		return jedis;
-	}
+//	
+//	public Jedis getJedisConnection() throws JedisDataException{
+//		// get a jedis connection
+//		Jedis jedis = pool.getResource();
+//		try{
+//			jedis.auth(mkApiConfiguration.getRedisPassword());
+//		} catch(JedisDataException e){
+//			throw e ;
+//		}
+//		return jedis;
+//	}
 
 	@SuppressWarnings("static-access")
 	public void validate(String user, String apikey, String resourceName, String method, String functionName) throws Exception {
@@ -126,9 +129,9 @@ public class JedisFactory {
 	 */
 	private boolean isUserSuperAdmin(String userName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			if (jedis.hget(userName, "adminLevel").equals("1")) {
 				return true;
@@ -152,9 +155,9 @@ public class JedisFactory {
 
 	private boolean isValidUser(String userName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+//		jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			return jedis.exists(userName);
 		} catch (JedisException e) {
@@ -174,9 +177,9 @@ public class JedisFactory {
 
 	private boolean containsFunction(String user, String method,String functionName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+//		JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+//		jedis.auth(mkApiConfiguration.getRedisPassword());
 		try{
 			if(method.equals("get"))
 				return jedis.hget(user, "getFunctions").contains(functionName);
@@ -202,9 +205,9 @@ public class JedisFactory {
 
 	public boolean isValidAccessToken(String userName,String accessToken) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+//		JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+//		jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			if(jedis.hget(userName, "accessToken").equals(accessToken))
 				return true;
@@ -227,9 +230,9 @@ public class JedisFactory {
 
 	public boolean isActive(String user) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			if (jedis.hget(user, "isActive").equals("0")) {
 				return false;
@@ -255,9 +258,9 @@ public class JedisFactory {
 
 	public boolean isBelowRateLimit(String user) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			if((currentCount(user) < maxCount(user)) && currentCount(user) > -1 && maxCount(user) > -1){
 				return true;
@@ -281,9 +284,9 @@ public class JedisFactory {
 	
 	public void incrementCurrentCount(String userName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			int currentCount = currentCount(userName);
 			currentCount++;
@@ -304,9 +307,9 @@ public class JedisFactory {
 	
 	public int currentCount(String userName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			return Integer.parseInt(jedis.hget(userName,"currentCount"));
 		} catch (JedisException e) {
@@ -326,9 +329,9 @@ public class JedisFactory {
 	
 	public int maxCount(String accessToken) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			return Integer.parseInt(jedis.hget(accessToken, "maxCount"));
 		} catch (JedisException e) {
@@ -348,9 +351,9 @@ public class JedisFactory {
 
 	public boolean containsResource(String user, String resourceName) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			return jedis.hexists(user, resourceName);
 		} catch (JedisException e) {
@@ -370,9 +373,9 @@ public class JedisFactory {
 
 	public boolean containsMethod(String user, String resourceName, String method) {
 		// get a jedis connection jedis connection pool
-		JedisFactory jedisFactory = new JedisFactory();
-		Jedis jedis = jedisFactory.getPool().getResource();
-		jedis.auth(mkApiConfiguration.getRedisPassword());
+		//JedisFactory jedisFactory = new JedisFactory();
+		Jedis jedis = pool.getResource();
+		//jedis.auth(mkApiConfiguration.getRedisPassword());
 		try {
 			return jedis.hget(user, resourceName).contains(method);
 		} catch (JedisException e) {

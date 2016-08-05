@@ -3,7 +3,6 @@
  */
 package com.mebelkart.api.util.rediscron.jedis;
 
-import com.mebelkart.api.mkApiConfiguration;
 import com.mebelkart.api.util.rediscron.dao.JedisDao;
 import com.mebelkart.api.util.crypting.MD5Encoding;
 import com.mebelkart.api.util.factories.JedisFactory;
@@ -38,12 +37,11 @@ public class JedisIndex extends Job {
 	static Logger log = LoggerFactory.getLogger(JedisIndex.class);
 	
 	JedisFactory jedisFactory = new JedisFactory();
-	Jedis jedis = jedisFactory.getPool().getResource();
 
 	public void doJob() {
 		try {
 			JedisDao jedisDaoObject = new JedisDao();
-			jedis.auth(mkApiConfiguration.getRedisPassword());
+			//jedis.auth(mkApiConfiguration.getRedisPassword());
 			/**
 			 * getting new consumer details from mk_api which are not
 			 * redisIndexed or may be changed after last indexing
@@ -150,6 +148,7 @@ public class JedisIndex extends Job {
 					functionPermssionsResultSet.close();
 				}
 			}
+			Jedis jedis = jedisFactory.getPool().getResource();
 			try {
 				if(jedis.exists(MD5Encoding.encrypt(nameOfUser))){
 					// removing that key and its all related fields and values form redis
@@ -193,10 +192,15 @@ public class JedisIndex extends Job {
 			} catch (JedisException e) {
 				// if something wrong happen, return it back to the pool
 				if (null != jedis) {
-					//pool.returnBrokenResource(jedis);
+					jedisFactory.getPool().returnBrokenResource(jedis);
 					jedis = null;
 				}
-			} 
+			} finally {
+				// it's important to return the Jedis instance to the pool once
+				// you've finished using it
+				if (null != jedis)
+					jedisFactory.getPool().returnResource(jedis);
+			}
 		}
 	}
 }

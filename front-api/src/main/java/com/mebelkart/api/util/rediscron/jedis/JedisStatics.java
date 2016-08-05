@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisDataException;
+import redis.clients.jedis.exceptions.JedisException;
 
 import com.mebelkart.api.util.rediscron.dao.JedisDao;
 import com.mebelkart.api.util.factories.JedisFactory;
@@ -29,14 +30,14 @@ public class JedisStatics extends Job{
 	JedisFactory jedisFactory = new JedisFactory();
 	
 	public void doJob() {
+		Jedis tempJedis = jedisFactory.getPool().getResource();
 		try{
 			JedisDao jedisDaoObject = new JedisDao();
 			/**
 			 * getting all redis indexed keys and then we are getting the currentCount of the user and
 			 * updating it in mk_api_statics table and 
 			 * then later updating the currentCount of the user to 0 in redis
-			 */	
-			Jedis tempJedis = jedisFactory.getJedisConnection();
+			 */
 			Set<String> keys = tempJedis.keys("*");
 			for(String key: keys){
 				try{
@@ -91,6 +92,17 @@ public class JedisStatics extends Job{
 			e1.printStackTrace();
 		} catch (JedisDataException e){
 			log.info("There is an JedisDataException in JedisStatics, Message is "+e.getMessage());
+		} catch (JedisException e) {
+			// if something wrong happen, return it back to the pool
+			if (null != tempJedis) {
+				jedisFactory.getPool().returnBrokenResource(tempJedis);
+				tempJedis = null;
+			}
+		} finally {
+			// it's important to return the Jedis instance to the pool once
+			// you've finished using it
+			if (null != tempJedis)
+				jedisFactory.getPool().returnResource(tempJedis);
 		}
 	}
 
