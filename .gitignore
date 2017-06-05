@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Maven
 target/
 dependency-reduced-pom.xml
@@ -29,3 +30,27 @@ nb-configuration.xml
 atlassian-ide-plugin.xml
 
 logs
+=======
+# Maven
+target/
+dependency-reduced-pom.xml
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+.settings/
+.classpath
+.project
+
+nb-configuration.xml
+atlassian-ide-plugin.xml
+
+logs
+>>>>>>> 9a6707c4508c029b55d2cc73e42569c24f7c49dd
